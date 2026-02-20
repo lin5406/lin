@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生命靈數能量地圖 | 順流生活學</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700;900&display=swap');
+        
+        body { font-family: 'Noto Sans TC', sans-serif; }
+
+        @media print {
+            @page { margin: 1cm; }
+            body { background: white !important; }
+            .print-hidden { display: none !important; }
+            .print-break-inside-avoid { break-inside: avoid; }
+            .print-report-box { 
+                background-color: white !important; 
+                color: black !important; 
+                border: 1px solid #e2e8f0 !important;
+            }
+            pre {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                color: black !important;
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 py-8 px-4 print:bg-white print:py-0 print:px-0">
+
+    <div id="app" class="max-w-4xl mx-auto">
+        <header class="text-center mb-12 print-hidden">
+            <h1 class="text-4xl md:text-6xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-700">
+                生命靈數能量地圖
+            </h1>
+            <p class="text-slate-500 text-lg max-w-2xl mx-auto">
+                這不是算命，是你的 <strong>出廠設定說明書</strong>。<br />
+                透過數據分析了解天賦、行為模式與成長方向。
+            </p>
+        </header>
+
+        <section class="bg-white rounded-3xl shadow-xl p-8 mb-10 border border-slate-100 text-center relative overflow-hidden print-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-amber-500"></div>
+            <label class="block text-lg font-bold mb-6 text-slate-700">
+                📅 請選擇你的西元出生年月日
+            </label>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4">
+                <input
+                    type="date"
+                    v-model="birthday"
+                    class="w-full md:w-64 px-4 py-3 rounded-xl border-2 border-slate-100 focus:border-indigo-500 focus:outline-none transition-all text-lg bg-slate-50"
+                />
+                <button
+                    @click="handleCalculate"
+                    class="w-full md:w-auto px-8 py-3.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 hover:-translate-y-1 transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+                >
+                    <i data-lucide="zap" class="w-5 h-5"></i> 生成我的原廠說明書
+                </button>
+            </div>
+        </section>
+
+        <div v-if="result" class="space-y-8 fade-in-up print:space-y-4">
+            <div class="hidden print:block text-center border-b pb-6 mb-6">
+                <h1 class="text-3xl font-bold mb-2 text-indigo-800">生命靈數能量報告</h1>
+                <p class="text-slate-500">出生日期：{{ birthday }}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 print:grid-cols-2">
+                <div class="bg-white p-8 rounded-3xl shadow-md border border-slate-100 flex flex-col justify-center relative overflow-hidden print:shadow-none print:border-slate-200">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-blue-500 print-hidden"></div>
+                    <h2 class="text-slate-400 font-bold text-sm mb-4 uppercase tracking-widest">你的主命數</h2>
+                    <div class="flex items-center gap-6 mb-8 print:mb-4">
+                        <div class="w-24 h-24 bg-amber-400 rounded-full flex items-center justify-center text-5xl font-black text-white shadow-lg shadow-amber-100 print:shadow-none print:bg-amber-500">
+                            {{ result }}
+                        </div>
+                        <div>
+                            <p class="text-3xl font-black text-slate-800">{{ lifePathMeta[result].label }}</p>
+                            <p class="text-emerald-600 font-bold">核心驅動代碼啟動</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 print-hidden">
+                        <button @click="copyToClipboard" class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 font-bold transition-all border border-slate-100">
+                            <i data-lucide="clipboard" class="w-4 h-4"></i> 複製報告
+                        </button>
+                        <button @click="handlePrint" class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 font-bold transition-all border border-slate-100">
+                            <i data-lucide="printer" class="w-4 h-4"></i> 列印 PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-3xl shadow-md border border-slate-100 print:shadow-none print:border-slate-200 print-break-inside-avoid">
+                    <h3 class="text-sm font-bold text-slate-400 mb-6 uppercase tracking-widest text-center">能量分佈九宮格</h3>
+                    <div class="relative w-full aspect-square max-w-[280px] mx-auto">
+                        <div class="grid grid-cols-3 grid-rows-3 w-full h-full border-4 border-indigo-600 rounded-2xl overflow-hidden bg-white relative z-10">
+                            <div v-for="num in 9" :key="num" 
+                                :class="['border border-slate-100 flex flex-col items-center justify-center p-2 transition-all', grid[num] > 0 ? 'bg-indigo-50/50' : 'opacity-40']">
+                                <span class="text-2xl font-black text-slate-800">{{ num }}</span>
+                                <div class="flex flex-wrap justify-center gap-1 mt-1">
+                                    <div v-for="i in grid[num]" :key="i" class="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm border border-white"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <svg class="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 300 300">
+                            <template v-for="(ln, idx) in lines">
+                                <line v-if="isLineActive(ln)"
+                                    :key="idx"
+                                    :x1="centers[ln[0]].x" :y1="centers[ln[0]].y" 
+                                    :x2="centers[ln[2]].x" :y2="centers[ln[2]].y" 
+                                    stroke="#10b981" stroke-width="6" stroke-linecap="round" opacity="0.5" />
+                            </template>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 print:grid-cols-3">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-blue-500 print-break-inside-avoid print:border-slate-200 print:shadow-none">
+                    <h4 class="flex items-center gap-2 font-bold text-lg mb-4 text-slate-800">
+                        <i data-lucide="star" class="w-5 h-5 text-blue-500 print-hidden"></i> 天賦優勢
+                    </h4>
+                    <p class="text-slate-600 leading-relaxed text-sm">{{ lifePathMeta[result].strength }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-red-500 print-break-inside-avoid print:border-slate-200 print:shadow-none">
+                    <h4 class="flex items-center gap-2 font-bold text-lg mb-4 text-slate-800">
+                        <i data-lucide="shield" class="w-5 h-5 text-red-500 print-hidden"></i> 致命 Bug
+                    </h4>
+                    <p class="text-slate-600 leading-relaxed text-sm">{{ lifePathMeta[result].bug }}</p>
+                </div>
+                <div class="bg-indigo-600 p-6 rounded-3xl shadow-xl text-white print-break-inside-avoid print:bg-white print:text-indigo-900 print:border-2 print:border-indigo-100 print:shadow-none">
+                    <h4 class="flex items-center gap-2 font-bold text-lg mb-4">
+                        <i data-lucide="target" class="w-5 h-5 text-indigo-300 print-hidden"></i> 核心行動建議
+                    </h4>
+                    <p class="leading-relaxed text-sm">{{ lifePathMeta[result].advice }}</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 print-break-inside-avoid print:border-slate-200">
+                <h3 class="text-lg font-bold mb-6 text-slate-800 border-b pb-4 flex items-center gap-2">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500 print-hidden"></i> 待開發模組（缺數補強）
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 print:grid-cols-2">
+                    <template v-if="missingNumbers.length > 0">
+                        <div v-for="num in missingNumbers" :key="num" class="flex items-start gap-4 bg-amber-50/50 p-4 rounded-2xl border border-amber-100 print:bg-white print:border-slate-200">
+                            <div class="w-10 h-10 bg-white text-amber-600 rounded-full flex items-center justify-center font-black shadow-sm shrink-0 border border-amber-200">
+                                {{ num }}
+                            </div>
+                            <p class="text-slate-700 text-sm leading-relaxed">{{ missingAdvice[num] }}</p>
+                        </div>
+                    </template>
+                    <div v-else class="col-span-2 text-center py-6 bg-emerald-50 rounded-2xl border border-emerald-100 flex flex-col items-center">
+                        <i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-500 mb-2"></i>
+                        <p class="text-emerald-800 font-bold">全能量滿載！</p>
+                        <p class="text-emerald-600 text-sm">九宮格數字齊全，具備全方位發展潛力。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 print-break-inside-avoid print:border-slate-200">
+                <h3 class="text-lg font-bold mb-6 text-slate-800 border-b pb-4">啟動能量連線</h3>
+                <div class="space-y-4">
+                    <template v-if="activeLineItems.length > 0">
+                        <div v-for="line in activeLineItems" :key="line.key" class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 print:bg-white print:border-slate-200">
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center font-bold shrink-0">
+                                {{ line.key.replace(/-/g, '') }}
+                            </div>
+                            <p class="text-slate-700 font-medium text-sm">{{ line.val }}</p>
+                        </div>
+                    </template>
+                    <p v-else class="text-slate-400 italic text-center py-4">目前暫無完整能量連線，建議專注補強缺數建議項目。</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 text-white p-8 rounded-[2rem] shadow-2xl relative overflow-hidden print-report-box print:rounded-2xl print:shadow-none">
+                <div class="absolute top-0 right-0 p-8 opacity-10 print-hidden">
+                    <i data-lucide="message-square" class="w-32 h-32"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-6 flex items-center gap-3 print:text-slate-800 print:border-b print:pb-2">
+                    <i data-lucide="layout" class="w-6 h-6 text-blue-400 print-hidden"></i> 完整原廠報告輸出
+                </h3>
+                <pre class="bg-slate-800/50 p-6 rounded-2xl font-mono text-sm text-blue-100 whitespace-pre-wrap leading-relaxed border border-slate-700 print:bg-transparent print:border-none print:text-black">
+{{ getFullReport() }}
+                </pre>
+            </div>
+        </div>
+
+        <div v-else class="text-center py-24 opacity-30 print-hidden">
+            <i data-lucide="calculator" class="w-16 h-16 mx-auto mb-4"></i>
+            <p class="text-xl">輸入生日以開始分析你的能量地圖</p>
+        </div>
+
+        <footer class="mt-20 py-10 text-center text-slate-400 text-sm print-hidden">
+            <p>© 2026 生命靈數能量地圖 ｜ 順流生活學</p>
+        </footer>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, nextTick } = Vue;
+
+        createApp({
+            setup() {
+                const birthday = ref('');
+                const result = ref(null);
+                const grid = ref(null);
+
+                const lifePathMeta = {
+                    1: { label: "開創者", strength: "決斷力強，從 0 到 1 創新是主場。", bug: "太急太獨，容易校長兼撞鐘。", advice: "學會授權，把心力放在指方向。" },
+                    2: { label: "協調者", strength: "細膩溫柔，團隊潤滑劑。", bug: "太在意他人，變情緒垃圾桶。", advice: "練習說不，讓溫柔有邊界。" },
+                    3: { label: "表達者", strength: "創意感染力，內容/業務天職。", bug: "三分鐘熱度，落地難。", advice: "找 4 號夥伴，把點子變 SOP。" },
+                    4: { label: "建設者", strength: "邏輯架構強，靠譜基石。", bug: "固執怕變，錯失機會。", advice: "接受微小冒險，提升應變力。" },
+                    5: { label: "自由者", strength: "適應力強，業務嗅覺敏銳。", bug: "承諾跳票，信用累積慢。", advice: "自由前先證明自律。" },
+                    6: { label: "療癒者", strength: "有愛負責，主管/顧問佳。", bug: "完美主義碎念。", advice: "放過自己，也放過別人。" },
+                    7: { label: "分析師", strength: "邏輯質疑，策略顧問天職。", bug: "分析癱瘓，冷漠。", advice: "把知識輸出，開始行動。" },
+                    8: { label: "掌控者", strength: "金錢權力敏銳，做大事。", bug: "太現實，犧牲關係。", advice: "成就別人，才是真正強大。" },
+                    9: { label: "夢想家", strength: "大愛靈性，社會領袖。", bug: "空想不落地。", advice: "把願景拆成每天小事。" }
+                };
+
+                const missingAdvice = {
+                    1: "每天練習一個主動決策，不等別人指示。",
+                    2: "每週開 1:1 會議，練習讀情緒與協調。",
+                    3: "試做短影音或寫分享文，練習表達美感。",
+                    4: "用工具建工作流程圖，練習邏輯架構。",
+                    5: "每月試一個新習慣/工具，練習適應力。",
+                    6: "主動承擔一件團隊責任，不推託。",
+                    7: "讀一本書做筆記摘要，練習深度分析。",
+                    8: "每月看一篇財報/商業案例，練習資源敏銳。",
+                    9: "參與公益活動，把願景變小行動。"
+                };
+
+                const lineMeta = {
+                    "1-2-3": "行動表達線：溝通推銷、內容創作強。",
+                    "4-5-6": "穩定責任線：團隊管理、長期專案佳。",
+                    "7-8-9": "策略成就線：商業模式、深度規劃。",
+                    "1-4-7": "實作邏輯線：從想法到落地的執行力。",
+                    "2-5-8": "人際資源線：關係、金錢、權力敏銳。",
+                    "3-6-9": "創意大愛線：藝術、教育、公益。",
+                    "1-5-9": "領導自由線：獨立創業、具備遠見。",
+                    "3-5-7": "冒險財智線：創新、風險評估與策略。"
+                };
+
+                const lines = [
+                    [1, 2, 3], [4, 5, 6], [7, 8, 9],
+                    [1, 4, 7], [2, 5, 8], [3, 6, 9],
+                    [1, 5, 9], [3, 5, 7]
+                ];
+
+                const centers = {
+                    1: {x: 50, y: 50}, 2: {x: 150, y: 50}, 3: {x: 250, y: 50},
+                    4: {x: 50, y: 150}, 5: {x: 150, y: 150}, 6: {x: 250, y: 150},
+                    7: {x: 50, y: 250}, 8: {x: 150, y: 250}, 9: {x: 250, y: 250}
+                };
+
+                const handleCalculate = () => {
+                    if (!birthday.value) return;
+                    const digits = birthday.value.replace(/\D/g, "").split("").filter(d => d !== "0");
+                    
+                    let sum = digits.reduce((acc, d) => acc + Number(d), 0);
+                    while (sum > 9) {
+                        sum = String(sum).split("").reduce((acc, d) => acc + Number(d), 0);
+                    }
+                    result.value = sum;
+
+                    const newGrid = { 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0 };
+                    digits.forEach(d => {
+                        const n = Number(d);
+                        if (n >= 1 && n <= 9) newGrid[n]++;
+                    });
+                    grid.value = newGrid;
+
+                    // 重新渲染圖標
+                    nextTick(() => lucide.createIcons());
+                };
+
+                const isLineActive = (ln) => {
+                    return ln.every(n => grid.value && grid.value[n] > 0);
+                };
+
+                const missingNumbers = computed(() => {
+                    if (!grid.value) return [];
+                    return Object.keys(grid.value).filter(k => grid.value[k] === 0);
+                });
+
+                const activeLineItems = computed(() => {
+                    if (!grid.value) return [];
+                    return lines
+                        .filter(ln => isLineActive(ln))
+                        .map(ln => ({ key: ln.join('-'), val: lineMeta[ln.join('-')] }));
+                });
+
+                const getFullReport = () => {
+                    if (!result.value || !grid.value) return "";
+                    let report = `【生命靈數能量報告】\n`;
+                    report += `出生日期：${birthday.value}\n`;
+                    report += `主命數：${result.value} - ${lifePathMeta[result.value].label}\n`;
+                    report += `天賦優勢：${lifePathMeta[result.value].strength}\n`;
+                    report += `致命 Bug：${lifePathMeta[result.value].bug}\n`;
+                    report += `行動建議：${lifePathMeta[result.value].advice}\n\n`;
+                    
+                    if (missingNumbers.value.length > 0) {
+                        report += `待開發補強建議：\n`;
+                        missingNumbers.value.forEach(k => {
+                            report += `- ${k} 號缺數建議：${missingAdvice[k]}\n`;
+                        });
+                        report += `\n`;
+                    }
+
+                    if (activeLineItems.value.length > 0) {
+                        report += `啟動能量連線：\n`;
+                        activeLineItems.value.forEach(item => {
+                            report += `- ${item.val}\n`;
+                        });
+                    }
+                    return report;
+                };
+
+                const copyToClipboard = () => {
+                    const text = getFullReport();
+                    navigator.clipboard.writeText(text).then(() => {
+                        alert("報告已複製到剪貼簿！");
+                    });
+                };
+
+                const handlePrint = () => {
+                    window.print();
+                };
+
+                // 初始化 Lucide
+                nextTick(() => lucide.createIcons());
+
+                return {
+                    birthday, result, grid, lifePathMeta, missingAdvice, lines, centers,
+                    handleCalculate, isLineActive, missingNumbers, activeLineItems,
+                    getFullReport, copyToClipboard, handlePrint
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
