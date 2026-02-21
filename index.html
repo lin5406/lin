@@ -72,7 +72,49 @@
         <p class="text-xl md:text-2xl font-light opacity-90 mb-6">從零開始的數位創意實踐</p>
     </header>
 
-    <!-- Top Resources Section -->
+    <div class="h-12 w-full"></div>
+
+    <!-- 經典研讀 Section -->
+    <section class="w-full max-w-5xl bg-[#fcb69f] border-4 border-[#ff9d8f] rounded-[2.5rem] p-8 text-center text-[#5c3a21] shadow-2xl relative overflow-visible ring-4 ring-[#ffcda3]/20">
+        <h2 class="text-2xl font-bold mb-2">經典研讀</h2>
+        <p class="text-[#8c5a35]/80 text-sm mb-6 uppercase tracking-widest font-bold">Classic Studies</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Part 1 - 已修正為純字串連結 -->
+            <a href="https://gemini.google.com/share/c609519e78ca" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
+                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 1</p>
+                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
+                    論語修煉
+                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
+                </h3>
+                <p class="text-sm opacity-90">溫故而知新，可以為師矣。</p>
+            </a>
+            
+            <!-- Part 2 - 已修正為純字串連結 -->
+            <a href="https://gemini.google.com/share/c609519e78ca" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
+                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 2</p>
+                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
+                    籌備中...
+                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
+                </h3>
+                <p class="text-sm opacity-90">內容籌備中，敬請期待...</p>
+            </a>
+            
+            <!-- Part 3 -->
+            <a href="https://gemini.google.com/share/c609519e78ca" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
+                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 3</p>
+                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
+                    籌備中...
+                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
+                </h3>
+                <p class="text-sm opacity-90">內容籌備中，敬請期待...</p>
+            </a>
+        </div> 
+    </section>
+
+    <div class="h-12 w-full"></div>
+
+    <!-- Top Resources Section (個人生命密碼解析) -->
     <section class="w-full max-w-5xl bg-yellow-400 border-4 border-yellow-500 rounded-[2.5rem] p-8 text-center text-yellow-950 shadow-2xl relative overflow-hidden ring-4 ring-yellow-400/20">
         <h2 class="text-2xl font-bold mb-2">個人生命密碼解析</h2>
         <p class="text-yellow-900/80 text-sm mb-6 uppercase tracking-widest font-bold">Life Code Analysis</p>
@@ -115,11 +157,11 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- Part 1 -->
             <div onclick="openNoteModal()" class="cursor-pointer group part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(472px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
-                    <div class="relative w-full aspect-[360/472] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] border-[5px] border-white overflow-hidden mx-auto">
+                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(360px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
+                    <div class="relative w-full aspect-[360/480] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] border-[5px] border-white overflow-hidden mx-auto">
                         <img src="https://lin5406.github.io/pic/%E7%9C%9F%E6%AD%A3%E7%9A%84%E5%BC%B7%E5%A4%A7001.png" class="w-full h-full object-cover" alt="真正的強大預覽">
                         <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-center text-[11px] text-white font-medium">
-                            360 x 472 HD Preview
+                            360 x 480 HD Preview
                         </div>
                     </div>
                 </div>
@@ -139,11 +181,11 @@
 
             <!-- Part 2 -->
             <div onclick="openNoteModal2()" class="cursor-pointer group part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(862px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
-                    <div class="relative w-full aspect-[862/472] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] border-[5px] border-white overflow-hidden mx-auto">
+                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(640px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
+                    <div class="relative w-full aspect-[640/360] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] border-[5px] border-white overflow-hidden mx-auto">
                         <img src="https://lin5406.github.io/pic/小我001.png" class="w-full h-full object-cover" alt="禪修筆記預覽">
                         <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-center text-[11px] text-white font-medium">
-                            862 x 472 HD Preview
+                            640 x 360 HD Preview
                         </div>
                     </div>
                 </div>
@@ -163,11 +205,11 @@
 
             <!-- Part 3 -->
             <div onclick="openNoteModal3()" class="cursor-pointer group part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(862px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
-                    <div class="relative w-full aspect-[862/472] bg-white rounded-2xl shadow-[0_30px_70px_rgba(0,0,0,0.6)] border-[5px] border-white overflow-hidden mx-auto">
+                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(640px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
+                    <div class="relative w-full aspect-[640/400] bg-white rounded-2xl shadow-[0_30px_70px_rgba(0,0,0,0.6)] border-[5px] border-white overflow-hidden mx-auto">
                         <img src="https://lin5406.github.io/pic/易經六四卦001.png" class="w-full h-full object-cover" alt="易經六十四卦預覽">
                         <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-center text-[11px] text-white font-medium">
-                            862 x 472 HD Preview
+                            640 x 400 HD Preview
                         </div>
                     </div>
                 </div>
@@ -184,18 +226,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Part 4 -->
-            <div class="relative z-20">    
-                <a href="https://lin5406.github.io/1150214_TheOriginalWay/" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 4</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    修行、平等性
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">以大自然為師，開啟心靈寶藏；圓融精神物質，展現無礙生命</p>
-                </a>
-            </div> 
         </div> 
     </section>
 
@@ -1013,4 +1043,3 @@
     </script>
 </body>
 </html>
-
