@@ -11,7 +11,7 @@
     <style>
         body {
             background-color: #050505;
-            color: #d1d1d1;
+            color: #e5e5e5; /* 提升基礎文字亮度 */
             font-family: 'Noto Serif TC', serif;
             overflow-x: hidden;
         }
@@ -19,8 +19,8 @@
         .transparent-title {
             font-weight: 900;
             color: transparent;
-            -webkit-text-stroke: 1.2px rgba(255, 255, 255, 0.6);
-            background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+            -webkit-text-stroke: 1.2px rgba(255, 255, 255, 0.7); /* 提升描邊亮度 */
+            background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
             -webkit-background-clip: text;
             background-clip: text;
             position: relative;
@@ -28,47 +28,50 @@
             display: inline-block;
         }
 
-        .text-glow { text-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        .text-glow { text-shadow: 0 0 25px rgba(255,255,255,0.15); }
 
         .glow-sphere {
             position: absolute;
             width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
             border-radius: 50%; filter: blur(80px);
             z-index: 1; pointer-events: none;
         }
 
         .reveal { opacity: 0; transform: translateY(30px); }
 
+        /* --- 圖片亮度與透明度優化 --- */
         .awakening-image {
-            box-shadow: 0 0 80px rgba(255,255,255,0.02);
+            box-shadow: 0 0 80px rgba(255,255,255,0.05);
             transition: all 1.8s cubic-bezier(0.19, 1, 0.22, 1);
+            filter: brightness(1.1); /* 增加亮度，確保清晰 */
+        }
+        .awakening-image:hover {
+            opacity: 1 !important; /* 懸停時完全清晰 */
+            filter: brightness(1.2);
+            box-shadow: 0 0 100px rgba(255,255,255,0.1);
+            transform: scale(1.005);
         }
 
-        /* --- 立體視窗核心樣式：全面轉為微黃色調 --- */
+        /* --- 立體視窗核心樣式 --- */
         .stereoscopic-modal {
-            /* 立體邊緣線：左上暖白光線，右下深褐色陰影 */
             box-shadow: 
                 inset 1px 1px 1px 0px rgba(255, 255, 255, 1), 
                 inset -2px -2px 5px 0px rgba(180, 160, 120, 0.3),
                 0 30px 60px -15px rgba(0, 0, 0, 0.8);
-            /* 調整為溫暖微黃漸層（如古卷宣紙色） */
             background: linear-gradient(135deg, #fffdf0 0%, #f7f2d7 100%);
-            color: #292524; /* 改為深石色 (Stone-800) 確保淺背景下的閱讀性 */
+            color: #292524;
         }
 
-        /* Modal 滾動條美化：配合暖色調 */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(120, 113, 108, 0.3); border-radius: 10px; }
 
-        /* 引用區塊：暖陽紙感 */
         .parchment-bg {
             background: rgba(214, 211, 191, 0.2);
             border-left: 2px solid rgba(120, 113, 108, 0.4);
         }
         
-        /* 表格微調：在淺色背景下的對比 */
         .modal-table th { background: rgba(120, 113, 108, 0.05); }
         .modal-table tr { border-color: rgba(120, 113, 108, 0.1) !important; }
     </style>
@@ -84,32 +87,34 @@
             <h1 id="main-title" class="text-glow">
                 <span class="block text-4xl md:text-6xl lg:text-7xl tracking-[0.25em] leading-tight mb-8 transparent-title">真正的覺醒</span>
                 <br>
-                <span class="block text-2xl md:text-4xl lg:text-5xl font-extralight tracking-[0.4em] text-white/40">不是變強，而是徹底消失</span>
+                <span class="block text-2xl md:text-4xl lg:text-5xl font-extralight tracking-[0.4em] text-white/70">不是變強，而是徹底消失</span>
             </h1>
         </div>
-        <div class="w-[1px] h-32 mt-16 bg-gradient-to-b from-white/30 to-transparent"></div>
+        <div class="w-[1px] h-32 mt-16 bg-gradient-to-b from-white/40 to-transparent"></div>
     </section>
 
-    <!-- 章節 內容 -->
+    <!-- 章節 內容 1 -->
     <section class="min-h-screen flex items-center justify-center p-6 md:p-24">
         <div class="max-w-3xl w-full reveal">
-            <h2 class="text-xl md:text-2xl text-white/80 mb-8 font-medium tracking-widest underline underline-offset-8 decoration-white/10">關於「變強」的執念</h2>
-            <p class="text-lg leading-[2.5] text-gray-500 font-light">
+            <h2 class="text-xl md:text-2xl text-white mb-8 font-medium tracking-widest underline underline-offset-8 decoration-white/20">關於「變強」的執念</h2>
+            <p class="text-lg leading-[2.5] text-gray-300 font-light">
                 我們曾被教導要去追求、去佔有、去擴張。以為累積更多的知識、權力與自我感，便能抵達生命的終點。然而，這些只是更厚重的盔甲。真正的力量，往往隱藏在放手之後。
             </p>
         </div>
     </section>
 
-    <section class="min-h-[60vh] flex items-center justify-center bg-white/[0.01] p-6 border-y border-white/[0.05]">
+    <!-- 核心格言 -->
+    <section class="min-h-[60vh] flex items-center justify-center bg-white/[0.02] p-6 border-y border-white/[0.05]">
         <div class="max-w-2xl text-center reveal">
-            <p class="text-2xl md:text-3xl font-extralight text-gray-300 leading-relaxed tracking-widest">「當你不再試圖成為任何人的時候，<br>你就是一切。」</p>
+            <p class="text-2xl md:text-3xl font-light text-gray-100 leading-relaxed tracking-widest">「當你不再試圖成為任何人的時候，<br>你就是一切。」</p>
         </div>
     </section>
 
+    <!-- 章節 內容 2 -->
     <section class="min-h-screen flex items-center justify-center p-6 md:p-24">
         <div class="max-w-3xl w-full text-right reveal">
-            <h2 class="text-xl md:text-2xl text-white/80 mb-8 font-medium tracking-widest underline underline-offset-8 decoration-white/10">徹底消失的藝術</h2>
-            <p class="text-lg leading-[2.5] text-gray-500 font-light">
+            <h2 class="text-xl md:text-2xl text-white mb-8 font-medium tracking-widest underline underline-offset-8 decoration-white/20">徹底消失的藝術</h2>
+            <p class="text-lg leading-[2.5] text-gray-300 font-light">
                 消失不是肉體的幻滅，而是那個「我」的邊界徹底崩塌。不再有對抗，不再有分別。當水滴消失於大海，它才真正成為了大海。在那樣的寂靜中，你會聽見宇宙的脈動。
             </p>
         </div>
@@ -119,14 +124,15 @@
     <section id="footer" class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
         <div class="reveal flex flex-col items-center w-full">
             <div class="mb-20 px-4 w-full flex justify-center">
-                <img src="https://lin5406.github.io/pic/awakening001.png" alt="覺醒意象" class="awakening-image rounded-[2rem] opacity-40 max-w-full w-auto h-auto border border-white/5 shadow-2xl">
+                <!-- 將不透明度提升至 90%，並透過 CSS 強化亮度 -->
+                <img src="https://lin5406.github.io/pic/awakening001.png" alt="覺醒意象" class="awakening-image rounded-[2rem] opacity-90 max-w-full w-auto h-auto border border-white/5 shadow-2xl">
             </div>
-            <p class="text-gray-600 tracking-[0.8em] uppercase text-xs mb-6">Sunyata / Emptiness</p>
-            <h3 class="text-2xl font-extralight text-white/90 mb-16 tracking-[0.2em]">歸於虛無，始見真實</h3>
+            <p class="text-gray-400 tracking-[0.8em] uppercase text-xs mb-6">Sunyata / Emptiness</p>
+            <h3 class="text-2xl font-extralight text-white mb-16 tracking-[0.2em]">歸於虛無，始見真實</h3>
             
-            <button id="openNotes" class="group relative px-12 py-4 overflow-hidden border border-white/10">
-                <span class="relative z-10 text-xs tracking-[0.5em] text-gray-400 group-hover:text-white transition-colors duration-500">閱讀覺醒筆記</span>
-                <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <button id="openNotes" class="group relative px-12 py-4 overflow-hidden border border-white/20">
+                <span class="relative z-10 text-xs tracking-[0.5em] text-gray-300 group-hover:text-white transition-colors duration-500">閱讀覺醒筆記</span>
+                <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             </button>
         </div>
     </section>
@@ -134,10 +140,9 @@
     <!-- 覺醒筆記彈出視窗 -->
     <div id="modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-8">
         <div id="modalOverlay" class="absolute inset-0 bg-black/95 backdrop-blur-xl opacity-0"></div>
-        <!-- 立體微黃視窗 -->
         <div id="modalContent" class="stereoscopic-modal relative w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-[2.5rem] scale-95 opacity-0 flex flex-col">
             
-            <!-- Modal Header：微黃標題欄 -->
+            <!-- Modal Header -->
             <div class="flex items-center justify-between p-8 border-b border-stone-200 bg-stone-100/30">
                 <div class="flex items-center gap-4">
                     <span class="text-2xl">🛑</span>
@@ -258,9 +263,8 @@
                     <div class="py-16 border-y border-stone-300 space-y-8 text-center bg-stone-50/50">
                         <h4 class="text-lg text-stone-400 tracking-[0.5em] uppercase">📝 總結：無我的終極自由</h4>
                         <p class="text-2xl text-stone-900 font-medium leading-relaxed tracking-widest">
-                            「真正的覺醒不是你變成光，<br>而是你終於發現，從來就沒有一個需要發光的『我』。」
+                            「真正的覺醒不是你變成光，<br>欣賞你終於發現，從來就沒有一個需要發光的『我』。」
                         </p>
-                        <p class="text-stone-500 max-w-xl mx-auto italic">真正的覺醒，不是你成為誰，而是你終於「不需要成為任何人」。</p>
                     </div>
 
                     <!-- Q&A -->
@@ -295,7 +299,7 @@
             gsap.from("#main-title", { duration: 2.5, opacity: 0, y: 20, filter: "blur(15px)", ease: "power3.out" });
 
             document.querySelectorAll(".reveal").forEach((el) => {
-                gsap.to(el, { scrollTrigger: { trigger: el, start: "top 90%", scrub: 1 }, opacity: 1, y: 0 });
+                gsap.to(el, { scrollTrigger: { trigger: el, start: "top 95%", scrub: 1 }, opacity: 1, y: 0 });
             });
 
             window.addEventListener("scroll", () => {
