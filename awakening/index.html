@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>真正的覺醒</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;500;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #050505;
+            color: #d1d1d1;
+            font-family: 'Noto Serif TC', serif;
+            overflow-x: hidden;
+        }
+        
+        .transparent-title {
+            font-weight: 900;
+            color: transparent;
+            -webkit-text-stroke: 1.2px rgba(255, 255, 255, 0.6);
+            background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            position: relative;
+            z-index: 10;
+            display: inline-block;
+        }
+
+        .text-glow { text-shadow: 0 0 20px rgba(255,255,255,0.1); }
+
+        .glow-sphere {
+            position: absolute;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%; filter: blur(80px);
+            z-index: 1; pointer-events: none;
+        }
+
+        .reveal { opacity: 0; transform: translateY(30px); }
+
+        .awakening-image {
+            box-shadow: 0 0 80px rgba(255,255,255,0.02);
+            transition: all 1.8s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* --- 立體視窗核心樣式：全面轉為微黃色調 --- */
+        .stereoscopic-modal {
+            /* 立體邊緣線：左上暖白光線，右下深褐色陰影 */
+            box-shadow: 
+                inset 1px 1px 1px 0px rgba(255, 255, 255, 1), 
+                inset -2px -2px 5px 0px rgba(180, 160, 120, 0.3),
+                0 30px 60px -15px rgba(0, 0, 0, 0.8);
+            /* 調整為溫暖微黃漸層（如古卷宣紙色） */
+            background: linear-gradient(135deg, #fffdf0 0%, #f7f2d7 100%);
+            color: #292524; /* 改為深石色 (Stone-800) 確保淺背景下的閱讀性 */
+        }
+
+        /* Modal 滾動條美化：配合暖色調 */
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(120, 113, 108, 0.3); border-radius: 10px; }
+
+        /* 引用區塊：暖陽紙感 */
+        .parchment-bg {
+            background: rgba(214, 211, 191, 0.2);
+            border-left: 2px solid rgba(120, 113, 108, 0.4);
+        }
+        
+        /* 表格微調：在淺色背景下的對比 */
+        .modal-table th { background: rgba(120, 113, 108, 0.05); }
+        .modal-table tr { border-color: rgba(120, 113, 108, 0.1) !important; }
+    </style>
+</head>
+<body class="selection:bg-yellow-200 selection:text-black">
+
+    <div id="glow" class="glow-sphere"></div>
+    <div id="progress" class="fixed top-0 left-0 h-[1px] bg-white/50 z-[60] transition-all duration-300" style="width: 0%"></div>
+
+    <!-- 首屏 -->
+    <section class="min-h-screen flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 id="main-title" class="text-glow">
+                <span class="block text-4xl md:text-6xl lg:text-7xl tracking-[0.25em] leading-tight mb-8 transparent-title">真正的覺醒</span>
+                <br>
+                <span class="block text-2xl md:text-4xl lg:text-5xl font-extralight tracking-[0.4em] text-white/40">不是變強，而是徹底消失</span>
+            </h1>
+        </div>
+        <div class="w-[1px] h-32 mt-16 bg-gradient-to-b from-white/30 to-transparent"></div>
+    </section>
+
+    <!-- 章節 內容 -->
+    <section class="min-h-screen flex items-center justify-center p-6 md:p-24">
+        <div class="max-w-3xl w-full reveal">
+            <h2 class="text-xl md:text-2xl text-white/80 mb-8 font-medium tracking-widest underline underline-offset-8 decoration-white/10">關於「變強」的執念</h2>
+            <p class="text-lg leading-[2.5] text-gray-500 font-light">
+                我們曾被教導要去追求、去佔有、去擴張。以為累積更多的知識、權力與自我感，便能抵達生命的終點。然而，這些只是更厚重的盔甲。真正的力量，往往隱藏在放手之後。
+            </p>
+        </div>
+    </section>
+
+    <section class="min-h-[60vh] flex items-center justify-center bg-white/[0.01] p-6 border-y border-white/[0.05]">
+        <div class="max-w-2xl text-center reveal">
+            <p class="text-2xl md:text-3xl font-extralight text-gray-300 leading-relaxed tracking-widest">「當你不再試圖成為任何人的時候，<br>你就是一切。」</p>
+        </div>
+    </section>
+
+    <section class="min-h-screen flex items-center justify-center p-6 md:p-24">
+        <div class="max-w-3xl w-full text-right reveal">
+            <h2 class="text-xl md:text-2xl text-white/80 mb-8 font-medium tracking-widest underline underline-offset-8 decoration-white/10">徹底消失的藝術</h2>
+            <p class="text-lg leading-[2.5] text-gray-500 font-light">
+                消失不是肉體的幻滅，而是那個「我」的邊界徹底崩塌。不再有對抗，不再有分別。當水滴消失於大海，它才真正成為了大海。在那樣的寂靜中，你會聽見宇宙的脈動。
+            </p>
+        </div>
+    </section>
+
+    <!-- 結尾 -->
+    <section id="footer" class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <div class="reveal flex flex-col items-center w-full">
+            <div class="mb-20 px-4 w-full flex justify-center">
+                <img src="https://lin5406.github.io/pic/awakening001.png" alt="覺醒意象" class="awakening-image rounded-[2rem] opacity-40 max-w-full w-auto h-auto border border-white/5 shadow-2xl">
+            </div>
+            <p class="text-gray-600 tracking-[0.8em] uppercase text-xs mb-6">Sunyata / Emptiness</p>
+            <h3 class="text-2xl font-extralight text-white/90 mb-16 tracking-[0.2em]">歸於虛無，始見真實</h3>
+            
+            <button id="openNotes" class="group relative px-12 py-4 overflow-hidden border border-white/10">
+                <span class="relative z-10 text-xs tracking-[0.5em] text-gray-400 group-hover:text-white transition-colors duration-500">閱讀覺醒筆記</span>
+                <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </button>
+        </div>
+    </section>
+
+    <!-- 覺醒筆記彈出視窗 -->
+    <div id="modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-8">
+        <div id="modalOverlay" class="absolute inset-0 bg-black/95 backdrop-blur-xl opacity-0"></div>
+        <!-- 立體微黃視窗 -->
+        <div id="modalContent" class="stereoscopic-modal relative w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-[2.5rem] scale-95 opacity-0 flex flex-col">
+            
+            <!-- Modal Header：微黃標題欄 -->
+            <div class="flex items-center justify-between p-8 border-b border-stone-200 bg-stone-100/30">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl">🛑</span>
+                    <h2 class="text-xl font-medium tracking-widest text-stone-900">【覺醒筆記】舍利弗：真正的覺醒，是徹底消失</h2>
+                </div>
+                <button id="closeModal" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-stone-200 transition-all text-stone-400 hover:text-stone-900 text-xl">✕</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-y-auto p-8 md:p-16 custom-scrollbar font-light leading-[2.2] tracking-wide text-stone-700">
+                <div class="max-w-3xl mx-auto space-y-16">
+                    
+                    <div class="space-y-6">
+                        <p class="text-stone-900 text-lg font-medium">這是一份基於佛陀最強弟子舍利弗（智慧第一）之生平與核心教理所整理的深度覺醒筆記。這份筆記揭示了一個顛覆傳統認知的真相：真正的覺醒，並非變得更強大，而是「我」的徹底消失。</p>
+                        <p class="italic pl-8 py-6 parchment-bg text-stone-600">
+                            在所有佛陀的弟子中，被尊為「智慧第一」的舍利弗，他沒有依靠神話、奇蹟或神通來震撼眾生，而是用極度冷靜的理智，將整個世界與「自我」一層層拆解到什麼都不剩。他留下的結論，是一個連許多修行人都不敢面對的殘酷真相。
+                        </p>
+                    </div>
+
+                    <!-- Section 1 -->
+                    <section class="space-y-6">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">1️⃣</span> 🧠 智者誕生：尋求「真相」而非「信仰」
+                        </h3>
+                        <div class="space-y-4 pl-12">
+                            <p>舍利弗出生於古印度思想極度活躍的王舍城，屬於最高階級的婆羅門。從小浸淫在宗教與哲學中，但他擁有一個致命的特質：<span class="text-amber-800 font-medium">極度冷靜的懷疑</span>。</p>
+                            <ul class="list-disc space-y-3 pl-5 text-stone-600">
+                                <li><strong>不盲從權威：</strong>他不是為了「信仰」而修行，而是為了「真相」。</li>
+                                <li><strong>邏輯碾壓與內心空虛：</strong>他憑藉無敵的邏輯打敗了全印度的權威，卻發現越贏，內心越空虛。</li>
+                                <li><strong>困境：</strong>他能推翻所有人的錯誤，卻推不出一個能讓自己安心活下去的答案。</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <!-- Section 2 -->
+                    <section class="space-y-6">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">2️⃣</span> ⚡ 命運轉折：一句話震碎一生的邏輯
+                        </h3>
+                        <div class="space-y-4 pl-12">
+                            <p>改變舍利弗命運的，是在街上偶遇一位極度平靜的無名僧人。那種平靜是一種「事情發生就發生，世界怎樣就怎樣」的毫無波瀾。</p>
+                            <div class="bg-amber-900/5 p-8 rounded-2xl border border-amber-900/10 text-center my-8 shadow-[inset_1px_1px_5px_rgba(0,0,0,0.05)]">
+                                <p class="text-amber-950 text-xl font-medium tracking-[0.2em]">「一切因緣生法，我說即是空。」</p>
+                            </div>
+                            <p>這句看似簡單的邏輯，在舍利弗耳中卻極度可怕。如果一切都是因緣組合，那代表沒有任何東西是獨立存在的，包括「我」。他不是靠「修煉」變強，而是靠原本以為聰明的那個「主體」被徹底瓦解。</p>
+                        </div>
+                    </section>
+
+                    <!-- Section 3 -->
+                    <section class="space-y-6">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">3️⃣</span> 🔪 殘酷的教學法：拆解「修行的我」
+                        </h3>
+                        <div class="space-y-8 pl-12">
+                            <div class="bg-stone-200/40 p-6 rounded-lg border-l-4 border-stone-400">
+                                <p class="text-stone-900 font-medium tracking-widest uppercase text-sm mb-2 opacity-70">🧐 靈魂拷問：「是誰在清淨？」</p>
+                                <p>當比丘自豪於清淨感時，舍利弗反問：「那個覺得自己清淨的『是誰』？」清淨感是來了又走的，你為何要把短暫的感受當成真相？</p>
+                            </div>
+                            <div class="bg-stone-200/40 p-6 rounded-lg border-l-4 border-stone-400">
+                                <p class="text-stone-900 font-medium tracking-widest uppercase text-sm mb-2 opacity-70">🧹 掃地除塵：掃掉那個「比較的心」</p>
+                                <p>他要求弟子唸「掃地除塵」，最後點破：一輩子真正要掃的塵，不是地上的灰塵，而是那個不斷在判斷、比較、命名世界的「我」。</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 4 -->
+                    <section class="space-y-8">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">4️⃣</span> 🌌 現代修行的最大陷阱：升級版的幻覺
+                        </h3>
+                        <div class="overflow-x-auto pl-12">
+                            <table class="w-full text-sm text-left border-collapse modal-table">
+                                <thead>
+                                    <tr class="text-stone-950 border-b-2 border-stone-300 uppercase tracking-widest">
+                                        <th class="py-5 pr-4">比較維度</th>
+                                        <th class="py-5 pr-4">🌟 現代主流修行</th>
+                                        <th class="py-5">🧘‍♂️ 舍利弗的無我之路</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-stone-200 text-stone-600">
+                                    <tr>
+                                        <td class="py-6 pr-4 font-medium text-stone-900">核心動機</td>
+                                        <td class="py-6 pr-4">我要變強、變好、更有覺知。</td>
+                                        <td class="py-6 text-red-800 font-medium">看清「我」本身就是一個誤會。</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-6 pr-4 font-medium text-stone-900">對待「自我」</td>
+                                        <td class="py-6 pr-4">升級自我：凡夫我 ➔ 高頻我。</td>
+                                        <td class="py-6 text-red-800 font-medium">解構自我：直接看穿其虛幻。</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-6 pr-4 font-medium text-stone-900">終極目標</td>
+                                        <td class="py-6 pr-4">成為「覺醒者」或「大師」。</td>
+                                        <td class="py-6 text-red-800 font-medium">連身分標籤都徹底拋棄。</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-6 pr-4 font-medium text-stone-900">輪迴引擎</td>
+                                        <td class="py-6 pr-4">隱藏著想成為什麼的渴望。</td>
+                                        <td class="py-6 text-red-800 font-medium">想成為什麼的動力徹底熄滅。</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Section 5 -->
+                    <section class="space-y-6 pb-12">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">5️⃣</span> 🍂 涅槃與告別：不留痕跡的法將
+                        </h3>
+                        <div class="space-y-6 pl-12 text-stone-600">
+                            <p><strong class="text-stone-900">不留偶像：</strong>他寧願眾生失去老師，也不願眾生多一個依賴的偶像。</p>
+                            <p><strong class="text-stone-900">「一切都已經完成了」：</strong>這是他入定前對母親說的最後一句話。這指的不是成就事業，而是「連動機都結束了」。</p>
+                        </div>
+                    </section>
+
+                    <!-- Summary -->
+                    <div class="py-16 border-y border-stone-300 space-y-8 text-center bg-stone-50/50">
+                        <h4 class="text-lg text-stone-400 tracking-[0.5em] uppercase">📝 總結：無我的終極自由</h4>
+                        <p class="text-2xl text-stone-900 font-medium leading-relaxed tracking-widest">
+                            「真正的覺醒不是你變成光，<br>而是你終於發現，從來就沒有一個需要發光的『我』。」
+                        </p>
+                        <p class="text-stone-500 max-w-xl mx-auto italic">真正的覺醒，不是你成為誰，而是你終於「不需要成為任何人」。</p>
+                    </div>
+
+                    <!-- Q&A -->
+                    <section class="space-y-10 pb-20">
+                        <h3 class="text-xl text-stone-900 font-medium flex items-center gap-3">❓ 附錄問答</h3>
+                        <div class="space-y-8 pl-6">
+                            <div class="space-y-3">
+                                <p class="text-stone-800 font-medium">問題 1：為什麼舍利弗年輕時在全印度辯論無敵，內心卻感到越來越空虛？</p>
+                                <p class="text-sm border-l-2 border-stone-300 pl-6 text-stone-500">因為他的邏輯只能用來「推翻」別人的錯誤，但他卻無法靠邏輯推論出一個能讓自己真正安心活下去的「終極真相」。</p>
+                            </div>
+                            <div class="space-y-3">
+                                <p class="text-stone-800 font-medium">問題 2：現代課程強調「提升頻率、成為高我」，這在舍利弗智慧視角中存在什麼問題？</p>
+                                <p class="text-sm border-l-2 border-stone-300 pl-6 text-stone-500">本質上並沒有解構自我，而只是在打造一個「更精緻的自我」。只要還存有渴望，那個「我」就依然存在，這正是痛苦的根源。</p>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = () => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            const glow = document.getElementById('glow');
+            window.addEventListener('mousemove', (e) => {
+                gsap.to(glow, { x: e.clientX - 250, y: e.clientY - 250, duration: 1.5 });
+            });
+
+            gsap.from("#main-title", { duration: 2.5, opacity: 0, y: 20, filter: "blur(15px)", ease: "power3.out" });
+
+            document.querySelectorAll(".reveal").forEach((el) => {
+                gsap.to(el, { scrollTrigger: { trigger: el, start: "top 90%", scrub: 1 }, opacity: 1, y: 0 });
+            });
+
+            window.addEventListener("scroll", () => {
+                const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+                document.getElementById("progress").style.width = scrolled + "%";
+            });
+
+            const modal = document.getElementById('modal');
+            const overlay = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+            const btnOpen = document.getElementById('openNotes');
+            const btnClose = document.getElementById('closeModal');
+
+            function toggleModal(open) {
+                if (open) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    gsap.to(overlay, { opacity: 1, duration: 0.6 });
+                    gsap.to(content, { opacity: 1, scale: 1, y: 0, duration: 1, ease: "expo.out" });
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    gsap.to(content, { opacity: 0, scale: 0.98, y: 30, duration: 0.5 });
+                    gsap.to(overlay, { opacity: 0, duration: 0.5, onComplete: () => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                        document.body.style.overflow = '';
+                    }});
+                }
+            }
+
+            btnOpen.addEventListener('click', () => toggleModal(true));
+            btnClose.addEventListener('click', () => toggleModal(false));
+            overlay.addEventListener('click', () => toggleModal(false));
+        };
+    </script>
+</body>
+</html>
