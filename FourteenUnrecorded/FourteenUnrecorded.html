@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>真正的覺醒｜讀懂十四無記</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;500;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            font-family: 'Noto Serif TC', serif;
+            overflow-x: hidden;
+        }
+        
+        .transparent-title {
+            font-weight: 900;
+            color: transparent;
+            -webkit-text-stroke: 1.2px rgba(255, 255, 255, 0.7);
+            background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            position: relative;
+            z-index: 10;
+            display: inline-block;
+        }
+
+        .text-glow { text-shadow: 0 0 25px rgba(255,255,255,0.15); }
+
+        .glow-sphere {
+            position: absolute;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%; filter: blur(80px);
+            z-index: 1; pointer-events: none;
+        }
+
+        .reveal { opacity: 0; transform: translateY(30px); }
+
+        .awakening-image {
+            box-shadow: 0 0 80px rgba(255,255,255,0.05);
+            transition: all 1.8s cubic-bezier(0.19, 1, 0.22, 1);
+            filter: brightness(1.1);
+        }
+        .awakening-image:hover {
+            opacity: 1 !important;
+            filter: brightness(1.2);
+            box-shadow: 0 0 100px rgba(255,255,255,0.1);
+            transform: scale(1.005);
+        }
+
+        .stereoscopic-modal {
+            box-shadow: 
+                inset 1px 1px 1px 0px rgba(255, 255, 255, 1), 
+                inset -2px -2px 5px 0px rgba(180, 160, 120, 0.3),
+                0 30px 60px -15px rgba(0, 0, 0, 0.8);
+            background: linear-gradient(135deg, #fffdf0 0%, #f7f2d7 100%);
+            color: #292524;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.03); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(120, 113, 108, 0.3); border-radius: 10px; }
+
+        .parchment-bg {
+            background: rgba(214, 211, 191, 0.2);
+            border-left: 2px solid rgba(120, 113, 108, 0.4);
+        }
+        
+        .modal-table th { background: rgba(120, 113, 108, 0.05); }
+        .modal-table tr { border-color: rgba(120, 113, 108, 0.1) !important; }
+    </style>
+</head>
+<body class="selection:bg-yellow-200 selection:text-black">
+
+    <div id="glow" class="glow-sphere"></div>
+    <div id="progress" class="fixed top-0 left-0 h-[1px] bg-white/50 z-[60] transition-all duration-300" style="width: 0%"></div>
+
+    <!-- 首屏 -->
+    <section class="min-h-screen flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 id="main-title" class="text-glow">
+                <span class="block text-4xl md:text-6xl lg:text-7xl tracking-[0.25em] leading-tight mb-8 transparent-title">十四無記</span>
+                <br>
+                <span class="block text-2xl md:text-4xl lg:text-5xl font-extralight tracking-[0.4em] text-white/70">佛陀沈默的終極智慧</span>
+            </h1>
+        </div>
+        <div class="w-[1px] h-32 mt-16 bg-gradient-to-b from-white/40 to-transparent"></div>
+    </section>
+
+    <!-- 章節 內容 1 -->
+    <section class="min-h-screen flex items-center justify-center p-6 md:p-24">
+        <div class="max-w-3xl w-full reveal">
+            <h2 class="text-xl md:text-2xl text-white mb-8 font-medium tracking-widest underline underline-offset-8 decoration-white/20">關於「終極答案」的執迷</h2>
+            <p class="text-lg leading-[2.5] text-gray-300 font-light">
+                兩千六百年前，釋迦牟尼佛面對古印度思想界最核心的終極哲學問題，始終保持沈默。這不是因為他不知道，而是因為這份「不答」，本身就是破除凡夫執迷、直達解脫境界的最究竟答案。
+            </p>
+        </div>
+    </section>
+
+    <!-- 核心格言 -->
+    <section class="min-h-[60vh] flex items-center justify-center bg-white/[0.02] p-6 border-y border-white/[0.05]">
+        <div class="max-w-2xl text-center reveal">
+            <p class="text-2xl md:text-3xl font-light text-gray-100 leading-relaxed tracking-widest">「如果你手正被火燒著，<br>第一件事是把手拿開，<br>而不是去研究火是從哪裡來的。」</p>
+        </div>
+    </section>
+
+    <!-- 章節 內容 2 -->
+    <section class="min-h-screen flex items-center justify-center p-6 md:p-24">
+        <div class="max-w-3xl w-full text-right reveal">
+            <h2 class="text-xl md:text-2xl text-white mb-8 font-medium tracking-widest underline underline-offset-8 decoration-white/20">拔除煩惱的毒箭</h2>
+            <p class="text-lg leading-[2.5] text-gray-300 font-light">
+                我們總以為找到宇宙的終極答案就能解脫，卻沒發現追問答案的執念本身，就是痛苦的來源。真正的開悟，從來都不是找到了宇宙的終極答案，而是你終於放下了對「答案」的執著。
+            </p>
+        </div>
+    </section>
+
+    <!-- 結尾 -->
+    <section id="footer" class="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <div class="reveal flex flex-col items-center w-full">
+            <div class="mb-20 px-4 w-full flex justify-center">
+                <img src="https://lin5406.github.io/pic/FourteenUnrecorded001.png" alt="覺醒意象" class="awakening-image rounded-[2rem] opacity-90 max-w-full w-auto h-auto border border-white/5 shadow-2xl">
+            </div>
+            <p class="text-gray-400 tracking-[0.8em] uppercase text-xs mb-6">Middle Way / Cessation</p>
+            <h3 class="text-2xl font-extralight text-white mb-16 tracking-[0.2em]">止息戲論，安住當下</h3>
+            
+            <button id="openNotes" class="group relative px-12 py-4 overflow-hidden border border-white/20">
+                <span class="relative z-10 text-xs tracking-[0.5em] text-gray-300 group-hover:text-white transition-colors duration-500">閱讀覺醒筆記</span>
+                <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </button>
+        </div>
+    </section>
+
+    <!-- 覺醒筆記彈出視窗 -->
+    <div id="modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 md:p-8">
+        <div id="modalOverlay" class="absolute inset-0 bg-black/95 backdrop-blur-xl opacity-0"></div>
+        <div id="modalContent" class="stereoscopic-modal relative w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-[2.5rem] scale-95 opacity-0 flex flex-col">
+            
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-8 border-b border-stone-200 bg-stone-100/30">
+                <div class="flex items-center gap-4">
+                    <span class="text-2xl">🤫</span>
+                    <h2 class="text-xl font-medium tracking-widest text-stone-900">【覺醒筆記】讀懂「十四無記」：佛陀沈默背後的終極智慧與滅苦之道</h2>
+                </div>
+                <button id="closeModal" class="w-12 h-12 flex items-center justify-center rounded-full hover:bg-stone-200 transition-all text-stone-400 hover:text-stone-900 text-xl">✕</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="flex-1 overflow-y-auto p-8 md:p-16 custom-scrollbar font-light leading-[2.2] tracking-wide text-stone-700">
+                <div class="max-w-3xl mx-auto space-y-16">
+                    
+                    <div class="space-y-6">
+                        <p class="text-stone-900 text-lg font-medium">這是一份基於佛陀「十四無記」與《箭喻經》核心智慧所整理的深度實修筆記。這份筆記揭示了佛法中高達 80% 的核心智慧，並將其轉化為現代人破除內耗與焦慮的具體指南。</p>
+                        <p class="italic pl-8 py-6 parchment-bg text-stone-600">
+                            兩千六百年前，釋迦牟尼佛面對古印度思想界最核心的 14 個終極哲學問題，始終保持沈默（無記）。這不是因為他不知道，而是因為這份「不答」，本身就是破除凡夫執迷、直達解脫境界的最究竟答案。
+                        </p>
+                    </div>
+
+                    <!-- Section 1 -->
+                    <section class="space-y-6">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">1️⃣</span> ❓ 什麼是「十四無記」與鬘童子的困惑
+                        </h3>
+                        <div class="space-y-4 pl-12">
+                            <p>「十四無記」涵蓋了凡夫對宇宙和生命最極致的好奇與追問。</p>
+                            <p class="text-stone-900 font-medium mt-4">四大核心命題（14個問題）：</p>
+                            <ul class="list-disc space-y-2 pl-5 text-stone-600">
+                                <li><strong>世界本源：</strong>世界是常、無常、亦常亦無常、非常非無常？</li>
+                                <li><strong>世界邊際：</strong>世界是有邊、無邊、亦有邊亦無邊、非有邊非無邊？</li>
+                                <li><strong>身心關係：</strong>命與身是一（同一個東西）、是異（不同的東西）？</li>
+                                <li><strong>涅槃真相：</strong>如來死後是存在、不存在、亦存亦不存、非存非不存？</li>
+                            </ul>
+                            
+                            <div class="bg-stone-200/40 p-6 rounded-lg border-l-4 border-stone-400 mt-6">
+                                <p class="text-stone-900 font-medium mb-2">🤦‍♂️ 鬘童子的困惑：</p>
+                                <p>出身尊貴的婆羅門天才鬘童子，跟隨佛陀出家，卻因為佛陀從不回答這 14 個問題而感到極度焦慮，甚至威脅佛陀若不解答便要還俗。</p>
+                            </div>
+                            <p class="text-amber-800 font-medium mt-4">凡夫通病：我們總以為找到宇宙的終極答案就能解脫，卻沒發現追問答案的執念本身，就是痛苦的來源。</p>
+                        </div>
+                    </section>
+
+                    <!-- Section 2 -->
+                    <section class="space-y-6">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">2️⃣</span> 🏹 《箭喻經》的震撼：你正在被毒箭折磨
+                        </h3>
+                        <div class="space-y-4 pl-12">
+                            <p>面對鬘童子的逼問，佛陀沒有給出理論，而是講了一個極其生動的比喻——毒箭喻。</p>
+                            
+                            <div class="space-y-4 text-stone-600 my-6">
+                                <p><strong class="text-stone-900">🎯 中毒箭的愚癡人：</strong>一個人在荒野被毒箭射中，親友找來醫生要拔箭救命。<br>這人卻死死按住傷口說：「不準拔！我要先知道射箭的人是誰？弓是什麼木頭做的？羽毛是哪種鳥的？毒藥是什麼配方？」</p>
+                                <p><strong class="text-stone-900">結果：</strong>還沒等問清楚，這人就已經毒發身亡了。</p>
+                            </div>
+
+                            <div class="bg-amber-900/5 p-6 rounded-xl border border-amber-900/10 shadow-[inset_1px_1px_5px_rgba(0,0,0,0.05)]">
+                                <p class="text-amber-950 font-medium mb-3">💡 毒箭的隱喻破解：</p>
+                                <ul class="list-none space-y-2 text-amber-900/80">
+                                    <li>• <strong>毒箭</strong> = 生老病死、貪嗔癡慢疑、無盡的焦慮與痛苦。</li>
+                                    <li>• <strong>醫生</strong> = 佛陀（來幫眾生拔除煩惱的毒箭）。</li>
+                                    <li>• <strong>追問箭的來歷</strong> = 執著於探討世界本源、生命本質等「十四無記」的哲學戲論。</li>
+                                </ul>
+                            </div>
+                            <p class="text-lg font-medium text-stone-900 mt-4 text-center">
+                                佛陀的核心教誨：「如果你手正被火燒著，第一件事是『把手拿開』（解決痛苦），而不是去研究『火是從哪裡來的』。」
+                            </p>
+                        </div>
+                    </section>
+
+                    <!-- Section 3 -->
+                    <section class="space-y-6">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">3️⃣</span> 🌌 佛陀沈默的真相：超越「二邊見」
+                        </h3>
+                        <div class="space-y-6 pl-12">
+                            <p>佛陀不回答這 14 個問題，藏著整個佛法最底層的邏輯與最深的慈悲。</p>
+                            
+                            <ul class="space-y-6 text-stone-600">
+                                <li>
+                                    <strong class="text-stone-900 block mb-1">⛓️ 避免陷入「二元對立」的枷鎖：</strong>
+                                    凡夫的思維是非黑即白、非此即彼的（要麼常、要麼斷；要麼有、要麼無）。如果佛陀回答「世界是常」，就會讓人執著於「常見」；回答「無常」，又會讓人落入「斷滅見」（否定因果輪回）。不管怎麼答，都會成為眾生新的枷鎖。
+                                </li>
+                                <li>
+                                    <strong class="text-stone-900 block mb-1">🫧 問題的前提本身就是錯的（緣起性空）：</strong>
+                                    這些問題都假設有一個「獨立、恆常、有自性」的世界或「我」存在。但真相是<strong>「諸法無我，諸行無常」</strong>，一切都是因緣和合的顯現。就像問「石女（無法生育的女子）的女兒頭髮是什麼顏色？」這問題的前提根本不存在，無論怎麼回答都是錯的。
+                                </li>
+                                <li>
+                                    <strong class="text-stone-900 block mb-1">🧘‍♂️ 止息戲論，安住中道：</strong>
+                                    佛陀的教法是治病的藥方（苦、集、滅、道），只要對滅苦無益的討論，統統稱為「戲論」，必須被止息。
+                                </li>
+                            </ul>
+
+                            <!-- 對照表 -->
+                            <div class="overflow-x-auto mt-8">
+                                <table class="w-full text-sm text-left border-collapse modal-table">
+                                    <thead>
+                                        <tr class="text-stone-950 border-b-2 border-stone-300 uppercase tracking-widest bg-stone-100">
+                                            <th class="py-4 px-4">比較維度</th>
+                                            <th class="py-4 px-4">❌ 凡夫的戲論 (十四無記心態)</th>
+                                            <th class="py-4 px-4">✅ 佛陀的中道 (滅苦之道)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-stone-200 text-stone-600">
+                                        <tr>
+                                            <td class="py-5 px-4 font-medium text-stone-900">思維模式</td>
+                                            <td class="py-5 px-4">二元對立 (非黑即白、有或無、常或斷)</td>
+                                            <td class="py-5 px-4 text-emerald-800 font-medium">超越二邊 (緣起性空、不執著任何一邊)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-5 px-4 font-medium text-stone-900">關注重點</td>
+                                            <td class="py-5 px-4">追問宇宙與生命的「終極本源」</td>
+                                            <td class="py-5 px-4 text-emerald-800 font-medium">專注當下煩惱的「起因與對治」</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-5 px-4 font-medium text-stone-900">面對痛苦</td>
+                                            <td class="py-5 px-4">中了毒箭，卻忙著研究箭的來歷與材質</td>
+                                            <td class="py-5 px-4 text-emerald-800 font-medium">第一時間拔下毒箭，止息痛苦</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-5 px-4 font-medium text-stone-900">佛法認知</td>
+                                            <td class="py-5 px-4">把佛法當作哲學體系與知識論辯</td>
+                                            <td class="py-5 px-4 text-emerald-800 font-medium">把佛法當作離苦得樂的實踐方法</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-5 px-4 font-medium text-stone-900">最終結果</td>
+                                            <td class="py-5 px-4">陷入更深的法執、內耗與焦慮中</td>
+                                            <td class="py-5 px-4 text-emerald-800 font-medium">放下執著，安住當下，獲得究竟安樂</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section 4 -->
+                    <section class="space-y-6 pb-4">
+                        <h3 class="text-2xl text-stone-900 font-medium tracking-wider flex items-center gap-3">
+                            <span class="text-3xl">4️⃣</span> 🛠️ 現代人的實修指南：三大落地心法
+                        </h3>
+                        <div class="space-y-8 pl-12 text-stone-600">
+                            <p>現代人雖然不問世界有沒有邊際，但每天都在問「我未來會不會窮？」、「他到底愛不愛我？」。這些本質上都是現代版的「十四無記」。請利用以下三個方法來破除焦慮：</p>
+                            
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-medium text-stone-900">① 無記覺察練習 (Stop & Observe) 👁️</h4>
+                                <ul class="list-none space-y-2 border-l-2 border-stone-300 pl-4">
+                                    <li><strong>情境：</strong>陷入對過去的遺憾或對未來的焦慮時。</li>
+                                    <li><strong>操作：</strong>閉上眼深呼吸，問自己：「這個問題當下能解決嗎？」、「想這件事能幫我緩解痛苦嗎？」。</li>
+                                    <li><strong>心法：</strong>如果答案是否定的，就給它貼上<strong>「無記」</strong>的標籤。不去對抗它，只是看著它出現又消失，不被這支毒箭牽著鼻子走。</li>
+                                </ul>
+                            </div>
+
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-medium text-stone-900">② 箭喻落地法 (Action Oriented) 🏃‍♂️</h4>
+                                <ul class="list-none space-y-2 border-l-2 border-stone-300 pl-4">
+                                    <li><strong>情境：</strong>被某個擔憂困住無法自拔時。</li>
+                                    <li><strong>操作：</strong>認清毒箭：我當下正在承受的具體痛苦是什麼？（例：收入不足導致的焦慮）。<br>拔箭動作：我當下能立刻去做的解決方案是什麼？（例：去學新技能、去記帳開源節流）。</li>
+                                    <li><strong>心法：</strong>把對虛妄未來的胡思亂想，拉回到當下實實在在的「行動」裡。先解決眼前的生存危機，等脫離危險再說。</li>
+                                </ul>
+                            </div>
+
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-medium text-stone-900">③ 二邊見止息練習 (Break Dualism) ⚖️</h4>
+                                <ul class="list-none space-y-2 border-l-2 border-stone-300 pl-4">
+                                    <li><strong>情境：</strong>對人對事陷入「非好即壞、非對即錯」的極端評判時。</li>
+                                    <li><strong>操作：</strong>當覺得「做錯一件事我就是廢物」或「遇到挫折人生就完了」時，立刻喊停。</li>
+                                    <li><strong>心法：</strong>告訴自己「不是只有這兩個極端答案，還有中道」。承認錯誤，但也看見成長的可能；承認傷害，但也看見未來的機會。用圓融的眼光看待世界，執念自然消散。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Summary -->
+                    <div class="py-16 border-y border-stone-300 space-y-8 text-center bg-stone-50/50 mt-8">
+                        <h4 class="text-lg text-stone-400 tracking-[0.5em] uppercase">📝 結語：真正的開悟</h4>
+                        <p class="text-xl text-stone-900 font-medium leading-relaxed tracking-widest">
+                            真正的開悟，從來都不是找到了宇宙的終極答案，<br>而是你終於放下了對「終極答案」的執著。
+                        </p>
+                        <p class="text-stone-600 mt-4 max-w-2xl mx-auto font-light">
+                            佛法不在高深的經書與論辯裡，而在你願意停下來，拔下心裡那支焦慮的毒箭，好好感受此刻呼吸的那一瞬間。願我們都能破除迷執，安住當下。
+                        </p>
+                    </div>
+
+                    <!-- Q&A -->
+                    <section class="space-y-10 pb-20 pt-8">
+                        <h3 class="text-xl text-stone-900 font-medium flex items-center gap-3">❓ 附錄問答</h3>
+                        <div class="space-y-8 pl-6">
+                            <div class="space-y-3">
+                                <p class="text-stone-800 font-medium">問題 1：為什麼佛陀對於鬘童子提出的「十四無記」（如世界是否有邊際、命與身是否同一）始終保持沈默不答？</p>
+                                <p class="text-sm border-l-2 border-amber-600/50 bg-amber-50/50 p-4 rounded-r text-stone-600 leading-relaxed">
+                                    <strong class="text-amber-900">簡答：</strong>因為這些問題的前提本身就是錯誤的（建立在存在一個恆常不變實體的錯覺上），且完全陷入了「非黑即白」的二元對立（二邊見）中。佛陀若回答是或否，都會讓眾生產生新的執著（常見或斷滅見）。更重要的是，佛法是為了解決生老病死的「滅苦之道」，探討這些對解脫毫無益處的問題屬於「戲論」，就像中了毒箭卻不去拔箭反而研究箭的來歷一樣，只會耽誤解脫。
+                                </p>
+                            </div>
+                            <div class="space-y-3">
+                                <p class="text-stone-800 font-medium">問題 2：日常生活中，當我們陷入「現代版的十四無記」（如過度焦慮未來會不會窮、糾結別人到底怎麼看自己）時，應該如何使用「箭喻落地法」來自我救贖？</p>
+                                <p class="text-sm border-l-2 border-amber-600/50 bg-amber-50/50 p-4 rounded-r text-stone-600 leading-relaxed">
+                                    <strong class="text-amber-900">簡答：</strong>「箭喻落地法」的核心是將專注力從「虛妄的胡思亂想」拉回「當下的具體行動」。操作上分為兩步：首先釐清「當下的毒箭是什麼」（例如：現在的痛苦是收入不足缺乏安全感）；其次找出「拔箭的動作是什麼」（例如：立刻去整理財務、學習賺錢技能或兼職）。透過立刻執行能緩解當下困境的實質行動，來取代對未知未來的內耗與追問。
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onload = () => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            const glow = document.getElementById('glow');
+            window.addEventListener('mousemove', (e) => {
+                gsap.to(glow, { x: e.clientX - 250, y: e.clientY - 250, duration: 1.5 });
+            });
+
+            gsap.from("#main-title", { duration: 2.5, opacity: 0, y: 20, filter: "blur(15px)", ease: "power3.out" });
+
+            document.querySelectorAll(".reveal").forEach((el) => {
+                gsap.to(el, { scrollTrigger: { trigger: el, start: "top 95%", scrub: 1 }, opacity: 1, y: 0 });
+            });
+
+            window.addEventListener("scroll", () => {
+                const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+                document.getElementById("progress").style.width = scrolled + "%";
+            });
+
+            const modal = document.getElementById('modal');
+            const overlay = document.getElementById('modalOverlay');
+            const content = document.getElementById('modalContent');
+            const btnOpen = document.getElementById('openNotes');
+            const btnClose = document.getElementById('closeModal');
+
+            function toggleModal(open) {
+                if (open) {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    gsap.to(overlay, { opacity: 1, duration: 0.6 });
+                    gsap.to(content, { opacity: 1, scale: 1, y: 0, duration: 1, ease: "expo.out" });
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    gsap.to(content, { opacity: 0, scale: 0.98, y: 30, duration: 0.5 });
+                    gsap.to(overlay, { opacity: 0, duration: 0.5, onComplete: () => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                        document.body.style.overflow = '';
+                    }});
+                }
+            }
+
+            btnOpen.addEventListener('click', () => toggleModal(true));
+            btnClose.addEventListener('click', () => toggleModal(false));
+            overlay.addEventListener('click', () => toggleModal(false));
+        };
+    </script>
+</body>
+</html>
