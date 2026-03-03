@@ -1038,9 +1038,9 @@
         <h2 class="text-2xl font-bold mb-2">政經研究</h2>
         <p class="text-[#1E3A8A]/70 text-sm mb-6 uppercase tracking-widest font-bold">Geopolitical Research</p>
 
-        <!-- 將容器改為與上方卡片相同的 3 欄式網格，以統一按鈕寬度 -->
+        <!-- 將容器改為 3 欄式網格 (md:grid-cols-3)，讓三顆按鈕完美平分寬度 -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- 確保純淨字串網址，加入 relative overflow-visible 支援彈出面板 -->
+            <!-- 左側：CrisisMap 按鈕 -->
             <a href="https://crisismap.vercel.app/zh-TW" target="_blank" rel="noopener noreferrer" class="group part-card bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl text-white shadow-lg text-left border border-slate-700 transition-all duration-300 relative overflow-visible">
                 
                 <!-- 懸浮詳細資訊面板 Tooltip (Hover 時顯示) -->
@@ -1065,6 +1065,31 @@
                     <p class="text-sm text-slate-300 opacity-90 leading-relaxed">提供全球地緣政治衝突追蹤、即時熱點監控與深度數據分析。</p>
                 </div>
             </a>
+
+            <!-- 中間：Polymarket 預測市場卡片 -->
+            <a href="https://polymarket.com/finance" target="_blank" rel="noopener noreferrer" class="group part-card bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl text-white shadow-lg text-left border border-slate-700 transition-all duration-300 relative overflow-visible">
+                <div class="relative z-20">
+                    <p class="text-xs font-bold uppercase tracking-widest mb-1 text-blue-400">Prediction Market</p>
+                    <h3 class="text-xl font-bold mb-3 border-b border-slate-600 pb-2 flex justify-between items-center group-hover:text-blue-200 transition-colors">
+                        Polymarket全球最大的預測市場™
+                        <i data-lucide="trending-up" class="w-4 h-4 text-blue-400"></i>
+                    </h3>
+                    <p class="text-sm text-slate-300 opacity-90 leading-relaxed">提供全球金融、政治與時事事件的即時機率預測，洞察市場集體智慧。</p>
+                </div>
+            </a>
+
+            <!-- 右側新增：康波週期 卡片 -->
+            <a href="https://www.youtube.com/watch?v=GEShfE2c2E0" target="_blank" rel="noopener noreferrer" class="group part-card bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl text-white shadow-lg text-left border border-slate-700 transition-all duration-300 relative overflow-visible">
+                <div class="relative z-20">
+                    <p class="text-xs font-bold uppercase tracking-widest mb-1 text-blue-400">Economic Cycle</p>
+                    <h3 class="text-xl font-bold mb-3 border-b border-slate-600 pb-2 flex justify-between items-center group-hover:text-blue-200 transition-colors">
+                        康波週期
+                        <i data-lucide="activity" class="w-4 h-4 text-blue-400"></i>
+                    </h3>
+                    <p class="text-sm text-slate-300 opacity-90 leading-relaxed">掌握宏觀經濟規律，洞悉六十年一遇的財富重分配週期與長波趨勢。</p>
+                </div>
+            </a>
+
         </div> 
     </section>
 
@@ -1132,4 +1157,3 @@
     </script>
 </body>
 </html>
-
