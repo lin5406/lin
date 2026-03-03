@@ -1033,6 +1033,41 @@
         </div>
     </main>
 
+    <!-- 政經研究 Section (全新新增區塊) -->
+    <section class="w-full max-w-5xl bg-[#93C5FD] border-4 border-[#60A5FA] rounded-[2.5rem] p-8 text-center text-[#1E3A8A] shadow-2xl relative overflow-visible ring-4 ring-[#60A5FA]/20 mb-12">
+        <h2 class="text-2xl font-bold mb-2">政經研究</h2>
+        <p class="text-[#1E3A8A]/70 text-sm mb-6 uppercase tracking-widest font-bold">Geopolitical Research</p>
+
+        <!-- 將容器改為與上方卡片相同的 3 欄式網格，以統一按鈕寬度 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- 確保純淨字串網址，加入 relative overflow-visible 支援彈出面板 -->
+            <a href="[https://crisismap.vercel.app/zh-TW](https://crisismap.vercel.app/zh-TW)" target="_blank" rel="noopener noreferrer" class="group part-card bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl text-white shadow-lg text-left border border-slate-700 transition-all duration-300 relative overflow-visible">
+                
+                <!-- 懸浮詳細資訊面板 Tooltip (Hover 時顯示) -->
+                <div class="absolute left-1/2 -translate-x-1/2 bottom-[105%] w-[min(360px,90vw)] opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 ease-out z-[200] pointer-events-none text-left">
+                    <div class="bg-slate-900/95 backdrop-blur-md p-5 rounded-2xl shadow-2xl border border-slate-700 text-white text-sm leading-relaxed">
+                        X上一位網友非常厲害，把伊朗進行空襲的資訊Coding成一個UI。不用付費、不用登入。他在非常短的時間內，做出了一個事件資訊的整合平台，很值得學習。
+                        以下是他整合的資訊內容，僅供參考：
+                        <h1>地圖</h1> • 地圖 API（例如 Mapbox / Leaflet / Google Maps） • 地理座標轉換（Geocoding） • 標點渲染與分級顏色系統
+                        <h1>資料整合</h1>  • 新聞 API 串接（RSS / News API 類型） • 即時快訊資料抓取   • 金融市場 API • 可能的預測市場 API（機率條）
+                        <h1>資料處理邏輯</h1> • 關鍵字抽取（抓地名、事件類型） • 風險分級規則（紅橘黃藍綠） • 事件分類（軍事 / 外交 / 經濟 等）
+                        <h1>時間線系統</h1> • 事件排序 • 時間戳記格式轉換 • 分段時間顯示 UI
+                        <h1>預測顯示模組</h1> • 機率換算（百分比視覺條） • 動態進度條動畫
+                    </div>
+                </div>
+
+                <div class="relative z-20">
+                    <p class="text-xs font-bold uppercase tracking-widest mb-1 text-blue-400">Platform</p>
+                    <h3 class="text-xl font-bold mb-3 border-b border-slate-600 pb-2 flex justify-between items-center group-hover:text-blue-200 transition-colors">
+                        CrisisMap即時地緣政治情報
+                        <i data-lucide="globe" class="w-4 h-4 text-blue-400"></i>
+                    </h3>
+                    <p class="text-sm text-slate-300 opacity-90 leading-relaxed">提供全球地緣政治衝突追蹤、即時熱點監控與深度數據分析。</p>
+                </div>
+            </a>
+        </div> 
+    </section>
+
     <!-- Footer -->
     <footer class="w-full max-w-5xl bg-black/20 backdrop-blur-md rounded-[2.5rem] p-8 text-center text-white shadow-xl border border-white/10">
         <div class="flex justify-center mb-6">
@@ -1097,16 +1132,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
