@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正是時候讀莊子 - 蔡璧名老師 | NTU OCW</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+        h1, h2, h3, .serif {
+            font-family: 'Noto Serif TC', serif;
+        }
+        .hero-gradient {
+            background: linear-gradient(rgba(252, 251, 247, 0.8), rgba(252, 251, 247, 0.95)), url('https://ocw.aca.ntu.edu.tw/uploads/course/image/43/thumb_2x_image_0d5603.webp');
+            background-size: cover;
+            background-position: center;
+        }
+        .dark .hero-gradient {
+            background: linear-gradient(rgba(26, 26, 26, 0.85), rgba(26, 26, 26, 0.98)), url('https://ocw.aca.ntu.edu.tw/uploads/course/image/43/thumb_2x_image_0d5603.webp');
+            background-size: cover;
+            background-position: center;
+        }
+        .chapter-card:hover {
+            transform: translateY(-4px);
+            transition: all 0.3s ease;
+        }
+        .accent-border {
+            border-left: 4px solid #4a5d4e;
+        }
+        /* ⚙️ 按鈕旋轉效果 */
+        .settings-btn:hover {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body class="antialiased bg-[#fcfbf7] text-[#2d2d2d] dark:bg-[#1a1a1a] dark:text-stone-200">
+
+    <!-- Header / Nav -->
+    <nav class="fixed w-full z-50 bg-[#fcfbf7]/80 dark:bg-[#1a1a1a]/80 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <span class="text-xl font-bold text-stone-800 dark:text-stone-100 serif">正是時候讀莊子</span>
+            <div class="hidden md:flex space-x-8 text-sm font-medium text-stone-600 dark:text-stone-400">
+                <a href="#about" class="hover:text-stone-900 dark:hover:text-stone-100 transition">課程概述</a>
+                <a href="#objectives" class="hover:text-stone-900 dark:hover:text-stone-100 transition">課程目標</a>
+                <a href="#curriculum" class="hover:text-stone-900 dark:hover:text-stone-100 transition">教學進度</a>
+                <a href="#resources" class="hover:text-stone-900 dark:hover:text-stone-100 transition">相關資源</a>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- ⚙️ 模式切換按鈕 -->
+                <button onclick="toggleDarkMode()" class="settings-btn text-xl p-2 rounded-full hover:bg-stone-200 dark:hover:bg-stone-800 transition-all duration-300 focus:outline-none" title="切換深/淺色模式">
+                    ⚙️
+                </button>
+                <a href="https://ocw.aca.ntu.edu.tw/courses/103S123" target="_blank" class="bg-[#4a5d4e] text-white px-4 py-2 rounded-full text-xs hover:bg-[#3a4a3e] transition">
+                    前往 OCW
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="pt-32 pb-20 px-4 hero-gradient min-h-[80vh] flex items-center">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="mb-6 inline-block">
+                <img src="https://ocw.aca.ntu.edu.tw/uploads/course/image/43/thumb_2x_image_0d5603.webp" 
+                     alt="正是時候讀莊子" 
+                     class="w-64 h-auto mx-auto rounded-lg shadow-xl border border-stone-100 dark:border-stone-800"
+                     onerror="this.src='https://via.placeholder.com/300x400?text=Zhuangzi+Course'">
+            </div>
+            <h1 class="text-4xl md:text-6xl font-bold mb-4 text-stone-900 dark:text-stone-100 tracking-tight">正是時候讀莊子</h1>
+            <p class="text-xl md:text-2xl text-stone-600 dark:text-stone-400 mb-8 font-light italic">Zhuangzi ─ Posture, Awareness, and Sentiment</p>
+            
+            <div class="flex flex-wrap justify-center gap-4 text-sm mb-8">
+                <div class="px-6 py-3 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm rounded-lg border border-stone-200 dark:border-stone-800">
+                    <span class="block text-stone-400 dark:text-stone-500 uppercase tracking-widest text-[10px]">講師</span>
+                    <span class="font-bold text-stone-800 dark:text-stone-200 text-lg">蔡璧名</span>
+                </div>
+                <div class="px-6 py-3 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm rounded-lg border border-stone-200 dark:border-stone-800">
+                    <span class="block text-stone-400 dark:text-stone-500 uppercase tracking-widest text-[10px]">開課單位</span>
+                    <span class="font-bold text-stone-800 dark:text-stone-200 text-lg">中國文學系</span>
+                </div>
+                <div class="px-6 py-3 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm rounded-lg border border-stone-200 dark:border-stone-800">
+                    <span class="block text-stone-400 dark:text-stone-500 uppercase tracking-widest text-[10px]">學分數</span>
+                    <span class="font-bold text-stone-800 dark:text-stone-200 text-lg">2 學分</span>
+                </div>
+            </div>
+
+            <!-- CC License Section -->
+            <div class="max-w-xl mx-auto p-4 bg-stone-100/30 dark:bg-stone-800/30 rounded-xl border border-stone-200/50 dark:border-stone-700/50 flex flex-col items-center">
+                <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" target="_blank" class="block mb-2 hover:opacity-80 transition">
+                    <img src="https://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc-sa.png" 
+                         alt="CC BY-NC-SA 3.0 TW" 
+                         class="w-24 h-auto dark:invert dark:opacity-70">
+                </a>
+                <p class="text-[11px] text-stone-500 dark:text-stone-400 leading-relaxed max-w-md">
+                    本作品除另有註明外，採創用 CC「<a href="https://creativecommons.org/licenses/by-nc-sa/3.0/tw/" class="underline decoration-stone-300 dark:decoration-stone-600 hover:text-stone-800 dark:hover:text-stone-200">姓名標示-非商業性-相同方式分享</a>」3.0 臺灣版授權釋出。
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Introduction Section -->
+    <section id="about" class="py-20 bg-white dark:bg-[#1e1e1e]">
+        <div class="max-w-3xl mx-auto px-6">
+            <div class="accent-border pl-6 mb-12">
+                <p class="text-2xl text-stone-600 dark:text-stone-400 serif leading-relaxed italic">
+                    「福輕乎羽，莫之知載。禍重乎地，莫之知避。」
+                </p>
+            </div>
+            
+            <div class="prose prose-stone lg:prose-lg max-w-none text-stone-700 dark:text-stone-300 leading-loose">
+                <p class="mb-6">
+                    他這麼活過他的一生，留下一本書，《莊子》。這本書影響了陶淵明、李太白、白居易與蘇東坡。清初評論家金聖歎評定這本書為「天下第一才子書」。
+                </p>
+                <p class="mb-6 underline decoration-stone-200 dark:decoration-stone-800 underline-offset-8 text-stone-900 dark:text-stone-100 font-medium">
+                    如果你想在人生的驚濤駭浪間存活、無傷，更鍊就日益精進的乘御之力，就請打開莊子。
+                </p>
+                <p class="mb-10">
+                    這門課程將陪你逐字逐句讀完《莊子》內七篇，深入探討三個核心主題：<strong>姿勢、意識與感情</strong>。你會發現，原來只要把注意力收回自身，心就可以不煩、不亂、不痛。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Course Objectives -->
+    <section id="objectives" class="py-20 bg-stone-100 dark:bg-[#151515]">
+        <div class="max-w-6xl mx-auto px-6 text-center mb-16">
+            <h2 class="text-3xl font-bold serif mb-4 dark:text-stone-100">課程目標</h2>
+            <div class="w-16 h-1 bg-stone-400 dark:bg-stone-700 mx-auto"></div>
+        </div>
+        
+        <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+            <div class="bg-white dark:bg-[#252525] p-10 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 chapter-card">
+                <div class="w-12 h-12 bg-stone-800 dark:bg-stone-200 text-white dark:text-stone-900 rounded-full flex items-center justify-center mb-6 font-bold serif">一</div>
+                <h3 class="text-xl font-bold mb-4 serif dark:text-stone-100">深化人文認識</h3>
+                <p class="text-stone-600 dark:text-stone-400 leading-relaxed">經由代表性作品的選讀，使學生對中國的人文傳統有深一層的認識。</p>
+            </div>
+            <div class="bg-white dark:bg-[#252525] p-10 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 chapter-card">
+                <div class="w-12 h-12 bg-stone-800 dark:bg-stone-200 text-white dark:text-stone-900 rounded-full flex items-center justify-center mb-6 font-bold serif">二</div>
+                <h3 class="text-xl font-bold mb-4 serif dark:text-stone-100">人文思維培養</h3>
+                <p class="text-stone-600 dark:text-stone-400 leading-relaxed">經由對經典性文獻的研討分析過程，使學生熟悉人文思維的程序與方法。</p>
+            </div>
+            <div class="bg-white dark:bg-[#252525] p-10 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 chapter-card">
+                <div class="w-12 h-12 bg-stone-800 dark:bg-stone-200 text-white dark:text-stone-900 rounded-full flex items-center justify-center mb-6 font-bold serif">三</div>
+                <h3 class="text-xl font-bold mb-4 serif dark:text-stone-100">建立成熟人生觀</h3>
+                <p class="text-stone-600 dark:text-stone-400 leading-relaxed">增長思考及表達能力，促進對一己生命的自覺，導向成熟人生觀的建立。</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Curriculum Section -->
+    <section id="curriculum" class="py-20 bg-white dark:bg-[#1e1e1e]">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex items-end justify-between mb-12 border-b border-stone-200 dark:border-stone-800 pb-6">
+                <div>
+                    <h2 class="text-3xl font-bold serif mb-2 dark:text-stone-100">教學進度表</h2>
+                    <p class="text-stone-500 dark:text-stone-500">本課程共 26 講，包含內七篇精講與專題</p>
+                </div>
+                <span class="hidden md:block text-xs font-bold uppercase tracking-widest text-stone-400 dark:text-stone-600">Total 26 Lectures</span>
+            </div>
+
+            <div class="space-y-12">
+                <!-- Group 1: 逍遙遊 -->
+                <div>
+                    <h3 class="text-xl font-bold serif text-[#4a5d4e] dark:text-[#6a8a71] mb-4 flex items-center">
+                        <span class="mr-3">01 / 逍遙遊</span>
+                        <div class="flex-grow h-[1px] bg-stone-100 dark:bg-stone-800"></div>
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">逍遙遊 (一) ─ 北冥有魚</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">逍遙遊 (二) ─ 堯讓天下</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">逍遙遊 (三) ─ 大瓠之種</div>
+                    </div>
+                </div>
+
+                <!-- Group 2: 齊物論 -->
+                <div>
+                    <h3 class="text-xl font-bold serif text-[#4a5d4e] dark:text-[#6a8a71] mb-4 flex items-center">
+                        <span class="mr-3">02 / 齊物論</span>
+                        <div class="flex-grow h-[1px] bg-stone-100 dark:bg-stone-800"></div>
+                    </h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm md:text-base">
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">齊物論 (一) ─ 南郭子綦</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">齊物論 (二) ─ 莫知所萌</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">齊物論 (三) ─ 莫若以明 (上)</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">齊物論 (三) ─ 莫若以明 (下)</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">齊物論 (四) ─ 惡乎知之</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">齊物論 (五) ─ 莊周夢蝶</div>
+                    </div>
+                </div>
+
+                <!-- Group 3: 養生主 -->
+                <div>
+                    <h3 class="text-xl font-bold serif text-[#4a5d4e] dark:text-[#6a8a71] mb-4 flex items-center">
+                        <span class="mr-3">03 / 養生主</span>
+                        <div class="flex-grow h-[1px] bg-stone-100 dark:bg-stone-800"></div>
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">養生主 (一) ─ 生也有涯</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">養生主 (二) ─ 庖丁解牛</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">養生主 (三) ─ 惡乎介也</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">養生主 (四) ─ 澤雉十步</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">養生主 (五) ─ 帝之懸解</div>
+                    </div>
+                </div>
+
+                <!-- Group 4: 專題 -->
+                <div>
+                    <h3 class="text-xl font-bold serif text-[#4a5d4e] dark:text-[#6a8a71] mb-4 flex items-center">
+                        <span class="mr-3">04 / 專題研究</span>
+                        <div class="flex-grow h-[1px] bg-stone-100 dark:bg-stone-800"></div>
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-[#f1f3f1] dark:bg-[#252a25] rounded-lg border border-stone-200 dark:border-stone-800 font-medium dark:text-stone-200">莊子 「渾沌」 意象的語意實踐</div>
+                        <div class="p-4 bg-[#f1f3f1] dark:bg-[#252a25] rounded-lg border border-stone-200 dark:border-stone-800 font-medium dark:text-stone-200">「神凝」 與 「一志」：歸返 「渾沌」</div>
+                    </div>
+                </div>
+
+                <!-- Group 5: 人間世 -->
+                <div>
+                    <h3 class="text-xl font-bold serif text-[#4a5d4e] dark:text-[#6a8a71] mb-4 flex items-center">
+                        <span class="mr-3">05 / 人間世</span>
+                        <div class="flex-grow h-[1px] bg-stone-100 dark:bg-stone-800"></div>
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">人間世 (一) ─ 顏回請行</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">人間世 (二) ─ 葉公子高</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">人間世 (三) ─ 顏闔將傅</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">人間世 (四) ─ 匠石之齊</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">人間世 (五) ─ 支離疏者</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">人間世 (六) ─ 南伯子綦</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">人間世 (七) ─ 楚狂接輿</div>
+                    </div>
+                </div>
+
+                <!-- Group 6: 德充符 -->
+                <div>
+                    <h3 class="text-xl font-bold serif text-[#4a5d4e] dark:text-[#6a8a71] mb-4 flex items-center">
+                        <span class="mr-3">06 / 德充符</span>
+                        <div class="flex-grow h-[1px] bg-stone-100 dark:bg-stone-800"></div>
+                    </h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">德充符 (一) ─ 喪足遺土</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300">德充符 (二) ─ 形有所忘</div>
+                        <div class="p-4 bg-stone-50 dark:bg-[#2a2a2a] rounded-lg border border-stone-100 dark:border-stone-800 dark:text-stone-300 font-bold border-l-4 border-stone-800 dark:border-stone-400">德充符 (三) ─ 所謂無情</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Resources Section -->
+    <section id="resources" class="py-24 bg-stone-100 dark:bg-[#151515]">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold serif mb-4 dark:text-stone-100">相關資源</h2>
+                <div class="w-16 h-1 bg-stone-400 dark:bg-stone-700 mx-auto mb-6"></div>
+                <p class="text-stone-500 dark:text-stone-500">更多關於莊子思想的經典原文與學術資源</p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <ul class="space-y-6">
+                    <li class="bg-white dark:bg-[#252525] p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col md:flex-row md:items-center md:justify-between chapter-card">
+                        <div>
+                            <h4 class="font-bold text-stone-800 dark:text-stone-200 serif text-lg">1. 數位經典_莊子原文</h4>
+                            <p class="text-stone-500 dark:text-stone-500 text-sm mt-1">詳盡的文本記錄與原文對照</p>
+                        </div>
+                        <a href="https://www.chineseclassic.com/content/283" target="_blank" class="mt-4 md:mt-0 text-[#4a5d4e] dark:text-[#6a8a71] font-medium flex items-center hover:underline">
+                            前往閱讀 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </li>
+                    <li class="bg-white dark:bg-[#252525] p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col md:flex-row md:items-center md:justify-between chapter-card">
+                        <div>
+                            <h4 class="font-bold text-stone-800 dark:text-stone-200 serif text-lg">2. 臺大開放式課程-正是時候讀莊子</h4>
+                            <p class="text-stone-500 dark:text-stone-500 text-sm mt-1">官方原始課程資源網頁</p>
+                        </div>
+                        <a href="https://ocw.aca.ntu.edu.tw/courses/103S123" target="_blank" class="mt-4 md:mt-0 text-[#4a5d4e] dark:text-[#6a8a71] font-medium flex items-center hover:underline">
+                            開啟網址 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </li>
+                    <li class="bg-white dark:bg-[#252525] p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col md:flex-row md:items-center md:justify-between chapter-card">
+                        <div>
+                            <h4 class="font-bold text-stone-800 dark:text-stone-200 serif text-lg">3. 中國哲學書電子化計劃</h4>
+                            <p class="text-stone-500 dark:text-stone-500 text-sm mt-1">權威的古籍資料庫與檢索工具</p>
+                        </div>
+                        <a href="https://ctext.org/zhuangzi/zh" target="_blank" class="mt-4 md:mt-0 text-[#4a5d4e] dark:text-[#6a8a71] font-medium flex items-center hover:underline">
+                            前往計劃 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </li>
+                    <li class="bg-white dark:bg-[#252525] p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col md:flex-row md:items-center md:justify-between chapter-card">
+                        <div>
+                            <h4 class="font-bold text-stone-800 dark:text-stone-200 serif text-lg">4. 「睡前學堂」《莊子新解》影音</h4>
+                            <p class="text-stone-500 dark:text-stone-500 text-sm mt-1">YouTube 影音播放清單</p>
+                        </div>
+                        <a href="https://www.youtube.com/watch?v=rPpp5v7zbVs&list=PLvh1kerK7Rls_5AESxzDNCX6niDZ2_yym" target="_blank" class="mt-4 md:mt-0 text-[#4a5d4e] dark:text-[#6a8a71] font-medium flex items-center hover:underline">
+                            立即播放 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </li>
+                    <li class="bg-white dark:bg-[#252525] p-6 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col md:flex-row md:items-center md:justify-between chapter-card">
+                        <div>
+                            <h4 class="font-bold text-stone-800 dark:text-stone-200 serif text-lg">5. 傅佩榮國學官方頻道</h4>
+                            <p class="text-stone-500 dark:text-stone-500 text-sm mt-1">深度解析道家思想系列講座</p>
+                        </div>
+                        <a href="https://www.youtube.com/@fupeijung/playlists" target="_blank" class="mt-4 md:mt-0 text-[#4a5d4e] dark:text-[#6a8a71] font-medium flex items-center hover:underline">
+                            觀看頻道 <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 py-16 px-6 text-center dark:bg-black dark:text-stone-600">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-2xl font-bold serif text-white mb-6 dark:text-stone-300">正是時候，好好讀莊子。</h2>
+            <p class="mb-8 max-w-lg mx-auto leading-relaxed">半部論語治天下，半部莊子治身心。在混亂的時代，讓身心的安定成為您最有力量的武器。</p>
+            <div class="flex justify-center space-x-6 mb-12">
+                <a href="https://ocw.aca.ntu.edu.tw/courses/103S123" target="_blank" class="border border-stone-700 px-6 py-2 rounded hover:text-white hover:border-white transition dark:border-stone-800">官方課程頁面</a>
+            </div>
+            <p class="text-[10px] tracking-widest uppercase">
+                &copy; NTU OpenCourseWare | 中國文學系 蔡璧名 教授
+            </p>
+            <p class="mt-2 text-[10px]">
+                內容來源：台大開放式課程 | 此網頁僅作為課程資訊展示使用
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // 深色模式切換功能
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            // 可選：儲存偏好設定至 localStorage
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // 初始化檢查主題設定
+        window.onload = function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            }
+        };
+
+        // Smooth scroll implementation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
