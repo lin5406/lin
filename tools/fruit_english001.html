@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水果英文配對王 - 5關挑戰版 (修復版)</title>
+    <!-- 引入外部資源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .shake-animation { animation: shake 0.3s ease-in-out; }
+
+        body { 
+            overflow: hidden; 
+            touch-action: manipulation;
+            background: #f0f9ff;
+        }
+
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .card:hover:not(.correct) {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .visible-animate {
+            transition: all 0.8s ease-out;
+            transform: scale(1) !important;
+            opacity: 1 !important;
+        }
+
+        ::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-cyan-100 to-blue-200 flex items-center justify-center min-h-screen p-4 font-sans text-gray-800">
+
+    <!-- 遊戲主容器 (預設隱藏，點擊開始後顯示) -->
+    <div id="game-container" class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-6xl opacity-0 transform scale-95 flex flex-col items-center z-10">
+        
+        <div class="w-full text-center mb-4">
+            <div class="flex justify-between items-center mb-2">
+                <h1 class="text-2xl md:text-4xl font-black text-blue-600 tracking-tight">水果英文配對王</h1>
+                <div id="level-indicator" class="bg-blue-600 text-white px-4 py-1 rounded-full font-bold">第 1 / 5 關</div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3 items-center w-full text-sm md:text-base font-bold">
+                <div id="score-display" class="bg-yellow-100 text-yellow-700 py-2 rounded-xl border border-yellow-200 shadow-sm">分數: 0</div>
+                <div class="flex justify-center">
+                    <button id="music-button" class="bg-blue-100 text-blue-600 w-10 h-10 rounded-full shadow flex items-center justify-center transition-all hover:bg-blue-200 active:scale-90">
+                        <i id="music-icon" class="fas fa-music"></i>
+                    </button>
+                </div>
+                <div id="timer-display" class="bg-red-100 text-red-700 py-2 rounded-xl border border-red-200 shadow-sm">時間: 60s</div>
+            </div>
+            
+            <div class="w-full bg-gray-200 h-2 rounded-full mt-4 overflow-hidden">
+                <div id="progress-bar" class="bg-green-400 h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="cards-container" class="w-full overflow-y-auto max-h-[60vh] pr-2">
+            <div id="fruit-cards" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 mb-6"></div>
+            <div class="h-px bg-gray-200 w-full mb-6"></div>
+            <div id="word-cards" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+        </div>
+    </div>
+    
+    <!-- 開始覆蓋層 (最上層) -->
+    <div id="start-overlay" class="fixed inset-0 bg-blue-600 flex items-center justify-center z-[100] text-white text-center p-6 transition-opacity duration-500">
+        <div class="max-w-md">
+            <div class="text-8xl mb-6">🍎</div>
+            <h2 class="text-5xl font-black mb-4">水果配對大挑戰</h2>
+            <p class="text-blue-100 mb-8 text-xl">總共 5 個關卡，難度會越來越高喔！</p>
+            <button id="start-button" class="px-12 py-5 bg-white text-blue-600 font-bold rounded-full text-2xl shadow-2xl hover:bg-yellow-400 hover:text-white transition-all transform hover:scale-110 active:scale-95">
+                開始挑戰
+            </button>
+        </div>
+    </div>
+
+    <!-- 關卡完成彈窗 -->
+    <div id="level-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[110] hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-8 text-center max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300">
+            <div class="text-5xl mb-4">🌟</div>
+            <h2 class="text-3xl font-black text-blue-600 mb-2">太棒了！</h2>
+            <p id="level-complete-text" class="text-gray-600 mb-6 font-bold">第 1 關完成</p>
+            <button id="next-level-button" class="w-full py-4 bg-green-500 text-white font-bold rounded-2xl text-xl shadow-lg hover:bg-green-600 transition-all active:scale-95">
+                下一關
+            </button>
+        </div>
+    </div>
+
+    <!-- 遊戲結束視窗 -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[120] hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2.5rem] p-8 text-center max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300">
+            <div class="text-6xl mb-4" id="game-over-emoji">🏆</div>
+            <h2 class="text-3xl font-black text-blue-600 mb-2" id="game-over-title">全破關！</h2>
+            <p class="text-xl font-bold text-gray-500 mb-4">最終總分</p>
+            <div id="final-score" class="text-6xl font-black text-green-500 mb-8">0</div>
+            <button id="restart-button" class="w-full py-4 bg-blue-500 text-white font-bold rounded-2xl text-xl shadow-lg hover:bg-blue-600 transition-all active:scale-95">
+                重新挑戰
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 水果資料庫
+        const allFruits = [
+            { name: "Apple", emoji: "🍎" }, { name: "Banana", emoji: "🍌" },
+            { name: "Orange", emoji: "🍊" }, { name: "Grape", emoji: "🍇" },
+            { name: "Strawberry", emoji: "🍓" }, { name: "Watermelon", emoji: "🍉" },
+            { name: "Pineapple", emoji: "🍍" }, { name: "Peach", emoji: "🍑" },
+            { name: "Mango", emoji: "🥭" }, { name: "Cherry", emoji: "🍒" },
+            { name: "Kiwi", emoji: "🥝" }, { name: "Pear", emoji: "🍐" },
+            { name: "Lemon", emoji: "🍋" }, { name: "Blueberry", emoji: "🫐" },
+            { name: "Melon", emoji: "🍈" }, { name: "Coconut", emoji: "🥥" },
+            { name: "Avocado", emoji: "🥑" }, { name: "Papaya", emoji: "🥭" }, // 修正圖標
+            { name: "Pomegranate", emoji: "🍅" }, { name: "Dragon Fruit", emoji: "🐉" }
+        ];
+
+        // 關卡設定
+        const levelConfig = [
+            { count: 3, timeBonus: 0 },
+            { count: 6, timeBonus: 20 },
+            { count: 9, timeBonus: 30 },
+            { count: 12, timeBonus: 40 },
+            { count: 18, timeBonus: 60 }
+        ];
+
+        let currentLevel = 1;
+        let score = 0;
+        let timer = 60;
+        let timerInterval;
+        let gameStarted = false;
+        let selectedFruitCard = null;
+        let selectedWordCard = null;
+        let matchedPairs = 0;
+        let isMusicPlaying = false;
+        let levelFruits = [];
+
+        // DOM 元素
+        const startOverlay = document.getElementById('start-overlay');
+        const startButton = document.getElementById('start-button');
+        const gameContainer = document.getElementById('game-container');
+        const fruitCardsContainer = document.getElementById('fruit-cards');
+        const wordCardsContainer = document.getElementById('word-cards');
+        const scoreDisplay = document.getElementById('score-display');
+        const timerDisplay = document.getElementById('timer-display');
+        const levelIndicator = document.getElementById('level-indicator');
+        const progressBar = document.getElementById('progress-bar');
+        const levelModal = document.getElementById('level-modal');
+        const nextLevelButton = document.getElementById('next-level-button');
+        const gameOverModal = document.getElementById('game-over-modal');
+
+        // 音效控制
+        let bgMusicLoop;
+        const synth = new Tone.Synth().toDestination();
+        const correctSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        const bgSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        bgSynth.set({ volume: -25 });
+
+        try {
+            bgMusicLoop = new Tone.Sequence((time, note) => {
+                if (note.length > 0) bgSynth.triggerAttackRelease(note, "8n", time);
+            }, [["C4", "E4"], [], ["G4"], [], ["A4", "F4"], [], ["G4", "B4"], []], "2n");
+        } catch (e) {
+            console.warn("Tone.js 初始化失敗，但不影響遊戲進行");
+        }
+
+        const playCorrectSound = () => correctSynth.triggerAttackRelease(["C5", "E5", "G5"], "16n");
+        const playLevelUpSound = () => correctSynth.triggerAttackRelease(["G4", "B4", "D5", "G5"], "8n");
+        const playIncorrectSound = () => synth.triggerAttackRelease("C3", "8n");
+
+        const speakWord = (word) => {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                utterance.rate = 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        };
+
+        const toggleMusic = async () => {
+            if (Tone.context.state !== 'running') await Tone.start();
+            if (!isMusicPlaying) {
+                if(bgMusicLoop) bgMusicLoop.start(0);
+                Tone.Transport.start();
+                document.getElementById('music-icon').className = 'fas fa-volume-up';
+                isMusicPlaying = true;
+            } else {
+                Tone.Transport.stop();
+                if(bgMusicLoop) bgMusicLoop.stop();
+                document.getElementById('music-icon').className = 'fas fa-music';
+                isMusicPlaying = false;
+            }
+        };
+
+        const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+        const initLevel = () => {
+            matchedPairs = 0;
+            selectedFruitCard = null;
+            selectedWordCard = null;
+            
+            const config = levelConfig[currentLevel - 1];
+            levelIndicator.textContent = `第 ${currentLevel} / 5 關`;
+            progressBar.style.width = '0%';
+
+            const pool = shuffle(allFruits);
+            levelFruits = pool.slice(0, config.count);
+
+            renderCards();
+        };
+
+        const renderCards = () => {
+            fruitCardsContainer.innerHTML = '';
+            wordCardsContainer.innerHTML = '';
+
+            const fruitsPool = shuffle(levelFruits);
+            const wordsPool = shuffle(levelFruits);
+
+            fruitsPool.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'card bg-white p-4 rounded-2xl flex items-center justify-center text-4xl cursor-pointer shadow border-4 border-transparent';
+                card.innerHTML = `<span>${f.emoji}</span>`;
+                card.dataset.match = f.name;
+                card.onclick = handleCardClick;
+                fruitCardsContainer.appendChild(card);
+            });
+
+            wordsPool.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'card bg-white p-3 rounded-2xl flex items-center justify-center text-sm md:text-base font-black text-gray-600 cursor-pointer shadow border-4 border-transparent';
+                card.innerHTML = `<span>${f.name}</span>`;
+                card.dataset.match = f.name;
+                card.onclick = handleCardClick;
+                wordCardsContainer.appendChild(card);
+            });
+        };
+
+        const handleCardClick = (e) => {
+            if (!gameStarted) return;
+            const card = e.currentTarget;
+            if (card.classList.contains('correct')) return;
+
+            const isFruit = card.parentElement.id === 'fruit-cards';
+            if (isFruit) {
+                if (selectedFruitCard) selectedFruitCard.classList.remove('border-blue-400', 'bg-blue-50');
+                selectedFruitCard = card;
+            } else {
+                speakWord(card.dataset.match);
+                if (selectedWordCard) selectedWordCard.classList.remove('border-blue-400', 'bg-blue-50');
+                selectedWordCard = card;
+            }
+
+            card.classList.add('border-blue-400', 'bg-blue-50');
+
+            if (selectedFruitCard && selectedWordCard) {
+                if (selectedFruitCard.dataset.match === selectedWordCard.dataset.match) {
+                    handleMatchSuccess();
+                } else {
+                    handleMatchFail();
+                }
+            }
+        };
+
+        function handleMatchSuccess() {
+            score += 20;
+            matchedPairs++;
+            playCorrectSound();
+            
+            const f = selectedFruitCard;
+            const w = selectedWordCard;
+            [f, w].forEach(c => {
+                c.classList.remove('border-blue-400', 'bg-blue-50');
+                c.classList.add('border-green-400', 'bg-green-100', 'correct', 'opacity-50', 'cursor-default');
+            });
+
+            selectedFruitCard = null; selectedWordCard = null;
+            scoreDisplay.textContent = `分數: ${score}`;
+            
+            const progress = (matchedPairs / levelFruits.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            if (matchedPairs === levelFruits.length) {
+                if (currentLevel < 5) {
+                    setTimeout(showLevelComplete, 500);
+                } else {
+                    setTimeout(() => endGame(true), 500);
+                }
+            }
+        }
+
+        function handleMatchFail() {
+            score = Math.max(0, score - 5);
+            playIncorrectSound();
+            scoreDisplay.textContent = `分數: ${score}`;
+            const f = selectedFruitCard; const w = selectedWordCard;
+            [f, w].forEach(c => c.classList.add('border-red-400', 'shake-animation'));
+            setTimeout(() => {
+                if(f) f.classList.remove('border-red-400', 'shake-animation', 'border-blue-400', 'bg-blue-50');
+                if(w) w.classList.remove('border-red-400', 'shake-animation', 'border-blue-400', 'bg-blue-50');
+            }, 500);
+            selectedFruitCard = null; selectedWordCard = null;
+        }
+
+        const showLevelComplete = () => {
+            gameStarted = false;
+            clearInterval(timerInterval);
+            playLevelUpSound();
+            document.getElementById('level-complete-text').textContent = `第 ${currentLevel} 關挑戰成功！`;
+            levelModal.classList.remove('hidden');
+            setTimeout(() => {
+                levelModal.classList.add('opacity-100');
+                levelModal.querySelector('div').classList.add('scale-100');
+            }, 10);
+        };
+
+        nextLevelButton.onclick = () => {
+            currentLevel++;
+            timer += levelConfig[currentLevel-1].timeBonus;
+            levelModal.classList.remove('opacity-100');
+            setTimeout(() => {
+                levelModal.classList.add('hidden');
+                gameStarted = true;
+                initLevel();
+                startTimer();
+            }, 300);
+        };
+
+        const startTimer = () => {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timer > 0) {
+                    timer--;
+                    timerDisplay.textContent = `時間: ${timer}s`;
+                    if (timer <= 10) timerDisplay.classList.add('text-red-600', 'animate-pulse');
+                    else timerDisplay.classList.remove('text-red-600', 'animate-pulse');
+                } else {
+                    endGame(false);
+                }
+            }, 1000);
+        };
+
+        const endGame = (win) => {
+            gameStarted = false;
+            clearInterval(timerInterval);
+            document.getElementById('game-over-title').textContent = win ? "恭喜全破關！" : "時間到！";
+            document.getElementById('game-over-emoji').textContent = win ? "👑" : "⏰";
+            document.getElementById('final-score').textContent = score;
+            gameOverModal.classList.remove('hidden');
+            setTimeout(() => gameOverModal.classList.add('opacity-100'), 10);
+        };
+
+        // 按鈕綁定
+        startButton.onclick = async () => {
+            startOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                startOverlay.style.display = 'none';
+                gameContainer.classList.add('visible-animate');
+                currentLevel = 1;
+                score = 0;
+                gameStarted = true;
+                initLevel();
+                startTimer();
+                toggleMusic(); // 啟動音樂
+            }, 500);
+        };
+
+        document.getElementById('restart-button').onclick = () => location.reload();
+        document.getElementById('music-button').onclick = toggleMusic;
+
+    </script>
+</body>
+</html>
