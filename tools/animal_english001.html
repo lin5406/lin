@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動物森林配對王 - 英語學習挑戰</title>
+    <!-- 引入外部資源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .shake-animation { animation: shake 0.3s ease-in-out; }
+
+        body { 
+            overflow: hidden; 
+            touch-action: manipulation;
+            background: #f0fdf4;
+        }
+
+        .card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .card:hover:not(.correct) {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .visible-animate {
+            transition: all 0.8s ease-out;
+            transform: scale(1) !important;
+            opacity: 1 !important;
+        }
+
+        ::-webkit-scrollbar { display: none; }
+        
+        /* 自定義進度條發光效果 */
+        #progress-bar {
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-100 to-emerald-200 flex items-center justify-center min-h-screen p-4 font-sans text-gray-800">
+
+    <!-- 遊戲主容器 -->
+    <div id="game-container" class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-6xl opacity-0 transform scale-95 flex flex-col items-center z-10">
+        
+        <div class="w-full text-center mb-4">
+            <div class="flex justify-between items-center mb-2">
+                <h1 class="text-2xl md:text-4xl font-black text-emerald-700 tracking-tight">
+                    <i class="fas fa-paw mr-2"></i>動物森林配對王
+                </h1>
+                <div id="level-indicator" class="bg-emerald-600 text-white px-4 py-1 rounded-full font-bold shadow-md">第 1 / 5 關</div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3 items-center w-full text-sm md:text-base font-bold">
+                <div id="score-display" class="bg-amber-100 text-amber-700 py-2 rounded-xl border border-amber-200 shadow-sm">
+                    <i class="fas fa-star mr-1"></i>分數: 0
+                </div>
+                <div class="flex justify-center">
+                    <button id="music-button" class="bg-emerald-100 text-emerald-600 w-10 h-10 rounded-full shadow flex items-center justify-center transition-all hover:bg-emerald-200 active:scale-90">
+                        <i id="music-icon" class="fas fa-music"></i>
+                    </button>
+                </div>
+                <div id="timer-display" class="bg-rose-100 text-rose-700 py-2 rounded-xl border border-rose-200 shadow-sm">
+                    <i class="fas fa-clock mr-1"></i>時間: 60s
+                </div>
+            </div>
+            
+            <div class="w-full bg-gray-200 h-3 rounded-full mt-4 overflow-hidden border border-gray-100">
+                <div id="progress-bar" class="bg-emerald-400 h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div id="cards-container" class="w-full overflow-y-auto max-h-[60vh] pr-2">
+            <div id="animal-cards" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3 mb-6"></div>
+            <div class="h-px bg-emerald-100 w-full mb-6"></div>
+            <div id="word-cards" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3"></div>
+        </div>
+    </div>
+    
+    <!-- 開始覆蓋層 -->
+    <div id="start-overlay" class="fixed inset-0 bg-emerald-700 flex items-center justify-center z-[100] text-white text-center p-6 transition-opacity duration-500">
+        <div class="max-w-md">
+            <div class="text-8xl mb-6 animate-bounce">🦁</div>
+            <h2 class="text-5xl font-black mb-4">動物森林配對王</h2>
+            <p class="text-emerald-100 mb-8 text-xl">一邊遊戲一邊學習動物的英文名稱！<br>準備好接受挑戰了嗎？</p>
+            <button id="start-button" class="px-12 py-5 bg-white text-emerald-700 font-bold rounded-full text-2xl shadow-2xl hover:bg-amber-400 hover:text-white transition-all transform hover:scale-110 active:scale-95">
+                進入森林
+            </button>
+        </div>
+    </div>
+
+    <!-- 關卡完成彈窗 -->
+    <div id="level-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[110] hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-8 text-center max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-emerald-400">
+            <div class="text-5xl mb-4">🌈</div>
+            <h2 class="text-3xl font-black text-emerald-600 mb-2">幹得好！</h2>
+            <p id="level-complete-text" class="text-gray-600 mb-6 font-bold">成功征服森林的一角</p>
+            <button id="next-level-button" class="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl text-xl shadow-lg hover:bg-emerald-600 transition-all active:scale-95">
+                挑戰下一關
+            </button>
+        </div>
+    </div>
+
+    <!-- 遊戲結束視窗 -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[120] hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2.5rem] p-8 text-center max-w-sm w-full shadow-2xl transform scale-90 transition-transform duration-300 border-4 border-amber-400">
+            <div class="text-6xl mb-4" id="game-over-emoji">🏆</div>
+            <h2 class="text-3xl font-black text-emerald-700 mb-2" id="game-over-title">森林之王！</h2>
+            <p class="text-xl font-bold text-gray-500 mb-4">最終榮耀分數</p>
+            <div id="final-score" class="text-6xl font-black text-emerald-500 mb-8">0</div>
+            <button id="restart-button" class="w-full py-4 bg-emerald-500 text-white font-bold rounded-2xl text-xl shadow-lg hover:bg-emerald-600 transition-all active:scale-95">
+                重新探索森林
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 動物資料庫
+        const allAnimals = [
+            { name: "Lion", emoji: "🦁" }, { name: "Tiger", emoji: "🐯" },
+            { name: "Elephant", emoji: "🐘" }, { name: "Giraffe", emoji: "🦒" },
+            { name: "Zebra", emoji: "🦓" }, { name: "Monkey", emoji: "🐒" },
+            { name: "Rabbit", emoji: "🐰" }, { name: "Panda", emoji: "🐼" },
+            { name: "Koala", emoji: "🐨" }, { name: "Hippo", emoji: "🦛" },
+            { name: "Crocodile", emoji: "🐊" }, { name: "Snake", emoji: "🐍" },
+            { name: "Penguin", emoji: "🐧" }, { name: "Dolphin", emoji: "🐬" },
+            { name: "Whale", emoji: "🐳" }, { name: "Shark", emoji: "🦈" },
+            { name: "Owl", emoji: "🦉" }, { name: "Butterfly", emoji: "🦋" },
+            { name: "Honeybee", emoji: "🐝" }, { name: "Frog", emoji: "🐸" }
+        ];
+
+        // 關卡設定
+        const levelConfig = [
+            { count: 3, timeBonus: 0 },
+            { count: 6, timeBonus: 20 },
+            { count: 9, timeBonus: 30 },
+            { count: 12, timeBonus: 40 },
+            { count: 18, timeBonus: 60 }
+        ];
+
+        let currentLevel = 1;
+        let score = 0;
+        let timer = 60;
+        let timerInterval;
+        let gameStarted = false;
+        let selectedAnimalCard = null;
+        let selectedWordCard = null;
+        let matchedPairs = 0;
+        let isMusicPlaying = false;
+        let levelAnimals = [];
+
+        // DOM 元素
+        const startOverlay = document.getElementById('start-overlay');
+        const startButton = document.getElementById('start-button');
+        const gameContainer = document.getElementById('game-container');
+        const animalCardsContainer = document.getElementById('animal-cards');
+        const wordCardsContainer = document.getElementById('word-cards');
+        const scoreDisplay = document.getElementById('score-display');
+        const timerDisplay = document.getElementById('timer-display');
+        const levelIndicator = document.getElementById('level-indicator');
+        const progressBar = document.getElementById('progress-bar');
+        const levelModal = document.getElementById('level-modal');
+        const nextLevelButton = document.getElementById('next-level-button');
+        const gameOverModal = document.getElementById('game-over-modal');
+
+        // 音效控制
+        let bgMusicLoop;
+        const synth = new Tone.Synth().toDestination();
+        const correctSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        const bgSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        bgSynth.set({ volume: -25 });
+
+        try {
+            // 優化背景音律
+            bgMusicLoop = new Tone.Sequence((time, note) => {
+                if (note.length > 0) bgSynth.triggerAttackRelease(note, "8n", time);
+            }, [["F4", "A4"], [], ["C5"], [], ["D5", "Bb4"], [], ["C5", "E5"], []], "2n");
+        } catch (e) {
+            console.warn("Tone.js 初始化失敗");
+        }
+
+        const playCorrectSound = () => correctSynth.triggerAttackRelease(["F4", "A4", "C5"], "16n");
+        const playLevelUpSound = () => correctSynth.triggerAttackRelease(["C4", "F4", "A4", "C5"], "8n");
+        const playIncorrectSound = () => synth.triggerAttackRelease("G2", "8n");
+
+        const speakWord = (word) => {
+            if ('speechSynthesis' in window) {
+                // 中斷之前的發音
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9; // 稍微放慢速度讓學習更清楚
+                window.speechSynthesis.speak(utterance);
+            }
+        };
+
+        const toggleMusic = async () => {
+            if (Tone.context.state !== 'running') await Tone.start();
+            if (!isMusicPlaying) {
+                if(bgMusicLoop) bgMusicLoop.start(0);
+                Tone.Transport.start();
+                document.getElementById('music-icon').className = 'fas fa-volume-up';
+                isMusicPlaying = true;
+            } else {
+                Tone.Transport.stop();
+                if(bgMusicLoop) bgMusicLoop.stop();
+                document.getElementById('music-icon').className = 'fas fa-music';
+                isMusicPlaying = false;
+            }
+        };
+
+        const shuffle = (arr) => [...arr].sort(() => Math.random() - 0.5);
+
+        const initLevel = () => {
+            matchedPairs = 0;
+            selectedAnimalCard = null;
+            selectedWordCard = null;
+            
+            const config = levelConfig[currentLevel - 1];
+            levelIndicator.textContent = `第 ${currentLevel} / 5 關`;
+            progressBar.style.width = '0%';
+
+            const pool = shuffle(allAnimals);
+            levelAnimals = pool.slice(0, config.count);
+
+            renderCards();
+        };
+
+        const renderCards = () => {
+            animalCardsContainer.innerHTML = '';
+            wordCardsContainer.innerHTML = '';
+
+            const animalPool = shuffle(levelAnimals);
+            const wordsPool = shuffle(levelAnimals);
+
+            animalPool.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'card bg-white p-4 rounded-2xl flex items-center justify-center text-4xl cursor-pointer shadow-md border-4 border-transparent hover:border-emerald-200';
+                card.innerHTML = `<span>${f.emoji}</span>`;
+                card.dataset.match = f.name;
+                card.onclick = handleCardClick;
+                animalCardsContainer.appendChild(card);
+            });
+
+            wordsPool.forEach(f => {
+                const card = document.createElement('div');
+                card.className = 'card bg-white p-3 rounded-2xl flex items-center justify-center text-sm md:text-base font-black text-emerald-800 cursor-pointer shadow-md border-4 border-transparent hover:border-emerald-200';
+                card.innerHTML = `<span>${f.name}</span>`;
+                card.dataset.match = f.name;
+                card.onclick = handleCardClick;
+                wordCardsContainer.appendChild(card);
+            });
+        };
+
+        const handleCardClick = (e) => {
+            if (!gameStarted) return;
+            const card = e.currentTarget;
+            if (card.classList.contains('correct')) return;
+
+            const isAnimal = card.parentElement.id === 'animal-cards';
+            if (isAnimal) {
+                if (selectedAnimalCard) selectedAnimalCard.classList.remove('border-emerald-400', 'bg-emerald-50');
+                selectedAnimalCard = card;
+            } else {
+                speakWord(card.dataset.match);
+                if (selectedWordCard) selectedWordCard.classList.remove('border-emerald-400', 'bg-emerald-50');
+                selectedWordCard = card;
+            }
+
+            card.classList.add('border-emerald-400', 'bg-emerald-50');
+
+            if (selectedAnimalCard && selectedWordCard) {
+                if (selectedAnimalCard.dataset.match === selectedWordCard.dataset.match) {
+                    handleMatchSuccess();
+                } else {
+                    handleMatchFail();
+                }
+            }
+        };
+
+        function handleMatchSuccess() {
+            score += 20;
+            matchedPairs++;
+            playCorrectSound();
+            
+            const a = selectedAnimalCard;
+            const w = selectedWordCard;
+            [a, w].forEach(c => {
+                c.classList.remove('border-emerald-400', 'bg-emerald-50');
+                c.classList.add('border-emerald-500', 'bg-emerald-100', 'correct', 'opacity-50', 'cursor-default');
+            });
+
+            selectedAnimalCard = null; selectedWordCard = null;
+            scoreDisplay.innerHTML = `<i class="fas fa-star mr-1"></i>分數: ${score}`;
+            
+            const progress = (matchedPairs / levelAnimals.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            if (matchedPairs === levelAnimals.length) {
+                if (currentLevel < 5) {
+                    setTimeout(showLevelComplete, 500);
+                } else {
+                    setTimeout(() => endGame(true), 500);
+                }
+            }
+        }
+
+        function handleMatchFail() {
+            score = Math.max(0, score - 5);
+            playIncorrectSound();
+            scoreDisplay.innerHTML = `<i class="fas fa-star mr-1"></i>分數: ${score}`;
+            const a = selectedAnimalCard; const w = selectedWordCard;
+            [a, w].forEach(c => c.classList.add('border-rose-400', 'shake-animation'));
+            setTimeout(() => {
+                if(a) a.classList.remove('border-rose-400', 'shake-animation', 'border-emerald-400', 'bg-emerald-50');
+                if(w) w.classList.remove('border-rose-400', 'shake-animation', 'border-emerald-400', 'bg-emerald-50');
+            }, 500);
+            selectedAnimalCard = null; selectedWordCard = null;
+        }
+
+        const showLevelComplete = () => {
+            gameStarted = false;
+            clearInterval(timerInterval);
+            playLevelUpSound();
+            document.getElementById('level-complete-text').textContent = `第 ${currentLevel} 關完美通過！森林深處在呼喚你...`;
+            levelModal.classList.remove('hidden');
+            setTimeout(() => {
+                levelModal.classList.add('opacity-100');
+                levelModal.querySelector('div').classList.add('scale-100');
+            }, 10);
+        };
+
+        nextLevelButton.onclick = () => {
+            currentLevel++;
+            timer += levelConfig[currentLevel-1].timeBonus;
+            levelModal.classList.remove('opacity-100');
+            setTimeout(() => {
+                levelModal.classList.add('hidden');
+                gameStarted = true;
+                initLevel();
+                startTimer();
+            }, 300);
+        };
+
+        const startTimer = () => {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timer > 0) {
+                    timer--;
+                    timerDisplay.innerHTML = `<i class="fas fa-clock mr-1"></i>時間: ${timer}s`;
+                    if (timer <= 10) timerDisplay.classList.add('text-rose-600', 'animate-pulse');
+                    else timerDisplay.classList.remove('text-rose-600', 'animate-pulse');
+                } else {
+                    endGame(false);
+                }
+            }, 1000);
+        };
+
+        const endGame = (win) => {
+            gameStarted = false;
+            clearInterval(timerInterval);
+            document.getElementById('game-over-title').textContent = win ? "終極森林之王！" : "迷失在森林中了...";
+            document.getElementById('game-over-emoji').textContent = win ? "👑" : "🐾";
+            document.getElementById('final-score').textContent = score;
+            gameOverModal.classList.remove('hidden');
+            setTimeout(() => gameOverModal.classList.add('opacity-100'), 10);
+        };
+
+        // 按鈕綁定
+        startButton.onclick = async () => {
+            startOverlay.classList.add('opacity-0');
+            setTimeout(() => {
+                startOverlay.style.display = 'none';
+                gameContainer.classList.add('visible-animate');
+                currentLevel = 1;
+                score = 0;
+                timer = 60;
+                gameStarted = true;
+                initLevel();
+                startTimer();
+                toggleMusic(); // 啟動音樂
+            }, 500);
+        };
+
+        document.getElementById('restart-button').onclick = () => location.reload();
+        document.getElementById('music-button').onclick = toggleMusic;
+
+    </script>
+</body>
+</html>
