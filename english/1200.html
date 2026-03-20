@@ -1,690 +1,734 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Volume2, Upload, RotateCcw, Brain, ThumbsUp, CheckCircle, Trophy, RefreshCw, Info, X } from 'lucide-react';
-
-export default function App() {
-  // === 狀態管理 ===
-  const [originalCards, setOriginalCards] = useState([]);
-  const [reviewQueue, setReviewQueue] = useState([]);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const [reviewKey, setReviewKey] = useState(0); 
-  const [stats, setStats] = useState({ again: 0, hard: 0, good: 0, easy: 0 });
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false); 
-  const [isLoaded, setIsLoaded] = useState(false); 
-  const [speechRate, setSpeechRate] = useState(1); 
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SRS 單字學習卡</title>
   
-  const [isLoadingCloud, setIsLoadingCloud] = useState(false);
-  const [cloudError, setCloudError] = useState(null);
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 引入 React 與 ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- 引入 Babel 以在瀏覽器中編譯 JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
 
-  const cloudFiles = [
-    { name: '英文1200字_1', id: '1k3VTDTNDq1UFg-AcHddZk1XSFYITL1bq', url: 'https://drive.google.com/file/d/1k3VTDTNDq1UFg-AcHddZk1XSFYITL1bq/view?usp=sharing' },
-    { name: '英文1200字_2', id: '1-0J8ZCMiU01wNjFFNfO5n8l4fVuMnv8T', url: 'https://drive.google.com/file/d/1-0J8ZCMiU01wNjFFNfO5n8l4fVuMnv8T/view?usp=sharing' },
-    { name: '英文1200字_3', id: '1WJcFp50Ux7MCbJkO4VQDoXqnkTp-Z2UU', url: 'https://drive.google.com/file/d/1WJcFp50Ux7MCbJkO4VQDoXqnkTp-Z2UU/view?usp=sharing' },
-    { name: '英文1200字_4', id: '1KVEpq7_Ic93ObMHSjwI2dFtRpT9Y6U8f', url: 'https://drive.google.com/file/d/1KVEpq7_Ic93ObMHSjwI2dFtRpT9Y6U8f/view?usp=sharing' },
-    { name: '英文1200字_5', id: '1sT3CB0OptvYTFZDh-9Tl_STkgC18kh0M', url: 'https://drive.google.com/file/d/1sT3CB0OptvYTFZDh-9Tl_STkgC18kh0M/view?usp=sharing' },
-    { name: '英文1200字_6', id: '1wdB7-dEXkpKA-lpoiXnTm49MDOWOiWht', url: 'https://drive.google.com/file/d/1wdB7-dEXkpKA-lpoiXnTm49MDOWOiWht/view?usp=sharing' },
-  ];
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
 
-  const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+    // --- 內嵌 SVG 圖示元件 (確保單檔可攜性) ---
+    const IconBase = ({ children, size = 24, className = "" }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        {children}
+      </svg>
+    );
+    const Volume2 = (p) => <IconBase {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></IconBase>;
+    const Upload = (p) => <IconBase {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></IconBase>;
+    const RotateCcw = (p) => <IconBase {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></IconBase>;
+    const Brain = (p) => <IconBase {...p}><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"/><path d="M6.002 5.125A3 3 0 0 0 6.401 6.5"/><path d="M3.477 10.896a4 4 0 0 1 .585-.396"/><path d="M19.938 10.5a4 4 0 0 1 .585.396"/><path d="M6 18a4 4 0 0 1-1.967-.516"/><path d="M19.967 17.484A4 4 0 0 1 18 18"/></IconBase>;
+    const ThumbsUp = (p) => <IconBase {...p}><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"/></IconBase>;
+    const CheckCircle = (p) => <IconBase {...p}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></IconBase>;
+    const Trophy = (p) => <IconBase {...p}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></IconBase>;
+    const RefreshCw = (p) => <IconBase {...p}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M21 12a9 9 0 1 0-9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></IconBase>;
+    const Info = (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></IconBase>;
+    const X = (p) => <IconBase {...p}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>;
 
-  // === 儲存與讀取 LocalStorage ===
-  useEffect(() => {
-    try {
-      const savedCards = localStorage.getItem('srs_originalCards');
-      const savedQueue = localStorage.getItem('srs_reviewQueue');
-      const savedStats = localStorage.getItem('srs_stats');
-      const savedRate = localStorage.getItem('srs_speechRate'); 
+    // --- 主應用程式 ---
+    function App() {
+      // === 狀態管理 ===
+      const [originalCards, setOriginalCards] = useState([]);
+      const [reviewQueue, setReviewQueue] = useState([]);
+      const [isFlipped, setIsFlipped] = useState(false);
+      const [reviewKey, setReviewKey] = useState(0); 
+      const [stats, setStats] = useState({ again: 0, hard: 0, good: 0, easy: 0 });
+      const [showInfoModal, setShowInfoModal] = useState(false);
+      const [showUploadModal, setShowUploadModal] = useState(false); 
+      const [isLoaded, setIsLoaded] = useState(false); 
+      const [speechRate, setSpeechRate] = useState(1); 
+      
+      const [isLoadingCloud, setIsLoadingCloud] = useState(false);
+      const [cloudError, setCloudError] = useState(null);
 
-      if (savedCards && savedQueue && savedStats) {
-        setOriginalCards(JSON.parse(savedCards));
-        setReviewQueue(JSON.parse(savedQueue));
-        setStats(JSON.parse(savedStats));
-      }
-      if (savedRate) {
-        setSpeechRate(parseFloat(savedRate));
-      }
-    } catch (e) {
-      console.error("讀取存檔失敗", e);
-    } finally {
-      setIsLoaded(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return; 
-    
-    if (originalCards.length > 0) {
-      localStorage.setItem('srs_originalCards', JSON.stringify(originalCards));
-      localStorage.setItem('srs_reviewQueue', JSON.stringify(reviewQueue));
-      localStorage.setItem('srs_stats', JSON.stringify(stats));
-    } else {
-      localStorage.removeItem('srs_originalCards');
-      localStorage.removeItem('srs_reviewQueue');
-      localStorage.removeItem('srs_stats');
-    }
-    localStorage.setItem('srs_speechRate', speechRate.toString()); 
-  }, [originalCards, reviewQueue, stats, speechRate, isLoaded]);
-
-  // === 資料解析邏輯 ===
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target.result;
-      parseCSV(text);
-    };
-    reader.readAsText(file);
-    event.target.value = null; 
-  };
-
-  const parseCSV = (text) => {
-    const parsedCards = [];
-    let inQuotes = false;
-    let currentRow = [];
-    let currentCell = '';
-
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      if (char === '"' && text[i + 1] === '"') {
-        currentCell += '"';
-        i++;
-      } else if (char === '"') {
-        inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
-        currentRow.push(currentCell);
-        currentCell = '';
-      } else if ((char === '\n' || char === '\r') && !inQuotes) {
-        if (char === '\r' && text[i + 1] === '\n') i++;
-        currentRow.push(currentCell);
-        if (currentRow.length >= 2) {
-          let word = currentRow[0].replace(/^\uFEFF/, '').trim().replace(/^單字[：:]\s*/, '');
-          let details = currentRow[1].trim();
-          if (word && details) parsedCards.push({ word, details });
-        }
-        currentRow = [];
-        currentCell = '';
-      } else {
-        currentCell += char;
-      }
-    }
-    if (currentCell || currentRow.length > 0) {
-      currentRow.push(currentCell);
-      if (currentRow.length >= 2) {
-        let word = currentRow[0].replace(/^\uFEFF/, '').trim().replace(/^單字[：:]\s*/, '');
-        let details = currentRow[1].trim();
-        if (word && details) parsedCards.push({ word, details });
-      }
-    }
-
-    setOriginalCards(parsedCards);
-    setReviewQueue([...parsedCards]);
-    setStats({ again: 0, hard: 0, good: 0, easy: 0 });
-    setIsFlipped(false);
-    setReviewKey(0);
-    setShowUploadModal(false); 
-  };
-
-  const loadFromCloud = async (fileId, fileUrl) => {
-    setIsLoadingCloud(true);
-    setCloudError(null);
-    try {
-      const targetUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-      const proxies = [
-        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+      const cloudFiles = [
+        { name: '英文1200字_1', id: '1k3VTDTNDq1UFg-AcHddZk1XSFYITL1bq', url: 'https://drive.google.com/file/d/1k3VTDTNDq1UFg-AcHddZk1XSFYITL1bq/view?usp=sharing' },
+        { name: '英文1200字_2', id: '1-0J8ZCMiU01wNjFFNfO5n8l4fVuMnv8T', url: 'https://drive.google.com/file/d/1-0J8ZCMiU01wNjFFNfO5n8l4fVuMnv8T/view?usp=sharing' },
+        { name: '英文1200字_3', id: '1WJcFp50Ux7MCbJkO4VQDoXqnkTp-Z2UU', url: 'https://drive.google.com/file/d/1WJcFp50Ux7MCbJkO4VQDoXqnkTp-Z2UU/view?usp=sharing' },
+        { name: '英文1200字_4', id: '1KVEpq7_Ic93ObMHSjwI2dFtRpT9Y6U8f', url: 'https://drive.google.com/file/d/1KVEpq7_Ic93ObMHSjwI2dFtRpT9Y6U8f/view?usp=sharing' },
+        { name: '英文1200字_5', id: '1sT3CB0OptvYTFZDh-9Tl_STkgC18kh0M', url: 'https://drive.google.com/file/d/1sT3CB0OptvYTFZDh-9Tl_STkgC18kh0M/view?usp=sharing' },
+        { name: '英文1200字_6', id: '1wdB7-dEXkpKA-lpoiXnTm49MDOWOiWht', url: 'https://drive.google.com/file/d/1wdB7-dEXkpKA-lpoiXnTm49MDOWOiWht/view?usp=sharing' },
       ];
 
-      let text = null;
-      for (const proxyUrl of proxies) {
+      const synth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+
+      // === 儲存與讀取 LocalStorage ===
+      useEffect(() => {
         try {
-          const response = await fetch(proxyUrl);
-          if (response.ok) {
-            const result = await response.text();
-            if (!result.trim().toLowerCase().startsWith('<!doctype') && !result.trim().toLowerCase().startsWith('<html')) {
-              text = result;
-              break;
-            }
+          const savedCards = localStorage.getItem('srs_originalCards');
+          const savedQueue = localStorage.getItem('srs_reviewQueue');
+          const savedStats = localStorage.getItem('srs_stats');
+          const savedRate = localStorage.getItem('srs_speechRate'); 
+
+          if (savedCards && savedQueue && savedStats) {
+            setOriginalCards(JSON.parse(savedCards));
+            setReviewQueue(JSON.parse(savedQueue));
+            setStats(JSON.parse(savedStats));
+          }
+          if (savedRate) {
+            setSpeechRate(parseFloat(savedRate));
           }
         } catch (e) {
-          console.warn('代理請求失敗:', proxyUrl);
+          console.error("讀取存檔失敗", e);
+        } finally {
+          setIsLoaded(true);
         }
-      }
+      }, []);
 
-      if (!text) {
-        throw new Error('所有代理伺服器皆無法載入，或 Google Drive 限制了下載');
-      }
-      
-      parseCSV(text);
-    } catch (error) {
-      console.error('雲端題庫載入失敗:', error);
-      setCloudError(fileUrl);
-    } finally {
-      setIsLoadingCloud(false);
-    }
-  };
-
-  const resetSession = useCallback(() => {
-    if (originalCards.length > 0) {
-      setReviewQueue([...originalCards]);
-    }
-    setStats({ again: 0, hard: 0, good: 0, easy: 0 });
-    setIsFlipped(false);
-    setReviewKey(0);
-  }, [originalCards]);
-
-  const getEnglishExample = (details) => {
-    if (!details) return '';
-    const lines = details.split('\n').map(l => l.trim()).filter(Boolean);
-    let inExampleSection = false;
-
-    for (let line of lines) {
-      if (line.includes('例句')) {
-        inExampleSection = true;
-        const content = line.replace(/.*例句】?\s*/, '').trim();
-        if (content && /[a-zA-Z]/.test(content)) {
-           return content.includes('(') || content.includes('（')
-             ? content.split(/[\(（]/)[0].trim()
-             : content.replace(/[\u4e00-\u9fa5。，！？、；：（）]/g, '').trim();
+      useEffect(() => {
+        if (!isLoaded) return; 
+        
+        if (originalCards.length > 0) {
+          localStorage.setItem('srs_originalCards', JSON.stringify(originalCards));
+          localStorage.setItem('srs_reviewQueue', JSON.stringify(reviewQueue));
+          localStorage.setItem('srs_stats', JSON.stringify(stats));
+        } else {
+          localStorage.removeItem('srs_originalCards');
+          localStorage.removeItem('srs_reviewQueue');
+          localStorage.removeItem('srs_stats');
         }
-        continue;
-      }
-      if (inExampleSection && /[a-zA-Z]/.test(line)) {
-        return line.includes('(') || line.includes('（')
-          ? line.split(/[\(（]/)[0].trim()
-          : line.replace(/[\u4e00-\u9fa5。，！？、；：（）]/g, '').trim();
-      }
-    }
-    return '';
-  };
+        localStorage.setItem('srs_speechRate', speechRate.toString()); 
+      }, [originalCards, reviewQueue, stats, speechRate, isLoaded]);
 
-  // === 語音與圖片邏輯 ===
-  const speak = useCallback((text) => {
-    if (!synth || !text) return;
-    synth.cancel(); 
-    
-    const cleanText = text.replace(/單字[：:]?\s*/g, '');
-    
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = 'en-US';
-    utterance.rate = speechRate; 
-    
-    const voices = synth.getVoices();
-    const enVoice = voices.find(v => v.lang.startsWith('en-US') || v.lang.startsWith('en'));
-    if (enVoice) utterance.voice = enVoice;
-    
-    setTimeout(() => {
-      synth.speak(utterance);
-    }, 50);
-  }, [synth, speechRate]);
+      // === 資料解析邏輯 ===
+      const handleFileUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
 
-  const currentCard = reviewQueue.length > 0 ? reviewQueue[0] : null;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const text = e.target.result;
+          parseCSV(text);
+        };
+        reader.readAsText(file);
+        event.target.value = null; 
+      };
 
-  const getImageUrl = useCallback((word) => {
-    let hash = 0;
-    for (let i = 0; i < word.length; i++) {
-      hash = word.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const lockId = Math.abs(hash) % 1000;
-    return `https://loremflickr.com/400/300/${encodeURIComponent(word)}?lock=${lockId}`;
-  }, []);
+      const parseCSV = (text) => {
+        const parsedCards = [];
+        let inQuotes = false;
+        let currentRow = [];
+        let currentCell = '';
 
-  const getFallbackUrl = useCallback((word) => {
-    return `https://picsum.photos/seed/${encodeURIComponent(word)}/400/300`;
-  }, []);
-
-  useEffect(() => {
-    if (reviewQueue.length === 0) return;
-    const cardsToPreload = reviewQueue.slice(0, 4);
-    cardsToPreload.forEach(card => {
-      const img = new Image();
-      img.src = getImageUrl(card.word);
-    });
-  }, [reviewQueue, getImageUrl]);
-
-  useEffect(() => {
-    if (!currentCard) return;
-    const timer = setTimeout(() => {
-      if (!isFlipped) speak(currentCard.word);
-      else {
-        const example = getEnglishExample(currentCard.details);
-        if (example) speak(example);
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [isFlipped, currentCard, reviewKey, speak]);
-
-  const handleReview = useCallback((action, e = null) => {
-    if (e) e.stopPropagation();
-
-    setReviewQueue(prevQueue => {
-      if (prevQueue.length === 0) return prevQueue;
-      const cardToProcess = prevQueue[0];
-      const newQueue = [...prevQueue].slice(1);
-
-      switch (action) {
-        case 'again': newQueue.splice(Math.min(1, newQueue.length), 0, cardToProcess); break;
-        case 'hard': newQueue.splice(Math.floor(newQueue.length / 2), 0, cardToProcess); break;
-        case 'good': newQueue.push(cardToProcess); break;
-        case 'easy': break;
-        default: break;
-      }
-      return newQueue;
-    });
-
-    setStats(prev => ({ ...prev, [action]: prev[action] + 1 }));
-    setIsFlipped(false);
-    setReviewKey(prev => prev + 1);
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (showInfoModal) {
-        if (e.key === 'Escape') setShowInfoModal(false);
-        return;
-      }
-      if (showUploadModal) {
-        if (e.key === 'Escape') setShowUploadModal(false);
-        return;
-      }
-      if (!currentCard || reviewQueue.length === 0) return;
-
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        if (!isFlipped) speak(currentCard.word);
-        else {
-          const example = getEnglishExample(currentCard.details);
-          if (example) speak(example);
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          if (char === '"' && text[i + 1] === '"') {
+            currentCell += '"';
+            i++;
+          } else if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            currentRow.push(currentCell);
+            currentCell = '';
+          } else if ((char === '\n' || char === '\r') && !inQuotes) {
+            if (char === '\r' && text[i + 1] === '\n') i++;
+            currentRow.push(currentCell);
+            if (currentRow.length >= 2) {
+              let word = currentRow[0].replace(/^\uFEFF/, '').trim().replace(/^單字[：:]\s*/, '');
+              let details = currentRow[1].trim();
+              if (word && details) parsedCards.push({ word, details });
+            }
+            currentRow = [];
+            currentCell = '';
+          } else {
+            currentCell += char;
+          }
         }
-      } 
-      else if (e.code === 'Space' || e.key === ' ') {
-        e.preventDefault();
-        setIsFlipped(prev => !prev);
-      } 
-      else if (isFlipped) {
-        if (e.key === '1') handleReview('again');
-        else if (e.key === '2') handleReview('hard');
-        else if (e.key === '3') handleReview('good');
-        else if (e.key === '4') handleReview('easy');
-      }
-    };
+        if (currentCell || currentRow.length > 0) {
+          currentRow.push(currentCell);
+          if (currentRow.length >= 2) {
+            let word = currentRow[0].replace(/^\uFEFF/, '').trim().replace(/^單字[：:]\s*/, '');
+            let details = currentRow[1].trim();
+            if (word && details) parsedCards.push({ word, details });
+          }
+        }
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFlipped, currentCard, speak, reviewQueue.length, showInfoModal, showUploadModal, handleReview]);
+        setOriginalCards(parsedCards);
+        setReviewQueue([...parsedCards]);
+        setStats({ again: 0, hard: 0, good: 0, easy: 0 });
+        setIsFlipped(false);
+        setReviewKey(0);
+        setShowUploadModal(false); 
+      };
 
-  // === 畫面渲染邏輯 ===
-  const renderBackDetails = (details) => {
-    if (!details) return null;
-    const lines = details.split('\n').map(l => l.trim()).filter(Boolean);
-    let inExampleSection = false;
+      const loadFromCloud = async (fileId, fileUrl) => {
+        setIsLoadingCloud(true);
+        setCloudError(null);
+        try {
+          const targetUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+          const proxies = [
+            `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+            `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+            `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`
+          ];
 
-    return lines.map((line, idx) => {
-      if (line.includes('例句')) {
-        inExampleSection = true;
-        const content = line.replace(/.*例句】?\s*/, '').trim();
+          let text = null;
+          for (const proxyUrl of proxies) {
+            try {
+              const response = await fetch(proxyUrl);
+              if (response.ok) {
+                const result = await response.text();
+                if (!result.trim().toLowerCase().startsWith('<!doctype') && !result.trim().toLowerCase().startsWith('<html')) {
+                  text = result;
+                  break;
+                }
+              }
+            } catch (e) {
+              console.warn('代理請求失敗:', proxyUrl);
+            }
+          }
 
-        if (content && /[a-zA-Z]/.test(content)) {
-            const englishPart = content.includes('(') || content.includes('（')
-                ? content.split(/[\(（]/)[0].trim()
-                : content.replace(/[\u4e00-\u9fa5。，！？、；：（）]/g, '').trim();
+          if (!text) {
+            throw new Error('所有代理伺服器皆無法載入，或 Google Drive 限制了下載');
+          }
+          
+          parseCSV(text);
+        } catch (error) {
+          console.error('雲端題庫載入失敗:', error);
+          setCloudError(fileUrl);
+        } finally {
+          setIsLoadingCloud(false);
+        }
+      };
+
+      const resetSession = useCallback(() => {
+        if (originalCards.length > 0) {
+          setReviewQueue([...originalCards]);
+        }
+        setStats({ again: 0, hard: 0, good: 0, easy: 0 });
+        setIsFlipped(false);
+        setReviewKey(0);
+      }, [originalCards]);
+
+      const getEnglishExample = (details) => {
+        if (!details) return '';
+        const lines = details.split('\n').map(l => l.trim()).filter(Boolean);
+        let inExampleSection = false;
+
+        for (let line of lines) {
+          if (line.includes('例句')) {
+            inExampleSection = true;
+            const content = line.replace(/.*例句】?\s*/, '').trim();
+            if (content && /[a-zA-Z]/.test(content)) {
+               return content.includes('(') || content.includes('（')
+                 ? content.split(/[\(（]/)[0].trim()
+                 : content.replace(/[\u4e00-\u9fa5。，！？、；：（）]/g, '').trim();
+            }
+            continue;
+          }
+          if (inExampleSection && /[a-zA-Z]/.test(line)) {
+            return line.includes('(') || line.includes('（')
+              ? line.split(/[\(（]/)[0].trim()
+              : line.replace(/[\u4e00-\u9fa5。，！？、；：（）]/g, '').trim();
+          }
+        }
+        return '';
+      };
+
+      // === 語音與圖片邏輯 ===
+      const speak = useCallback((text) => {
+        if (!synth || !text) return;
+        synth.cancel(); 
+        
+        const cleanText = text.replace(/單字[：:]?\s*/g, '');
+        
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        utterance.rate = speechRate; 
+        
+        const voices = synth.getVoices();
+        const enVoice = voices.find(v => v.lang.startsWith('en-US') || v.lang.startsWith('en'));
+        if (enVoice) utterance.voice = enVoice;
+        
+        setTimeout(() => {
+          synth.speak(utterance);
+        }, 50);
+      }, [synth, speechRate]);
+
+      const currentCard = reviewQueue.length > 0 ? reviewQueue[0] : null;
+
+      const getImageUrl = useCallback((word) => {
+        let hash = 0;
+        for (let i = 0; i < word.length; i++) {
+          hash = word.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const lockId = Math.abs(hash) % 1000;
+        return `https://loremflickr.com/400/300/${encodeURIComponent(word)}?lock=${lockId}`;
+      }, []);
+
+      const getFallbackUrl = useCallback((word) => {
+        return `https://picsum.photos/seed/${encodeURIComponent(word)}/400/300`;
+      }, []);
+
+      useEffect(() => {
+        if (reviewQueue.length === 0) return;
+        const cardsToPreload = reviewQueue.slice(0, 4);
+        cardsToPreload.forEach(card => {
+          const img = new Image();
+          img.src = getImageUrl(card.word);
+        });
+      }, [reviewQueue, getImageUrl]);
+
+      useEffect(() => {
+        if (!currentCard) return;
+        const timer = setTimeout(() => {
+          if (!isFlipped) speak(currentCard.word);
+          else {
+            const example = getEnglishExample(currentCard.details);
+            if (example) speak(example);
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }, [isFlipped, currentCard, reviewKey, speak]);
+
+      const handleReview = useCallback((action, e = null) => {
+        if (e) e.stopPropagation();
+
+        setReviewQueue(prevQueue => {
+          if (prevQueue.length === 0) return prevQueue;
+          const cardToProcess = prevQueue[0];
+          const newQueue = [...prevQueue].slice(1);
+
+          switch (action) {
+            case 'again': newQueue.splice(Math.min(1, newQueue.length), 0, cardToProcess); break;
+            case 'hard': newQueue.splice(Math.floor(newQueue.length / 2), 0, cardToProcess); break;
+            case 'good': newQueue.push(cardToProcess); break;
+            case 'easy': break;
+            default: break;
+          }
+          return newQueue;
+        });
+
+        setStats(prev => ({ ...prev, [action]: prev[action] + 1 }));
+        setIsFlipped(false);
+        setReviewKey(prev => prev + 1);
+      }, []);
+
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (showInfoModal) {
+            if (e.key === 'Escape') setShowInfoModal(false);
+            return;
+          }
+          if (showUploadModal) {
+            if (e.key === 'Escape') setShowUploadModal(false);
+            return;
+          }
+          if (!currentCard || reviewQueue.length === 0) return;
+
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!isFlipped) speak(currentCard.word);
+            else {
+              const example = getEnglishExample(currentCard.details);
+              if (example) speak(example);
+            }
+          } 
+          else if (e.code === 'Space' || e.key === ' ') {
+            e.preventDefault();
+            setIsFlipped(prev => !prev);
+          } 
+          else if (isFlipped) {
+            if (e.key === '1') handleReview('again');
+            else if (e.key === '2') handleReview('hard');
+            else if (e.key === '3') handleReview('good');
+            else if (e.key === '4') handleReview('easy');
+          }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [isFlipped, currentCard, speak, reviewQueue.length, showInfoModal, showUploadModal, handleReview]);
+
+      // === 畫面渲染邏輯 ===
+      const renderBackDetails = (details) => {
+        if (!details) return null;
+        const lines = details.split('\n').map(l => l.trim()).filter(Boolean);
+        let inExampleSection = false;
+
+        return lines.map((line, idx) => {
+          if (line.includes('例句')) {
+            inExampleSection = true;
+            const content = line.replace(/.*例句】?\s*/, '').trim();
+
+            if (content && /[a-zA-Z]/.test(content)) {
+                const englishPart = content.includes('(') || content.includes('（')
+                    ? content.split(/[\(（]/)[0].trim()
+                    : content.replace(/[\u4e00-\u9fa5。，！？、；：（）]/g, '').trim();
+
+                return (
+                  <div key={idx}>
+                    <h3 className="font-bold text-sm text-white mt-4 mb-2 border-b border-slate-600 pb-1">{line.match(/.*例句】?/)?.[0] || '【例句】'}</h3>
+                    <div className="flex items-start gap-3 my-2 bg-slate-700/50 p-3 rounded-xl border border-slate-600 shadow-sm">
+                      <span className="flex-1 text-white text-sm leading-relaxed tracking-wide">{content}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); speak(englishPart); }}
+                        className="p-2 bg-slate-600 text-white rounded-full shadow-sm hover:bg-slate-500 hover:text-white transition-all shrink-0"
+                        title="朗讀例句 (Enter)"
+                      >
+                        <Volume2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                );
+            }
+            return <h3 key={idx} className="font-bold text-sm text-white mt-4 mb-2 border-b border-slate-600 pb-1">{line}</h3>;
+          }
+
+          if (inExampleSection && /[a-zA-Z]/.test(line)) {
+            const englishPart = line.includes('(') || line.includes('（')
+                ? line.split(/[\(（]/)[0].trim()
+                : line.replace(/[\u4e00-\u9fa5。，！？、；：（）]/g, '').trim();
 
             return (
-              <div key={idx}>
-                <h3 className="font-bold text-sm text-white mt-4 mb-2 border-b border-slate-600 pb-1">{line.match(/.*例句】?/)?.[0] || '【例句】'}</h3>
-                <div className="flex items-start gap-3 my-2 bg-slate-700/50 p-3 rounded-xl border border-slate-600 shadow-sm">
-                  <span className="flex-1 text-white text-sm leading-relaxed tracking-wide">{content}</span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); speak(englishPart); }}
-                    className="p-2 bg-slate-600 text-white rounded-full shadow-sm hover:bg-slate-500 hover:text-white transition-all shrink-0"
-                    title="朗讀例句 (Enter)"
-                  >
-                    <Volume2 size={16} />
-                  </button>
-                </div>
+              <div key={idx} className="flex items-start gap-3 my-2 bg-slate-700/50 p-3 rounded-xl border border-slate-600 shadow-sm">
+                <span className="flex-1 text-white text-sm leading-relaxed tracking-wide">{line}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); speak(englishPart); }}
+                  className="p-2 bg-slate-600 text-white rounded-full shadow-sm hover:bg-slate-500 hover:text-white transition-all shrink-0"
+                  title="朗讀例句 (Enter)"
+                >
+                  <Volume2 size={16} />
+                </button>
               </div>
             );
-        }
-        return <h3 key={idx} className="font-bold text-sm text-white mt-4 mb-2 border-b border-slate-600 pb-1">{line}</h3>;
-      }
+          }
 
-      if (inExampleSection && /[a-zA-Z]/.test(line)) {
-        const englishPart = line.includes('(') || line.includes('（')
-            ? line.split(/[\(（]/)[0].trim()
-            : line.replace(/[\u4e00-\u9fa5。，！？、；：（）]/g, '').trim();
+          if (line.startsWith('【')) {
+            inExampleSection = false;
+            return <h3 key={idx} className="font-bold text-sm text-white mt-4 mb-2 border-b border-slate-600 pb-1">{line}</h3>;
+          }
+          return <div key={idx} className="text-white ml-1 mb-1 text-sm leading-relaxed tracking-wide">{line}</div>;
+        });
+      };
 
+      if (!isLoaded) return <div className="min-h-screen flex items-center justify-center">載入中...</div>;
+
+      // 1. 初始畫面 (未載入資料)
+      if (originalCards.length === 0) {
         return (
-          <div key={idx} className="flex items-start gap-3 my-2 bg-slate-700/50 p-3 rounded-xl border border-slate-600 shadow-sm">
-            <span className="flex-1 text-white text-sm leading-relaxed tracking-wide">{line}</span>
-            <button
-              onClick={(e) => { e.stopPropagation(); speak(englishPart); }}
-              className="p-2 bg-slate-600 text-white rounded-full shadow-sm hover:bg-slate-500 hover:text-white transition-all shrink-0"
-              title="朗讀例句 (Enter)"
-            >
-              <Volume2 size={16} />
-            </button>
-          </div>
-        );
-      }
-
-      if (line.startsWith('【')) {
-        inExampleSection = false;
-        return <h3 key={idx} className="font-bold text-sm text-white mt-4 mb-2 border-b border-slate-600 pb-1">{line}</h3>;
-      }
-      return <div key={idx} className="text-white ml-1 mb-1 text-sm leading-relaxed tracking-wide">{line}</div>;
-    });
-  };
-
-  if (!isLoaded) return <div className="min-h-screen flex items-center justify-center">載入中...</div>;
-
-  // 1. 初始畫面 (未載入資料)
-  if (originalCards.length === 0) {
-    return (
-      <div className="min-h-screen bg-blue-500 flex flex-col items-center justify-center p-6 font-sans text-gray-800">
-        <div className="bg-white p-10 rounded-3xl shadow-xl max-w-md w-full text-center border border-gray-100">
-          <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Upload size={40} />
-          </div>
-          <h1 className="text-2xl font-bold mb-4">匯入單字卡</h1>
-          <p className="text-gray-500 mb-8">支援 SRS 間隔重複與進度自動存檔功能</p>
-          
-          <label className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl cursor-pointer transition-colors inline-block font-medium w-full shadow-md">
-            選擇本機 CSV 檔案
-            <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
-          </label>
-
-          <div className="relative flex py-6 items-center">
-            <div className="flex-grow border-t border-gray-200"></div>
-            <span className="flex-shrink-0 mx-4 text-gray-400 text-sm font-bold">或從雲端題庫直接載入</span>
-            <div className="flex-grow border-t border-gray-200"></div>
-          </div>
-
-          {cloudError && (
-            <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 text-left leading-relaxed">
-              ❌ 無法自動下載題庫。<br/>請 <a href={cloudError} target="_blank" rel="noopener noreferrer" className="underline font-bold text-blue-600">點此手動下載檔案</a>，然後使用上方的按鈕上傳。
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            {cloudFiles.map((file, idx) => (
-              <button
-                key={idx}
-                onClick={() => loadFromCloud(file.id, file.url)}
-                disabled={isLoadingCloud}
-                className="flex flex-col items-center justify-center gap-1 p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span className="font-bold text-sm text-gray-700">{file.name}</span>
-              </button>
-            ))}
-          </div>
-          
-          {isLoadingCloud && <div className="mt-4 text-sm text-blue-500 font-bold animate-pulse">題庫自動下載中，請稍候...</div>}
-        </div>
-      </div>
-    );
-  }
-
-  // 2. 結算畫面 (完成練習)
-  if (reviewQueue.length === 0) {
-    return (
-      <div className="min-h-screen bg-blue-500 flex flex-col items-center justify-center p-6 font-sans text-gray-800">
-        <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl max-w-md w-full text-center border border-gray-100 animate-in fade-in zoom-in duration-500">
-          <div className="w-24 h-24 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Trophy size={48} />
-          </div>
-          <h1 className="text-3xl font-black mb-2 text-gray-800">完成練習！</h1>
-          <p className="text-gray-500 mb-8">您已經複習完所有的單字卡片。</p>
-          
-          <div className="grid grid-cols-2 gap-4 mb-8 text-left">
-            <div className="bg-red-50 p-4 rounded-xl border border-red-100">
-              <p className="text-sm text-red-600 font-bold">Again (重來)</p>
-              <p className="text-2xl font-black text-red-700">{stats.again}</p>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-              <p className="text-sm text-orange-600 font-bold">Hard (困難)</p>
-              <p className="text-2xl font-black text-orange-700">{stats.hard}</p>
-            </div>
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-              <p className="text-sm text-blue-600 font-bold">Good (良好)</p>
-              <p className="text-2xl font-black text-blue-700">{stats.good}</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-              <p className="text-sm text-green-600 font-bold">Easy (簡單)</p>
-              <p className="text-2xl font-black text-green-700">{stats.easy}</p>
-            </div>
-          </div>
-
-          <div className="w-full">
-            <button onClick={resetSession} className="w-full mb-6 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl transition-colors font-bold shadow-md">
-              <RefreshCw size={20} /> 再練一次目前題庫
-            </button>
-
-            {/* 載入新題庫區塊 */}
-            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                <p className="text-sm text-gray-500 font-bold mb-4">載入新題庫</p>
-                
-                <label className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl cursor-pointer transition-colors flex items-center justify-center font-medium w-full shadow-sm mb-4">
-                  <Upload size={18} className="mr-2" />
-                  選擇本機 CSV 檔案
-                  <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
-                </label>
-
-                <div className="relative flex py-4 items-center">
-                  <div className="flex-grow border-t border-gray-200"></div>
-                  <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold">或從雲端直接載入</span>
-                  <div className="flex-grow border-t border-gray-200"></div>
-                </div>
-
-                {cloudError && (
-                  <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 text-left leading-relaxed">
-                    ❌ 無法下載題庫，請 <a href={cloudError} target="_blank" rel="noopener noreferrer" className="underline font-bold text-blue-600">點此手動下載</a>。
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-2">
-                  {cloudFiles.map((file, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => loadFromCloud(file.id, file.url)}
-                      disabled={isLoadingCloud}
-                      className="flex flex-col items-center justify-center py-2 px-1 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <span className="font-bold text-xs text-gray-700">{file.name}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {isLoadingCloud && <div className="mt-3 text-xs text-blue-500 font-bold animate-pulse text-center">題庫下載中...</div>}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. 學習主畫面
-  const progressPercentage = ((originalCards.length - reviewQueue.length) / originalCards.length) * 100;
-
-  return (
-    <div className="min-h-screen bg-blue-500 flex flex-col items-center py-6 px-4 font-sans text-gray-800">
-      
-      {/* 頂部進度條與工具列 */}
-      <div className="w-full max-w-2xl mb-4 flex items-center gap-2 sm:gap-4 bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto custom-scrollbar">
-        <div className="flex gap-1 sm:gap-2 text-xs font-medium shrink-0">
-          <span className="flex items-center gap-1 text-red-600 bg-red-50 px-1.5 sm:px-2 py-1 rounded-md border border-red-100" title="Again 點擊次數"><RotateCcw size={12} /> {stats.again}</span>
-          <span className="flex items-center gap-1 text-orange-600 bg-orange-50 px-1.5 sm:px-2 py-1 rounded-md border border-orange-100" title="Hard 點擊次數"><Brain size={12} /> {stats.hard}</span>
-          <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-1 rounded-md border border-blue-100" title="Good 點擊次數"><ThumbsUp size={12} /> {stats.good}</span>
-          <span className="flex items-center gap-1 text-green-600 bg-green-50 px-1.5 sm:px-2 py-1 rounded-md border border-green-100" title="Easy 點擊次數"><CheckCircle size={12} /> {stats.easy}</span>
-        </div>
-
-        <div className="flex-1 flex items-center gap-2 min-w-[80px]">
-          <div className="w-full bg-gray-100 rounded-full h-1.5">
-            <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPercentage}%` }}></div>
-          </div>
-          <span className="text-xs font-bold text-gray-500 shrink-0 tracking-wider">{reviewQueue.length}/{originalCards.length}</span>
-        </div>
-
-        <div className="flex gap-1 shrink-0 items-center">
-          <div className="flex items-center text-xs font-bold text-gray-500 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors mr-1" title="調整語音速度">
-            <select
-              value={speechRate}
-              onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
-              className="bg-transparent outline-none cursor-pointer py-1.5 px-2 text-center"
-            >
-              <option value={0.5}>0.5x</option>
-              <option value={0.75}>0.75x</option>
-              <option value={1}>1.0x</option>
-              <option value={1.25}>1.25x</option>
-              <option value={1.5}>1.5x</option>
-              <option value={2}>2.0x</option>
-            </select>
-          </div>
-          
-          <button onClick={() => setShowUploadModal(true)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="載入新題庫 (會覆蓋目前進度)">
-            <Upload size={18} />
-          </button>
-          <button onClick={() => setShowInfoModal(true)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="系統與快捷鍵指南">
-            <Info size={18} />
-          </button>
-        </div>
-      </div>
-
-      {/* 單字卡主體 */}
-      <div className="relative w-full max-w-2xl aspect-[3/4] sm:aspect-square md:aspect-[4/3] cursor-pointer" style={{ perspective: '1200px' }} onClick={() => setIsFlipped(!isFlipped)}>
-        <div className="w-full h-full relative transition-transform duration-700" style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateX(180deg)' : 'rotateX(0deg)' }}>
-          
-          {/* 正面 */}
-          <div className="absolute inset-0 bg-white rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center justify-center p-8" style={{ backfaceVisibility: 'hidden' }}>
-            <div className="flex items-center gap-6">
-              <h2 className="text-5xl md:text-7xl font-black text-gray-800 tracking-tight text-center">{currentCard.word}</h2>
-              <button onClick={(e) => { e.stopPropagation(); speak(currentCard.word); }} className="p-3 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-600 hover:text-white transition-all shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100" title="朗讀單字 (Enter)">
-                <Volume2 size={32} />
-              </button>
-            </div>
-            <p className="absolute bottom-6 text-gray-400 text-sm font-medium animate-pulse">點擊卡片或按「空白鍵」顯示解答</p>
-          </div>
-
-          {/* 背面：深色白字主題 */}
-          <div className="absolute inset-0 bg-slate-800 rounded-3xl shadow-xl border border-slate-700 p-5 overflow-hidden flex flex-col text-white" style={{ backfaceVisibility: 'hidden', transform: 'rotateX(180deg)' }}>
-            
-            <div className="w-full h-32 sm:h-40 md:h-48 shrink-0 mb-3 rounded-2xl overflow-hidden bg-slate-900 relative border border-slate-700 shadow-inner">
-               <img 
-                 src={getImageUrl(currentCard.word)} 
-                 alt={currentCard.word} 
-                 className="w-full h-full object-cover transition-opacity duration-300" 
-                 loading="eager"
-                 onError={(e) => { e.target.onerror = null; e.target.src = getFallbackUrl(currentCard.word); }}
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent flex items-end p-3">
-                 <span className="text-white font-bold text-lg drop-shadow-md tracking-wider">{currentCard.word}</span>
-               </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar custom-scrollbar-dark">
-              {renderBackDetails(currentCard.details)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 底部評分按鈕 */}
-      <div className={`w-full max-w-2xl mt-4 transition-all duration-500 ${isFlipped ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-        <div className="grid grid-cols-4 gap-2 md:gap-3">
-          <button onClick={(e) => handleReview('again', e)} className="flex flex-col items-center justify-center py-3 px-2 bg-slate-800 border border-slate-700 text-red-400 rounded-xl shadow-sm hover:bg-slate-700 hover:border-red-400/50 transition-all active:scale-95"><div className="font-bold text-sm">Again</div></button>
-          <button onClick={(e) => handleReview('hard', e)} className="flex flex-col items-center justify-center py-3 px-2 bg-slate-800 border border-slate-700 text-orange-400 rounded-xl shadow-sm hover:bg-slate-700 hover:border-orange-400/50 transition-all active:scale-95"><div className="font-bold text-sm">Hard</div></button>
-          <button onClick={(e) => handleReview('good', e)} className="flex flex-col items-center justify-center py-3 px-2 bg-slate-800 border border-slate-700 text-green-400 rounded-xl shadow-sm hover:bg-slate-700 hover:border-green-400/50 transition-all active:scale-95"><div className="font-bold text-sm">Good</div></button>
-          <button onClick={(e) => handleReview('easy', e)} className="flex flex-col items-center justify-center py-3 px-2 bg-slate-800 border border-slate-700 text-blue-400 rounded-xl shadow-sm hover:bg-slate-700 hover:border-blue-400/50 transition-all active:scale-95"><div className="font-bold text-sm">Easy</div></button>
-        </div>
-      </div>
-
-      {/* 上傳選單浮動視窗 */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowUploadModal(false)}>
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4 border-b pb-4">
-              <h2 className="text-xl font-black text-gray-800 flex items-center gap-2"><Upload className="text-blue-500" size={24} />載入新題庫</h2>
-              <button onClick={() => setShowUploadModal(false)} className="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-colors"><X size={20} /></button>
-            </div>
-            
-            <div className="w-full">
-              <label className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl cursor-pointer transition-colors flex items-center justify-center font-medium w-full shadow-sm mb-4">
-                <Upload size={18} className="mr-2" />
+          <div className="min-h-screen bg-blue-500 flex flex-col items-center justify-center p-6 font-sans text-gray-800">
+            <div className="bg-white p-10 rounded-3xl shadow-xl max-w-md w-full text-center border border-gray-100">
+              <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Upload size={40} />
+              </div>
+              <h1 className="text-2xl font-bold mb-4">匯入單字卡</h1>
+              <p className="text-gray-500 mb-8">支援 SRS 間隔重複與進度自動存檔功能</p>
+              
+              <label className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl cursor-pointer transition-colors inline-block font-medium w-full shadow-md">
                 選擇本機 CSV 檔案
                 <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
               </label>
 
-              <div className="relative flex py-4 items-center">
+              <div className="relative flex py-6 items-center">
                 <div className="flex-grow border-t border-gray-200"></div>
-                <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold">或從雲端直接載入</span>
+                <span className="flex-shrink-0 mx-4 text-gray-400 text-sm font-bold">或從雲端題庫直接載入</span>
                 <div className="flex-grow border-t border-gray-200"></div>
               </div>
 
               {cloudError && (
                 <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 text-left leading-relaxed">
-                  ❌ 無法下載題庫，請 <a href={cloudError} target="_blank" rel="noopener noreferrer" className="underline font-bold text-blue-600">點此手動下載</a>。
+                  ❌ 無法自動下載題庫。<br/>請 <a href={cloudError} target="_blank" rel="noopener noreferrer" className="underline font-bold text-blue-600">點此手動下載檔案</a>，然後使用上方的按鈕上傳。
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 {cloudFiles.map((file, idx) => (
                   <button
                     key={idx}
                     onClick={() => loadFromCloud(file.id, file.url)}
                     disabled={isLoadingCloud}
-                    className="flex flex-col items-center justify-center py-2 px-1 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex flex-col items-center justify-center gap-1 p-3 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span className="font-bold text-xs text-gray-700">{file.name}</span>
+                    <span className="font-bold text-sm text-gray-700">{file.name}</span>
                   </button>
                 ))}
               </div>
-
-              {isLoadingCloud && <div className="mt-3 text-xs text-blue-500 font-bold animate-pulse text-center">題庫下載中...</div>}
+              
+              {isLoadingCloud && <div className="mt-4 text-sm text-blue-500 font-bold animate-pulse">題庫自動下載中，請稍候...</div>}
             </div>
           </div>
-        </div>
-      )}
+        );
+      }
 
-      {/* 系統說明浮動視窗 */}
-      {showInfoModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowInfoModal(false)}>
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-              <h2 className="text-xl font-black text-gray-800 flex items-center gap-2"><Info className="text-blue-500" />系統與快捷鍵指南</h2>
-              <button onClick={() => setShowInfoModal(false)} className="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-colors"><X size={20} /></button>
+      // 2. 結算畫面 (完成練習)
+      if (reviewQueue.length === 0) {
+        return (
+          <div className="min-h-screen bg-blue-500 flex flex-col items-center justify-center p-6 font-sans text-gray-800">
+            <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl max-w-md w-full text-center border border-gray-100 animate-in fade-in zoom-in duration-500">
+              <div className="w-24 h-24 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Trophy size={48} />
+              </div>
+              <h1 className="text-3xl font-black mb-2 text-gray-800">完成練習！</h1>
+              <p className="text-gray-500 mb-8">您已經複習完所有的單字卡片。</p>
+              
+              <div className="grid grid-cols-2 gap-4 mb-8 text-left">
+                <div className="bg-red-50 p-4 rounded-xl border border-red-100">
+                  <p className="text-sm text-red-600 font-bold">Again (重來)</p>
+                  <p className="text-2xl font-black text-red-700">{stats.again}</p>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                  <p className="text-sm text-orange-600 font-bold">Hard (困難)</p>
+                  <p className="text-2xl font-black text-orange-700">{stats.hard}</p>
+                </div>
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                  <p className="text-sm text-blue-600 font-bold">Good (良好)</p>
+                  <p className="text-2xl font-black text-blue-700">{stats.good}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-xl border border-green-100">
+                  <p className="text-sm text-green-600 font-bold">Easy (簡單)</p>
+                  <p className="text-2xl font-black text-green-700">{stats.easy}</p>
+                </div>
+              </div>
+
+              <div className="w-full">
+                <button onClick={resetSession} className="w-full mb-6 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-xl transition-colors font-bold shadow-md">
+                  <RefreshCw size={20} /> 再練一次目前題庫
+                </button>
+
+                {/* 載入新題庫區塊 */}
+                <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                    <p className="text-sm text-gray-500 font-bold mb-4">載入新題庫</p>
+                    
+                    <label className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl cursor-pointer transition-colors flex items-center justify-center font-medium w-full shadow-sm mb-4">
+                      <Upload size={18} className="mr-2" />
+                      選擇本機 CSV 檔案
+                      <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+                    </label>
+
+                    <div className="relative flex py-4 items-center">
+                      <div className="flex-grow border-t border-gray-200"></div>
+                      <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold">或從雲端直接載入</span>
+                      <div className="flex-grow border-t border-gray-200"></div>
+                    </div>
+
+                    {cloudError && (
+                      <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 text-left leading-relaxed">
+                        ❌ 無法下載題庫，請 <a href={cloudError} target="_blank" rel="noopener noreferrer" className="underline font-bold text-blue-600">點此手動下載</a>。
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-2">
+                      {cloudFiles.map((file, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => loadFromCloud(file.id, file.url)}
+                          disabled={isLoadingCloud}
+                          className="flex flex-col items-center justify-center py-2 px-1 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <span className="font-bold text-xs text-gray-700">{file.name}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    {isLoadingCloud && <div className="mt-3 text-xs text-blue-500 font-bold animate-pulse text-center">題庫下載中...</div>}
+                </div>
+              </div>
             </div>
-            <div className="space-y-6">
-              <section>
-                <h3 className="text-sm font-bold text-gray-500 mb-3 tracking-wider">⌨️ 全局鍵盤快捷鍵</h3>
-                <ul className="space-y-2">
-                  <li className="flex items-center justify-between bg-gray-50 p-2.5 rounded-lg border border-gray-100"><span className="text-gray-700 font-medium">翻面 (顯示解答)</span><kbd className="bg-white border border-gray-200 shadow-sm px-3 py-1 rounded text-sm font-mono text-gray-600">Space</kbd></li>
-                  <li className="flex items-center justify-between bg-gray-50 p-2.5 rounded-lg border border-gray-100"><span className="text-gray-700 font-medium">朗讀單字 / 例句</span><kbd className="bg-white border border-gray-200 shadow-sm px-3 py-1 rounded text-sm font-mono text-gray-600">Enter</kbd></li>
-                </ul>
-              </section>
-              <section>
-                <h3 className="text-sm font-bold text-gray-500 mb-3 tracking-wider">🧠 SRS 記憶評分機制</h3>
-                <p className="text-xs text-gray-400 mb-3">卡片翻至背面時，可使用數字鍵 1~4 快速將卡片進行難度分類：</p>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-3 bg-red-50/50 p-3 rounded-lg border border-red-50"><kbd className="bg-white border border-red-200 text-red-600 shadow-sm px-2 py-0.5 rounded text-sm font-mono mt-0.5">1</kbd><div><span className="font-bold text-red-700 block">Again (重來)</span><span className="text-xs text-red-600/80">完全不會。將卡片插回下一張，立即再次複習。</span></div></li>
-                  <li className="flex items-start gap-3 bg-orange-50/50 p-3 rounded-lg border border-orange-50"><kbd className="bg-white border border-orange-200 text-orange-600 shadow-sm px-2 py-0.5 rounded text-sm font-mono mt-0.5">2</kbd><div><span className="font-bold text-orange-700 block">Hard (困難)</span><span className="text-xs text-orange-600/80">回想費力。將卡片插入剩餘序列的正中間。</span></div></li>
-                  <li className="flex items-start gap-3 bg-blue-50/50 p-3 rounded-lg border border-blue-50"><kbd className="bg-white border border-blue-200 text-blue-600 shadow-sm px-2 py-0.5 rounded text-sm font-mono mt-0.5">3</kbd><div><span className="font-bold text-blue-700 block">Good (良好)</span><span className="text-xs text-blue-600/80">記憶清晰。將卡片移至所有卡片的最後面。</span></div></li>
-                  <li className="flex items-start gap-3 bg-green-50/50 p-3 rounded-lg border border-green-50"><kbd className="bg-white border border-green-200 text-green-600 shadow-sm px-2 py-0.5 rounded text-sm font-mono mt-0.5">4</kbd><div><span className="font-bold text-green-700 block">Easy (簡單)</span><span className="text-xs text-green-600/80">滾瓜爛熟。將卡片直接從本次練習中移除。</span></div></li>
-                </ul>
-              </section>
-            </div>
-            <button onClick={() => setShowInfoModal(false)} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm">我知道了</button>
           </div>
-        </div>
-      )}
+        );
+      }
 
-      {/* 全域深色捲軸樣式 */}
-      <style dangerouslySetInnerHTML={{__html: `
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 20px; }
-        .custom-scrollbar-dark::-webkit-scrollbar-thumb { background-color: #475569; border-radius: 20px; }
-      `}} />
-    </div>
-  );
-}
+      // 3. 學習主畫面
+      const progressPercentage = ((originalCards.length - reviewQueue.length) / originalCards.length) * 100;
+
+      return (
+        <div className="min-h-screen bg-blue-500 flex flex-col items-center py-6 px-4 font-sans text-gray-800">
+          
+          {/* 頂部進度條與工具列 */}
+          <div className="w-full max-w-2xl mb-4 flex items-center gap-2 sm:gap-4 bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-gray-100 overflow-x-auto custom-scrollbar">
+            <div className="flex gap-1 sm:gap-2 text-xs font-medium shrink-0">
+              <span className="flex items-center gap-1 text-red-600 bg-red-50 px-1.5 sm:px-2 py-1 rounded-md border border-red-100" title="Again 點擊次數"><RotateCcw size={12} /> {stats.again}</span>
+              <span className="flex items-center gap-1 text-orange-600 bg-orange-50 px-1.5 sm:px-2 py-1 rounded-md border border-orange-100" title="Hard 點擊次數"><Brain size={12} /> {stats.hard}</span>
+              <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-1 rounded-md border border-blue-100" title="Good 點擊次數"><ThumbsUp size={12} /> {stats.good}</span>
+              <span className="flex items-center gap-1 text-green-600 bg-green-50 px-1.5 sm:px-2 py-1 rounded-md border border-green-100" title="Easy 點擊次數"><CheckCircle size={12} /> {stats.easy}</span>
+            </div>
+
+            <div className="flex-1 flex items-center gap-2 min-w-[80px]">
+              <div className="w-full bg-gray-100 rounded-full h-1.5">
+                <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-500 ease-out" style={{ width: `${progressPercentage}%` }}></div>
+              </div>
+              <span className="text-xs font-bold text-gray-500 shrink-0 tracking-wider">{reviewQueue.length}/{originalCards.length}</span>
+            </div>
+
+            <div className="flex gap-1 shrink-0 items-center">
+              <div className="flex items-center text-xs font-bold text-gray-500 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors mr-1" title="調整語音速度">
+                <select
+                  value={speechRate}
+                  onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
+                  className="bg-transparent outline-none cursor-pointer py-1.5 px-2 text-center"
+                >
+                  <option value={0.5}>0.5x</option>
+                  <option value={0.75}>0.75x</option>
+                  <option value={1}>1.0x</option>
+                  <option value={1.25}>1.25x</option>
+                  <option value={1.5}>1.5x</option>
+                  <option value={2}>2.0x</option>
+                </select>
+              </div>
+              
+              <button onClick={() => setShowUploadModal(true)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="載入新題庫 (會覆蓋目前進度)">
+                <Upload size={18} />
+              </button>
+              <button onClick={() => setShowInfoModal(true)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors" title="系統與快捷鍵指南">
+                <Info size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* 單字卡主體 */}
+          <div className="relative w-full max-w-2xl aspect-[3/4] sm:aspect-square md:aspect-[4/3] cursor-pointer" style={{ perspective: '1200px' }} onClick={() => setIsFlipped(!isFlipped)}>
+            <div className="w-full h-full relative transition-transform duration-700" style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateX(180deg)' : 'rotateX(0deg)' }}>
+              
+              {/* 正面 */}
+              <div className="absolute inset-0 bg-white rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center justify-center p-8" style={{ backfaceVisibility: 'hidden' }}>
+                <div className="flex items-center gap-6">
+                  <h2 className="text-5xl md:text-7xl font-black text-gray-800 tracking-tight text-center">{currentCard.word}</h2>
+                  <button onClick={(e) => { e.stopPropagation(); speak(currentCard.word); }} className="p-3 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-600 hover:text-white transition-all shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100" title="朗讀單字 (Enter)">
+                    <Volume2 size={32} />
+                  </button>
+                </div>
+                <p className="absolute bottom-6 text-gray-400 text-sm font-medium animate-pulse">點擊卡片或按「空白鍵」顯示解答</p>
+              </div>
+
+              {/* 背面：深色白字主題 */}
+              <div className="absolute inset-0 bg-slate-800 rounded-3xl shadow-xl border border-slate-700 p-5 overflow-hidden flex flex-col text-white" style={{ backfaceVisibility: 'hidden', transform: 'rotateX(180deg)' }}>
+                
+                <div className="w-full h-32 sm:h-40 md:h-48 shrink-0 mb-3 rounded-2xl overflow-hidden bg-slate-900 relative border border-slate-700 shadow-inner">
+                   <img 
+                     src={getImageUrl(currentCard.word)} 
+                     alt={currentCard.word} 
+                     className="w-full h-full object-cover transition-opacity duration-300" 
+                     loading="eager"
+                     onError={(e) => { e.target.onerror = null; e.target.src = getFallbackUrl(currentCard.word); }}
+                   />
+                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent flex items-end p-3">
+                     <span className="text-white font-bold text-lg drop-shadow-md tracking-wider">{currentCard.word}</span>
+                   </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar custom-scrollbar-dark">
+                  {renderBackDetails(currentCard.details)}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 底部評分按鈕 */}
+          <div className={`w-full max-w-2xl mt-4 transition-all duration-500 ${isFlipped ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+            <div className="grid grid-cols-4 gap-2 md:gap-3">
+              <button onClick={(e) => handleReview('again', e)} className="flex flex-col items-center justify-center py-3 px-2 bg-slate-800 border border-slate-700 text-red-400 rounded-xl shadow-sm hover:bg-slate-700 hover:border-red-400/50 transition-all active:scale-95"><div className="font-bold text-sm">Again</div></button>
+              <button onClick={(e) => handleReview('hard', e)} className="flex flex-col items-center justify-center py-3 px-2 bg-slate-800 border border-slate-700 text-orange-400 rounded-xl shadow-sm hover:bg-slate-700 hover:border-orange-400/50 transition-all active:scale-95"><div className="font-bold text-sm">Hard</div></button>
+              <button onClick={(e) => handleReview('good', e)} className="flex flex-col items-center justify-center py-3 px-2 bg-slate-800 border border-slate-700 text-green-400 rounded-xl shadow-sm hover:bg-slate-700 hover:border-green-400/50 transition-all active:scale-95"><div className="font-bold text-sm">Good</div></button>
+              <button onClick={(e) => handleReview('easy', e)} className="flex flex-col items-center justify-center py-3 px-2 bg-slate-800 border border-slate-700 text-blue-400 rounded-xl shadow-sm hover:bg-slate-700 hover:border-blue-400/50 transition-all active:scale-95"><div className="font-bold text-sm">Easy</div></button>
+            </div>
+          </div>
+
+          {/* 上傳選單浮動視窗 */}
+          {showUploadModal && (
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowUploadModal(false)}>
+              <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4 border-b pb-4">
+                  <h2 className="text-xl font-black text-gray-800 flex items-center gap-2"><Upload className="text-blue-500" size={24} />載入新題庫</h2>
+                  <button onClick={() => setShowUploadModal(false)} className="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-colors"><X size={20} /></button>
+                </div>
+                
+                <div className="w-full">
+                  <label className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl cursor-pointer transition-colors flex items-center justify-center font-medium w-full shadow-sm mb-4">
+                    <Upload size={18} className="mr-2" />
+                    選擇本機 CSV 檔案
+                    <input type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
+                  </label>
+
+                  <div className="relative flex py-4 items-center">
+                    <div className="flex-grow border-t border-gray-200"></div>
+                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs font-bold">或從雲端直接載入</span>
+                    <div className="flex-grow border-t border-gray-200"></div>
+                  </div>
+
+                  {cloudError && (
+                    <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm border border-red-100 text-left leading-relaxed">
+                      ❌ 無法下載題庫，請 <a href={cloudError} target="_blank" rel="noopener noreferrer" className="underline font-bold text-blue-600">點此手動下載</a>。
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {cloudFiles.map((file, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => loadFromCloud(file.id, file.url)}
+                        disabled={isLoadingCloud}
+                        className="flex flex-col items-center justify-center py-2 px-1 bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <span className="font-bold text-xs text-gray-700">{file.name}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {isLoadingCloud && <div className="mt-3 text-xs text-blue-500 font-bold animate-pulse text-center">題庫下載中...</div>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 系統說明浮動視窗 */}
+          {showInfoModal && (
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowInfoModal(false)}>
+              <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6 border-b pb-4">
+                  <h2 className="text-xl font-black text-gray-800 flex items-center gap-2"><Info className="text-blue-500" />系統與快捷鍵指南</h2>
+                  <button onClick={() => setShowInfoModal(false)} className="text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 p-1.5 rounded-full transition-colors"><X size={20} /></button>
+                </div>
+                <div className="space-y-6">
+                  <section>
+                    <h3 className="text-sm font-bold text-gray-500 mb-3 tracking-wider">⌨️ 全局鍵盤快捷鍵</h3>
+                    <ul className="space-y-2">
+                      <li className="flex items-center justify-between bg-gray-50 p-2.5 rounded-lg border border-gray-100"><span className="text-gray-700 font-medium">翻面 (顯示解答)</span><kbd className="bg-white border border-gray-200 shadow-sm px-3 py-1 rounded text-sm font-mono text-gray-600">Space</kbd></li>
+                      <li className="flex items-center justify-between bg-gray-50 p-2.5 rounded-lg border border-gray-100"><span className="text-gray-700 font-medium">朗讀單字 / 例句</span><kbd className="bg-white border border-gray-200 shadow-sm px-3 py-1 rounded text-sm font-mono text-gray-600">Enter</kbd></li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h3 className="text-sm font-bold text-gray-500 mb-3 tracking-wider">🧠 SRS 記憶評分機制</h3>
+                    <p className="text-xs text-gray-400 mb-3">卡片翻至背面時，可使用數字鍵 1~4 快速將卡片進行難度分類：</p>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-3 bg-red-50/50 p-3 rounded-lg border border-red-50"><kbd className="bg-white border border-red-200 text-red-600 shadow-sm px-2 py-0.5 rounded text-sm font-mono mt-0.5">1</kbd><div><span className="font-bold text-red-700 block">Again (重來)</span><span className="text-xs text-red-600/80">完全不會。將卡片插回下一張，立即再次複習。</span></div></li>
+                      <li className="flex items-start gap-3 bg-orange-50/50 p-3 rounded-lg border border-orange-50"><kbd className="bg-white border border-orange-200 text-orange-600 shadow-sm px-2 py-0.5 rounded text-sm font-mono mt-0.5">2</kbd><div><span className="font-bold text-orange-700 block">Hard (困難)</span><span className="text-xs text-orange-600/80">回想費力。將卡片插入剩餘序列的正中間。</span></div></li>
+                      <li className="flex items-start gap-3 bg-blue-50/50 p-3 rounded-lg border border-blue-50"><kbd className="bg-white border border-blue-200 text-blue-600 shadow-sm px-2 py-0.5 rounded text-sm font-mono mt-0.5">3</kbd><div><span className="font-bold text-blue-700 block">Good (良好)</span><span className="text-xs text-blue-600/80">記憶清晰。將卡片移至所有卡片的最後面。</span></div></li>
+                      <li className="flex items-start gap-3 bg-green-50/50 p-3 rounded-lg border border-green-50"><kbd className="bg-white border border-green-200 text-green-600 shadow-sm px-2 py-0.5 rounded text-sm font-mono mt-0.5">4</kbd><div><span className="font-bold text-green-700 block">Easy (簡單)</span><span className="text-xs text-green-600/80">滾瓜爛熟。將卡片直接從本次練習中移除。</span></div></li>
+                    </ul>
+                  </section>
+                </div>
+                <button onClick={() => setShowInfoModal(false)} className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm">我知道了</button>
+              </div>
+            </div>
+          )}
+
+          {/* 全域深色捲軸樣式 */}
+          <style dangerouslySetInnerHTML={{__html: `
+            .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+            .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e2e8f0; border-radius: 20px; }
+            .custom-scrollbar-dark::-webkit-scrollbar-thumb { background-color: #475569; border-radius: 20px; }
+          `}} />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
