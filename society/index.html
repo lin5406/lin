@@ -15,36 +15,26 @@
         }
         .hide { display: none; }
         
+        /* Chart Container Styling */
         .chart-container {
             position: relative;
             width: 100%;
             max-width: 500px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
             height: 300px;
             max-height: 400px;
         }
-        @media (min-width: 768px) {
-            .chart-container { height: 350px; }
-        }
 
-        .clue-card, .video-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
+        .clue-card, .video-card, .qa-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .clue-card:hover, .video-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        
-        input[type="radio"] {
-            transform: scale(1.5);
-            margin-right: 10px;
-            accent-color: #059669;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
         .video-placeholder {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
             aspect-ratio: 16 / 9;
             display: flex;
             align-items: center;
@@ -52,228 +42,391 @@
             color: white;
             border-radius: 0.75rem;
         }
+
+        .answer-box {
+            background-color: #ecfdf5;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        input[type="radio"] {
+            transform: scale(1.4);
+            accent-color: #059669;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex flex-col">
 
-<!-- Chosen Palette: Autumn Harvest (Amber-50 background, Emerald-600 accents for nature/water, Slate-800 for footer/text contrast) -->
+<!-- Chosen Palette: Heritage Emerald (Nature/Water) & Amber (History/Joy) -->
 <!-- Application Structure Plan: 
-1. 探索簡報: 互動式線索探索。
-2. 影音實境: 整合外部歷史影像資源。
-3. 挑戰學習單: 即時評量機制。
-4. 專業版頁尾: 標註製作人 A_fu 老師。
+1. Header: 包含標題、分頁導航，以及右側顯眼的外部抽籤程式連結。
+2. 探索簡報: 互動卡片呈現豐原四大起點要素。
+3. 影音實境: 整合四個外部影音連結，強化視覺記憶。
+4. 挑戰學習單: 包含 5 題選擇題（自動計分）與 3 題問答題（含互動參考答案）。
+5. 製作資訊: A_fu 老師專業標註。
 -->
 <!-- Visualization & Content Choices: 
-- 互動線索卡 (Vanilla JS): 點擊互動。
-- 數據圖表 (Chart.js): 圓餅圖呈現。
-- 影片外部連結: 針對國小學童選擇合適的搜尋導向。
+- 抽籤連結: 放置於 Header 右側，方便老師隨時點名。
+- Chart.js: 以圓餅圖總結發展關鍵。
+- Vanilla JS: 管理分頁、卡片翻面、測驗計分與答案顯示。
 -->
 <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
 
-    <!-- Navigation Header -->
-    <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center">
-            <h1 class="text-2xl font-black flex items-center gap-2 mb-2 md:mb-0">
+    <!-- Header Navigation -->
+    <header class="bg-emerald-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col lg:flex-row justify-between items-center gap-4">
+            <!-- Title -->
+            <h1 class="text-2xl font-black flex items-center gap-2">
                 <span class="text-3xl">🗺️</span> 豐原尋寶記
             </h1>
-            <nav class="flex flex-wrap justify-center gap-2 bg-emerald-700 p-1 rounded-lg text-sm md:text-base">
-                <button id="nav-presentation" class="nav-btn active bg-white text-emerald-700 px-4 py-2 rounded-md font-bold transition-all">🔍 探索簡報</button>
-                <button id="nav-video" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-md font-bold transition-all">📺 影音實境</button>
-                <button id="nav-worksheet" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-md font-bold transition-all">📝 挑戰學習單</button>
-            </nav>
+            
+            <!-- Navigation & Tool -->
+            <div class="flex flex-wrap justify-center items-center gap-3">
+                <nav class="flex gap-1 bg-emerald-700 p-1 rounded-xl">
+                    <button id="nav-presentation" class="nav-btn bg-white text-emerald-700 px-4 py-2 rounded-lg font-bold transition-all">🔍 探索簡報</button>
+                    <button id="nav-video" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-lg font-bold transition-all">📺 影音實境</button>
+                    <button id="nav-worksheet" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-lg font-bold transition-all">📝 挑戰學習單</button>
+                </nav>
+                
+                <!-- Lottery Tool Link -->
+                <a href="https://lin5406.github.io/ball-lottery/ball.html" target="_blank" class="bg-amber-400 hover:bg-amber-300 text-amber-900 px-4 py-2 rounded-lg font-black shadow-md flex items-center gap-2 transition-transform hover:scale-105">
+                    🎰 抽籤程式
+                </a>
+            </div>
         </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-8">
 
-        <!-- SECTION 1: Presentation (簡報探索) -->
-        <section id="sec-presentation" class="space-y-8 animate-fade-in">
-            <div class="text-center space-y-4 mb-10">
-                <h2 class="text-3xl md:text-4xl font-black text-amber-600">豐原的起點在哪裡？</h2>
-                <p class="text-lg text-slate-600 max-w-2xl mx-auto bg-amber-50 p-4 rounded-xl border-2 border-amber-200">
-                    探險家，點擊下方的線索卡片，解開豐原發展的秘密！
+        <!-- SECTION 1: Presentation (探索簡報) -->
+        <section id="sec-presentation" class="space-y-10 animate-fade-in">
+            <div class="text-center space-y-4">
+                <h2 class="text-3xl md:text-5xl font-black text-amber-600">豐原的起點在哪裡？</h2>
+                <p class="text-lg text-slate-600 bg-amber-50 p-6 rounded-3xl border-2 border-amber-100 shadow-inner">
+                    探險家，這座城市正在對你說故事！<br>點擊下方的線索卡片，解開豐原從古至今的「成長密碼」。
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Clue Cards -->
-                <div class="clue-card bg-white rounded-2xl border-4 border-emerald-100 overflow-hidden" onclick="revealClue(1)">
-                    <div class="bg-emerald-100 p-4 flex items-center justify-between">
-                        <h3 class="text-xl font-bold text-emerald-800">線索一：奇怪的舊名字 🌾</h3>
+                <!-- Clue 1: Name -->
+                <div class="clue-card bg-white rounded-3xl border-2 border-emerald-100 p-8 cursor-pointer" onclick="revealClue(1)">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full text-xs font-black tracking-widest">地名由來</span>
                         <span id="icon-1" class="text-2xl animate-bounce">👇</span>
                     </div>
-                    <div class="p-6 h-44 flex flex-col justify-center items-center text-center">
-                        <div id="cover-1" class="text-gray-400 font-bold">點擊解開...</div>
-                        <div id="content-1" class="hide">
-                            <p class="text-xl font-bold text-slate-800 mb-2">豐原以前叫做「葫蘆墩」！</p>
-                            <p class="text-slate-600 text-sm">因為早期有三個小土丘像葫蘆。這裡土地肥沃，種出來的「葫蘆墩米」曾是日本皇室的貢米喔！</p>
-                        </div>
+                    <div id="cover-1" class="text-center py-12 text-slate-300 font-bold text-lg">點擊揭開名字的秘密</div>
+                    <div id="content-1" class="hide space-y-3">
+                        <h3 class="text-2xl font-black text-slate-800">舊名「葫蘆墩」🌾</h3>
+                        <p class="text-slate-600 leading-relaxed">早期境內有三個小土丘，遠看像葫蘆。這裡因為大甲溪沖積而土地肥沃，生產的米曾是獻給日本天皇的「貢米」喔！</p>
                     </div>
                 </div>
 
-                <div class="clue-card bg-white rounded-2xl border-4 border-blue-100 overflow-hidden" onclick="revealClue(2)">
-                    <div class="bg-blue-100 p-4 flex items-center justify-between">
-                        <h3 class="text-xl font-bold text-blue-800">線索二：生命之水 💧</h3>
+                <!-- Clue 2: Water -->
+                <div class="clue-card bg-white rounded-3xl border-2 border-blue-100 p-8 cursor-pointer" onclick="revealClue(2)">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-xs font-black tracking-widest">生命泉源</span>
                         <span id="icon-2" class="text-2xl animate-bounce">👇</span>
                     </div>
-                    <div class="p-6 h-44 flex flex-col justify-center items-center text-center">
-                        <div id="cover-2" class="text-gray-400 font-bold">點擊解開...</div>
-                        <div id="content-2" class="hide">
-                            <p class="text-xl font-bold text-slate-800 mb-2">葫蘆墩圳的開鑿！</p>
-                            <p class="text-slate-600 text-sm">由張達京開鑿，引大甲溪水灌溉，這條水圳是豐原農業繁榮的生命線。</p>
-                        </div>
+                    <div id="cover-2" class="text-center py-12 text-slate-300 font-bold text-lg">點擊揭開水利的秘密</div>
+                    <div id="content-2" class="hide space-y-3">
+                        <h3 class="text-2xl font-black text-slate-800">葫蘆墩圳 💧</h3>
+                        <p class="text-slate-600 leading-relaxed">清代張達京開鑿這條水圳，讓豐原有了穩定的水源可以灌溉農田。水圳周邊也因此成為最早有人居住、務農的起點。</p>
                     </div>
                 </div>
 
-                <div class="clue-card bg-white rounded-2xl border-4 border-red-100 overflow-hidden" onclick="revealClue(3)">
-                    <div class="bg-red-100 p-4 flex items-center justify-between">
-                        <h3 class="text-xl font-bold text-red-800">線索三：拜拜與買東西 ⛩️</h3>
+                <!-- Clue 3: Religion -->
+                <div class="clue-card bg-white rounded-3xl border-2 border-red-100 p-8 cursor-pointer" onclick="revealClue(3)">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-red-100 text-red-700 px-4 py-1 rounded-full text-xs font-black tracking-widest">人群聚集</span>
                         <span id="icon-3" class="text-2xl animate-bounce">👇</span>
                     </div>
-                    <div class="p-6 h-44 flex flex-col justify-center items-center text-center">
-                        <div id="cover-3" class="text-gray-400 font-bold">點擊解開...</div>
-                        <div id="content-3" class="hide">
-                            <p class="text-xl font-bold text-slate-800 mb-2">慈濟宮與廟東市集！</p>
-                            <p class="text-slate-600 text-sm">廟宇是人心凝聚的中心，因為拜拜的人潮多，周邊才形成了繁榮的商業圈。</p>
-                        </div>
+                    <div id="cover-3" class="text-center py-12 text-slate-300 font-bold text-lg">點擊揭開商業的秘密</div>
+                    <div id="content-3" class="hide space-y-3">
+                        <h3 class="text-2xl font-black text-slate-800">慈濟宮 (媽祖廟) ⛩️</h3>
+                        <p class="text-slate-600 leading-relaxed">廟宇是信仰中心。因為拜拜的人潮多，周邊就形成了熱鬧的市集，這就是豐原核心鬧區（廟東）的發展起點。</p>
                     </div>
                 </div>
 
-                <div class="clue-card bg-white rounded-2xl border-4 border-amber-100 overflow-hidden" onclick="revealClue(4)">
-                    <div class="bg-amber-100 p-4 flex items-center justify-between">
-                        <h3 class="text-xl font-bold text-amber-800">線索四：交通大升級 🚂</h3>
+                <!-- Clue 4: Transport -->
+                <div class="clue-card bg-white rounded-3xl border-2 border-amber-100 p-8 cursor-pointer" onclick="revealClue(4)">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-amber-100 text-amber-700 px-4 py-1 rounded-full text-xs font-black tracking-widest">交通運輸</span>
                         <span id="icon-4" class="text-2xl animate-bounce">👇</span>
                     </div>
-                    <div class="p-6 h-44 flex flex-col justify-center items-center text-center">
-                        <div id="cover-4" class="text-gray-400 font-bold">點擊解開...</div>
-                        <div id="content-4" class="hide">
-                            <p class="text-xl font-bold text-slate-800 mb-2">縱貫線鐵路通車！</p>
-                            <p class="text-slate-600 text-sm">火車站讓豐原成為木材與農產品的轉運中心，城市規模因此迅速擴張。</p>
-                        </div>
+                    <div id="cover-4" class="text-center py-12 text-slate-300 font-bold text-lg">點擊揭開鐵路的秘密</div>
+                    <div id="content-4" class="hide space-y-3">
+                        <h3 class="text-2xl font-black text-slate-800">豐原火車站 🚂</h3>
+                        <p class="text-slate-600 leading-relaxed">日治時期鐵路通車後，豐原成為木材與農產品轉運站，交通便利吸引了大量人口與工廠進駐，成為現代豐原的起點。</p>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-12 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center">
-                <h3 class="text-2xl font-bold text-slate-800 mb-6">🏆 總結：豐原成長的關鍵要素</h3>
+            <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100">
+                <h3 class="text-2xl font-black text-center text-slate-800 mb-8">📊 豐原發展關鍵比例圖</h3>
                 <div class="chart-container">
                     <canvas id="devChart"></canvas>
                 </div>
+                <p class="text-center text-slate-500 mt-6 text-sm italic">水源、商業、交通，是讓豐原發芽茁壯的三大養分！</p>
             </div>
         </section>
 
-        <!-- SECTION 2: Video Room (影音實境室) -->
-        <section id="sec-video" class="hide space-y-8 animate-fade-in">
-            <div class="text-center mb-10">
+        <!-- SECTION 2: Video Room (影音實境) -->
+        <section id="sec-video" class="hide space-y-10 animate-fade-in">
+            <div class="text-center">
                 <h2 class="text-3xl font-black text-emerald-700">📺 豐原影音實境室</h2>
-                <p class="text-slate-600 mt-2">點擊卡片前往觀看相關歷史紀錄影片</p>
+                <p class="text-slate-600 mt-2">連結外部優質影像，讓歷史動起來！</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="video-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Video 1: Water -->
+                <a href="https://www.youtube.com/results?search_query=豐原+葫蘆墩圳+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group">
                     <div class="video-placeholder"><span class="text-4xl">🌊</span></div>
-                    <div class="p-5 space-y-3">
-                        <h4 class="font-bold text-lg text-slate-800">葫蘆墩圳的故事</h4>
-                        <a href="https://www.youtube.com/results?search_query=豐原+葫蘆墩圳+歷史" target="_blank" class="block text-center bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-bold">前往觀看影片</a>
+                    <div class="p-4">
+                        <h4 class="font-bold text-slate-800">葫蘆墩圳故事</h4>
+                        <p class="text-xs text-slate-500 mt-1">生命之水的過去與現在。</p>
                     </div>
-                </div>
-                <div class="video-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                </a>
+
+                <!-- Video 2: Temple -->
+                <a href="https://www.youtube.com/results?search_query=豐原+慈濟宮+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group">
                     <div class="video-placeholder"><span class="text-4xl">⛩️</span></div>
-                    <div class="p-5 space-y-3">
-                        <h4 class="font-bold text-lg text-slate-800">慈濟宮與廟東歷史</h4>
-                        <a href="https://www.youtube.com/results?search_query=豐原+慈濟宮+歷史" target="_blank" class="block text-center bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-bold">前往觀看影片</a>
+                    <div class="p-4">
+                        <h4 class="font-bold text-slate-800">慈濟宮文化</h4>
+                        <p class="text-xs text-slate-500 mt-1">廟東夜市的歷史發源地。</p>
                     </div>
-                </div>
-                <div class="video-card bg-white rounded-xl shadow-lg overflow-hidden border-2 border-emerald-500">
-                    <div class="video-placeholder" style="background: #000;"><span class="text-4xl">📱</span></div>
-                    <div class="p-5 space-y-3">
-                        <h4 class="font-bold text-lg text-slate-800">在地人起點影片</h4>
-                        <a href="https://www.facebook.com/reel/939180528711910" target="_blank" class="block text-center bg-slate-800 hover:bg-black text-white py-2 rounded-lg font-bold">查看 FB 短影音</a>
+                </a>
+
+                <!-- Video 3: Station -->
+                <a href="https://www.youtube.com/results?search_query=豐原火車站+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group">
+                    <div class="video-placeholder"><span class="text-4xl">🚂</span></div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-slate-800">百年車站演進</h4>
+                        <p class="text-xs text-slate-500 mt-1">從舊站到高架化的變遷。</p>
                     </div>
-                </div>
+                </a>
+
+                <!-- Video 4: FB Reel -->
+                <a href="https://www.facebook.com/reel/939180528711910" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md border-2 border-emerald-500 block group">
+                    <div class="video-placeholder bg-emerald-900"><span class="text-4xl">✨</span></div>
+                    <div class="p-4">
+                        <h4 class="font-bold text-emerald-800">起點在哪裡？</h4>
+                        <p class="text-xs text-emerald-600 mt-1 font-bold">📍 課程原始影音參考</p>
+                    </div>
+                </a>
             </div>
         </section>
 
         <!-- SECTION 3: Worksheet (挑戰學習單) -->
-        <section id="sec-worksheet" class="hide animate-fade-in">
-            <div class="bg-white rounded-2xl shadow-md p-6 border-t-8 border-amber-500">
-                <h2 class="text-3xl font-black text-center mb-8">📝 豐原小達人 挑戰</h2>
-                <form id="quiz-form" class="space-y-6 max-w-2xl mx-auto">
-                    <div class="p-5 bg-gray-50 rounded-lg">
-                        <p class="font-bold mb-3">1. 豐原的舊名字「葫蘆墩」與什麼有關？</p>
-                        <label class="block"><input type="radio" name="q1" value="w"> 這裡產很多葫蘆</label>
-                        <label class="block"><input type="radio" name="q1" value="correct"> 早期有像葫蘆的三個土丘</label>
+        <section id="sec-worksheet" class="hide space-y-12 animate-fade-in">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 border-t-8 border-emerald-500">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-black text-slate-800">📝 豐原小達人挑戰賽</h2>
+                    <p class="text-slate-500 mt-2">請完成 5 題選擇與 3 題問答，看看你的成績！</p>
+                </div>
+
+                <!-- Part 1: MCQs -->
+                <div class="space-y-8">
+                    <h3 class="text-xl font-black text-emerald-700 flex items-center gap-2">
+                        <span class="bg-emerald-100 p-1 px-3 rounded-lg text-emerald-800">1</span> 基礎選擇題（每題 20 分）
+                    </h3>
+                    
+                    <form id="quiz-form" class="space-y-6">
+                        <div class="p-6 bg-gray-50 rounded-2xl">
+                            <p class="font-bold text-slate-800 mb-4">1. 豐原的舊地名「葫蘆墩」由來是因為早期境內有什麼？</p>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q1" value="A"> (A) 產很多葫蘆</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q1" value="correct"> (B) 三個像葫蘆的小土丘</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q1" value="C"> (C) 人家家門口都掛葫蘆</label>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-gray-50 rounded-2xl">
+                            <p class="font-bold text-slate-800 mb-4">2. 哪一項水利工程被稱為豐原農業發展的「母河」？</p>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q2" value="correct"> (A) 葫蘆墩圳</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q2" value="B"> (B) 八堡圳</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q2" value="C"> (C) 嘉南大圳</label>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-gray-50 rounded-2xl">
+                            <p class="font-bold text-slate-800 mb-4">3. 豐原最熱鬧的鬧區，早期是環繞著哪一座廟宇發展出來的？</p>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q3" value="A"> (A) 城隍廟</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q3" value="correct"> (B) 慈濟宮</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q3" value="C"> (C) 行天宮</label>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-gray-50 rounded-2xl">
+                            <p class="font-bold text-slate-800 mb-4">4. 什麼樣的交通建設，讓豐原從農村轉型為現代繁榮城市？</p>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q4" value="correct"> (A) 鐵路與火車站</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q4" value="B"> (B) 港口碼頭</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q4" value="C"> (C) 機場跑道</label>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-gray-50 rounded-2xl">
+                            <p class="font-bold text-slate-800 mb-4">5. 總結這堂課，豐原的發展是由哪幾個要素交織而成的？</p>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q5" value="A"> (A) 只有靠天氣好</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q5" value="B"> (B) 只有靠運氣</label>
+                                <label class="flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50"><input type="radio" name="q5" value="correct"> (C) 水源、宗教信仰與交通建設共同形成</label>
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="calculateScore()" class="w-full bg-emerald-600 text-white font-black py-4 rounded-xl shadow-lg hover:bg-emerald-700 transition">完成測驗，檢查分數！</button>
+                    </form>
+                    <div id="quiz-result" class="hide p-6 rounded-2xl text-center text-2xl font-black"></div>
+                </div>
+
+                <hr class="my-16 border-dashed border-gray-200">
+
+                <!-- Part 2: QAs -->
+                <div class="space-y-8">
+                    <h3 class="text-xl font-black text-amber-700 flex items-center gap-2">
+                        <span class="bg-amber-100 p-1 px-3 rounded-lg text-amber-800">2</span> 思考問答題（自我檢核）
+                    </h3>
+
+                    <div class="space-y-6">
+                        <div class="qa-card bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+                            <p class="font-bold text-slate-800 mb-4">Q1: 為什麼早期的人們會選擇在「廟宇」旁邊形成市集買賣？</p>
+                            <textarea class="w-full border-2 border-gray-50 rounded-2xl p-4 outline-none focus:ring-4 focus:ring-emerald-50 transition" rows="3" placeholder="在這裡輸入你的想法..."></textarea>
+                            <button onclick="toggleAns(1)" class="mt-4 text-emerald-600 font-bold hover:underline">💡 觀看參考答案</button>
+                            <div id="ans-1" class="hide answer-box text-sm text-emerald-800">
+                                參考答案：因為廟宇是大家的信仰中心，拜拜的人潮非常多。有人的地方就有需求，商家聚集在這裡更容易把東西賣給來拜拜的人，漸漸就變成了繁榮的市集。
+                            </div>
+                        </div>
+
+                        <div class="qa-card bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+                            <p class="font-bold text-slate-800 mb-4">Q2: 你覺得「水源」對豐原早期的農業生活有什麼重要性？</p>
+                            <textarea class="w-full border-2 border-gray-50 rounded-2xl p-4 outline-none focus:ring-4 focus:ring-emerald-50 transition" rows="3" placeholder="在這裡輸入你的想法..."></textarea>
+                            <button onclick="toggleAns(2)" class="mt-4 text-emerald-600 font-bold hover:underline">💡 觀看參考答案</button>
+                            <div id="ans-2" class="hide answer-box text-sm text-emerald-800">
+                                參考答案：農作物需要大量水分才能生長。在還沒有發達自來水系統的年代，穩定的灌溉水圳（如葫蘆墩圳）決定了農作物是否能收成，是農民賴以生存的命脈。
+                            </div>
+                        </div>
+
+                        <div class="qa-card bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+                            <p class="font-bold text-slate-800 mb-4">Q3: 想像一下，如果當初豐原沒有設立火車站，你覺得現在的豐原會是什麼樣子？</p>
+                            <textarea class="w-full border-2 border-gray-50 rounded-2xl p-4 outline-none focus:ring-4 focus:ring-emerald-50 transition" rows="3" placeholder="在這裡輸入你的想法..."></textarea>
+                            <button onclick="toggleAns(3)" class="mt-4 text-emerald-600 font-bold hover:underline">💡 觀看參考答案</button>
+                            <div id="ans-3" class="hide answer-box text-sm text-emerald-800">
+                                參考答案：發展速度可能會變慢，對外貿易也會不方便。或許豐原現在會是一個比較安靜、以農業為主的村莊，而不是現在這個交通發達、工商業發達的繁忙大都市。
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-5 bg-gray-50 rounded-lg">
-                        <p class="font-bold mb-3">2. 豐原的繁榮主要是靠單一原因還是多種原因交織而成？</p>
-                        <label class="block"><input type="radio" name="q2" value="w"> 單一原因</label>
-                        <label class="block"><input type="radio" name="q2" value="correct"> 多種原因 (水利、信仰、交通)</label>
-                    </div>
-                    <button type="button" onclick="submitQuiz()" class="w-full bg-amber-500 text-white font-bold py-4 rounded-xl shadow-md hover:bg-amber-600 transition">提交答案</button>
-                </form>
-                <div id="quiz-result" class="hide mt-6 p-4 bg-emerald-100 text-emerald-800 rounded-lg text-center font-bold"></div>
+                </div>
             </div>
         </section>
 
     </main>
 
-    <!-- Updated Footer -->
-    <footer class="bg-slate-800 text-slate-400 text-center py-8 mt-auto border-t border-slate-700">
-        <p class="text-lg font-medium text-slate-300">🗺️ 鄉土教育互動學習網 ｜ 發現豐原之美 (💻 A_fu 老師製作)</p>
-        <p class="text-xs mt-2 text-slate-500 opacity-75">本課程專為在地學童設計，引導孩子從起點認識家鄉。</p>
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-400 py-10 px-4 mt-auto border-t-8 border-emerald-600 text-center">
+        <p class="text-xl font-black text-white tracking-widest">🗺️ 鄉土教育互動學習網 ｜ 發現豐原之美 (💻 A_fu 老師製作)</p>
+        <p class="text-xs mt-3 opacity-60 max-w-lg mx-auto leading-relaxed">本網頁旨在透過數位工具啟發學童對家鄉歷史的探索與認同。課程設計總時長約 20-40 分鐘。</p>
     </footer>
 
     <script>
-        let cluesRevealed = [false, false, false, false];
-        let chartInstance = null;
+        let chartInst = null;
+        let revealed = [false, false, false, false];
 
+        // Tab Switching Logic
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                const tabId = this.id.replace('nav-', '');
+                const target = this.id.replace('nav-', '');
+                
+                // Button UI Update
                 document.querySelectorAll('.nav-btn').forEach(b => {
                     b.classList.remove('bg-white', 'text-emerald-700');
                     b.classList.add('text-white', 'hover:bg-emerald-500');
                 });
                 this.classList.remove('text-white', 'hover:bg-emerald-500');
                 this.classList.add('bg-white', 'text-emerald-700');
+
+                // Content View Update
                 document.getElementById('sec-presentation').classList.add('hide');
                 document.getElementById('sec-video').classList.add('hide');
                 document.getElementById('sec-worksheet').classList.add('hide');
-                document.getElementById(`sec-${tabId}`).classList.remove('hide');
-                if (tabId === 'presentation' && cluesRevealed.every(v => v)) renderChart();
+                document.getElementById(`sec-${target}`).classList.remove('hide');
+
+                if(target === 'presentation' && revealed.every(v => v)) initChart();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             });
         });
 
+        // Clue Reveal Logic
         function revealClue(id) {
             document.getElementById(`cover-${id}`).classList.add('hide');
             document.getElementById(`content-${id}`).classList.remove('hide');
             document.getElementById(`icon-${id}`).textContent = '✅';
             document.getElementById(`icon-${id}`).classList.remove('animate-bounce');
-            cluesRevealed[id-1] = true;
-            if (cluesRevealed.every(v => v)) renderChart();
+            revealed[id-1] = true;
+            if(revealed.every(v => v)) initChart();
         }
 
-        function renderChart() {
+        // Chart.js Logic
+        function initChart() {
             const ctx = document.getElementById('devChart');
-            if(!ctx || chartInstance) return;
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
+            if(!ctx || chartInst) return;
+            chartInst = new Chart(ctx, {
+                type: 'pie',
                 data: {
-                    labels: ['水利灌溉', '商業信仰', '鐵路交通'],
+                    labels: ['水利農業 (40%)', '廟宇商業 (30%)', '交通發展 (30%)'],
                     datasets: [{
-                        data: [40, 35, 25],
-                        backgroundColor: ['#3b82f6', '#ef4444', '#f59e0b']
+                        data: [40, 30, 30],
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                        borderWidth: 5,
+                        borderColor: '#ffffff'
                     }]
                 },
-                options: { maintainAspectRatio: false }
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 14 } } }
+                    }
+                }
             });
         }
 
-        function submitQuiz() {
-            const r = document.getElementById('quiz-result');
-            r.classList.remove('hide');
-            r.textContent = "回答完成！小探險家，你對豐原很有研究喔！";
+        // Quiz Logic
+        function calculateScore() {
+            const form = document.getElementById('quiz-form');
+            const questions = ['q1', 'q2', 'q3', 'q4', 'q5'];
+            let score = 0;
+            let answered = 0;
+
+            questions.forEach(q => {
+                const picked = form.querySelector(`input[name="${q}"]:checked`);
+                if(picked) {
+                    answered++;
+                    if(picked.value === 'correct') score += 20;
+                }
+            });
+
+            if(answered < 5) {
+                alert('還有題目沒寫完喔！請再檢查一下。');
+                return;
+            }
+
+            const res = document.getElementById('quiz-result');
+            res.classList.remove('hide');
+            res.textContent = `你的成績：${score} 分！${score >= 80 ? '👑 太棒了！你是真正的豐原小達人！' : '👍 很棒的嘗試，再複習一下會更好喔！'}`;
+            res.className = `p-6 rounded-2xl text-center text-2xl font-black mt-6 ${score >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
+            
+            window.scrollTo({ top: res.offsetTop - 150, behavior: 'smooth' });
+        }
+
+        // QA Answer Display Logic
+        function toggleAns(id) {
+            const el = document.getElementById(`ans-${id}`);
+            el.classList.toggle('hide');
         }
     </script>
 </body>
