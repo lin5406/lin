@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>「傳送門」後的那些事：數位親密關係的防禦與核武</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #fdfbf7; 
+            color: #3d3834; 
+        }
+        
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 400px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 300px; 
+            max-height: 350px; 
+        }
+
+        .tab-btn {
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background-color: #8b7355;
+            color: white;
+            border-left: 4px solid #5a4934;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .legal-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .legal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(139, 115, 85, 0.1), 0 4px 6px -2px rgba(139, 115, 85, 0.05);
+        }
+        
+        .pledge-item {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .card-preview {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 1rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col items-center">
+
+    <!-- Chosen Palette: Warm Neutrals (Calm & Supportive). Background: #fdfbf7 (Off-white/Cream), Text: #3d3834 (Dark Charcoal/Brown), Primary Accent: #8b7355 (Warm Taupe), Secondary Accent: #d4a373 (Soft Terracotta), Highlight/Warning: #e07a5f (Muted Red) -->
+    
+    <!-- Application Structure Plan: The SPA is designed as an interactive "Course Dashboard" for both educators and students. It starts with a critical ethical warning (Trauma-Informed necessity). Then, it introduces the core objectives and time allocation using a visual chart for quick grasping. The main body uses a vertical tabbed interface for the 5 modules, allowing linear or non-linear exploration. Interactive mini-components (like a scenario choice and a pledge wall) are embedded within these modules to transform static curriculum text into active learning experiences. Finally, a structured grid presents the legal framework, ensuring dense legal text is segmented and easy to read. This structure prioritizes psychological safety and logical progression of learning. -->
+    
+    <!-- Visualization & Content Choices: 
+         1. Time Allocation -> Goal: Inform -> Viz: Chart.js Doughnut Chart -> Interaction: Hover tooltips -> Justification: Clearly shows the proportion of time spent on each module out of the 180 mins. No SVG/Mermaid.
+         2. Course Modules -> Goal: Organize & Engage -> Viz: Vertical Tab UI -> Interaction: Click to switch content, embedded mini-interactions (Scenario buttons, Input wall) -> Justification: Keeps the UI clean; prevents overwhelming the user with text; encourages active exploration.
+         3. Legal Framework -> Goal: Organize -> Viz: CSS Grid Cards with reveal structure -> Interaction: Hover effects -> Justification: Breaks down complex legal jargon into digestible, structured blocks (Concept vs. Plain Text).
+         4. Campaign Visual Scripts -> Goal: Empower -> Viz: Grid-based Visual Cards -> Interaction: Click to copy prompts and copy.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <div class="w-full bg-[#e07a5f] text-white py-3 px-4 shadow-md z-50 sticky top-0">
+        <div class="max-w-5xl mx-auto flex items-start sm:items-center text-sm font-medium">
+            <span class="text-xl mr-3 leading-none">⚠️</span>
+            <p><strong>觸發警告 (Trigger Warning) & 倫理提醒：</strong> 本教材涉及非合意性影像散布議題。若過程中感到不適，可隨時暫停或離開。教材絕對禁止使用真實外流影像，且不強迫自我揭露。尋求協助請撥打：衛福部安心專線 1925。</p>
+        </div>
+    </div>
+
+    <main class="w-full max-w-5xl px-4 py-8 md:py-12 flex-grow">
+        
+        <header class="text-center mb-16">
+            <div class="inline-block px-4 py-1 bg-[#d4a373] bg-opacity-20 text-[#8b7355] rounded-full text-sm font-bold tracking-wider mb-4 border border-[#d4a373]">
+                大學一年級・3 小時工作坊
+            </div>
+            <h1 class="text-3xl md:text-5xl font-bold text-[#3d3834] mb-4 leading-tight">「傳送門」後的那些事<br><span class="text-[#8b7355] text-2xl md:text-4xl">數位親密關係的防禦與核武</span></h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mt-6">在點擊發送、分享之前，我們能為彼此的安全做些什麼？跳脫指責被害人的迷思，建立安全的數位校園防護網。</p>
+        </header>
+
+        <section class="mb-16 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-10">
+            <p class="text-sm text-gray-500 mb-6 border-l-4 border-[#8b7355] pl-3">此區塊概覽本課程的三大核心目標（認知、情意、技能），以及 180 分鐘工作坊的時間分配情形，幫助您掌握課程全貌。</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div>
+                    <h2 class="text-2xl font-bold mb-6 flex items-center"><span class="text-2xl mr-2">🎯</span> 學習目標 (Bloom 認知分類)</h2>
+                    <ul class="space-y-4">
+                        <li class="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                            <span class="inline-block px-2 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded mb-2">認知 (Cognitive)</span>
+                            <p><strong>辨識</strong>「非合意性影像散布」的多元樣態，並<strong>分析</strong>其背後潛藏的性別權力與控制結構。</p>
+                        </li>
+                        <li class="p-4 bg-pink-50 rounded-lg border border-pink-100">
+                            <span class="inline-block px-2 py-1 bg-pink-200 text-pink-800 text-xs font-bold rounded mb-2">情意 (Affective)</span>
+                            <p><strong>同理</strong>當事人的心理處境，<strong>省思</strong>「完美受害者」迷思，建立拒絕數位性別暴力的價值觀。</p>
+                        </li>
+                        <li class="p-4 bg-green-50 rounded-lg border border-green-100">
+                            <span class="inline-block px-2 py-1 bg-green-200 text-green-800 text-xs font-bold rounded mb-2">技能 (Skill)</span>
+                            <p><strong>演練</strong>遭遇暴力時的應對策略（不點閱/分享/截圖存證），並能<strong>應用</strong>在地求助資源建立安全網。</p>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="flex flex-col items-center">
+                    <h3 class="text-xl font-bold mb-4 text-center">課程時間分配 (共 180 分鐘)</h3>
+                    <div class="chart-container">
+                        <canvas id="courseTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-2 text-center">教材模組架構</h2>
+            <p class="text-center text-gray-600 mb-8 max-w-2xl mx-auto">點擊左側模組，探索課程五大核心環節與建議的互動教學設計。</p>
+            
+            <div class="flex flex-col md:flex-row bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[450px]">
+                <div class="md:w-1/3 bg-gray-50 border-r border-gray-100 p-0 flex flex-col" id="module-tabs">
+                    <button class="tab-btn active w-full text-left p-5 border-b border-gray-200 font-bold hover:bg-gray-100 focus:outline-none" data-target="mod1">
+                        <span class="text-[#8b7355] text-sm block mb-1">30 分鐘</span>
+                        模組一：無所不在的鏡頭
+                    </button>
+                    <button class="tab-btn w-full text-left p-5 border-b border-gray-200 font-bold hover:bg-gray-100 focus:outline-none" data-target="mod2">
+                        <span class="text-[#8b7355] text-sm block mb-1">35 分鐘</span>
+                        模組二：滑鼠背後的權力網
+                    </button>
+                    <button class="tab-btn w-full text-left p-5 border-b border-gray-200 font-bold hover:bg-gray-100 focus:outline-none" data-target="mod3">
+                        <span class="text-[#8b7355] text-sm block mb-1">45 分鐘</span>
+                        模組三：如果是我，怎麼辦？
+                    </button>
+                    <button class="tab-btn w-full text-left p-5 border-b border-gray-200 font-bold hover:bg-gray-100 focus:outline-none" data-target="mod4">
+                        <span class="text-[#8b7355] text-sm block mb-1">40 分鐘</span>
+                        模組四：法網與防護網
+                    </button>
+                    <button class="tab-btn w-full text-left p-5 font-bold hover:bg-gray-100 focus:outline-none" data-target="mod5">
+                        <span class="text-[#8b7355] text-sm block mb-1">30 分鐘</span>
+                        模組五：成為數位時代盟友
+                    </button>
+                </div>
+                
+                <div class="md:w-2/3 p-6 md:p-8 bg-white relative">
+                    <div id="mod1" class="tab-content active">
+                        <h3 class="text-2xl font-bold text-[#8b7355] mb-2">無所不在的「鏡頭」</h3>
+                        <h4 class="text-lg mb-6">定義與迷思破解</h4>
+                        
+                        <div class="mb-6">
+                            <h5 class="font-bold text-gray-800 border-b-2 border-[#d4a373] inline-block mb-2">核心概念</h5>
+                            <p class="text-gray-700 leading-relaxed">釐清「非合意性影像」的定義。探討社會上常見的指責迷思（如：「誰叫你要拍」、「你自己沒保護好」），理解「同意權」在數位空間同樣適用且可隨時撤回。</p>
+                        </div>
+                        
+                        <div class="bg-amber-50 p-6 rounded-xl border border-amber-100">
+                            <h5 class="font-bold text-amber-900 mb-3 flex items-center"><span class="mr-2">💡</span> 建議互動形式：Quiz (迷思測驗)</h5>
+                            <p class="text-sm text-amber-800 mb-4">運用線上互動問答工具，透過匿名答題呈現全班的認知分布，藉此開啟討論。以下為簡易模擬體驗：</p>
+                            
+                            <div class="bg-white p-4 rounded-lg shadow-sm">
+                                <p class="font-bold mb-3">迷思情境：「當初是她自願拍給男友看的，現在流出來只能怪她自己不小心。」</p>
+                                <div class="flex space-x-2" id="quiz-buttons">
+                                    <button onclick="handleQuiz(true)" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm font-medium transition">同意此說法</button>
+                                    <button onclick="handleQuiz(false)" class="px-4 py-2 bg-[#8b7355] text-white hover:bg-[#6e5a42] rounded text-sm font-medium transition">不同意此說法</button>
+                                </div>
+                                <div id="quiz-feedback" class="mt-3 hidden text-sm font-bold p-3 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mod2" class="tab-content">
+                        <h3 class="text-2xl font-bold text-[#8b7355] mb-2">滑鼠背後的權力網</h3>
+                        <h4 class="text-lg mb-6">結構與社會凝視</h4>
+                        
+                        <div class="mb-6">
+                            <h5 class="font-bold text-gray-800 border-b-2 border-[#d4a373] inline-block mb-2">核心概念</h5>
+                            <p class="text-gray-700 leading-relaxed">跳脫「渣男/蠢女」的二元框架，分析這類暴力如何作為一種權力控制手段。探討社群平台演算法、網路父權凝視，以及旁觀者效應如何成為暴力的共犯結構。</p>
+                        </div>
+                        
+                        <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100">
+                            <h5 class="font-bold text-indigo-900 mb-3 flex items-center"><span class="mr-2">💭</span> 建議互動形式：Reflection (小組討論)</h5>
+                            <p class="text-sm text-indigo-800 mb-4">引導學生思考深層結構因素，避免檢討被害人。</p>
+                            
+                            <div class="bg-white p-5 rounded-lg shadow-sm border border-indigo-200 text-center">
+                                <span class="text-4xl block mb-3">💬</span>
+                                <h6 class="font-bold text-lg mb-2 text-indigo-900">核心提問</h6>
+                                <p class="italic text-gray-700">「為何這類影像會被當作『戰利品』在群組中分享？這反映了社會對性別或身體的什麼樣的凝視？」</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mod3" class="tab-content">
+                        <h3 class="text-2xl font-bold text-[#8b7355] mb-2">如果是我，怎麼辦？</h3>
+                        <h4 class="text-lg mb-6">積極旁觀者演練</h4>
+                        
+                        <div class="mb-6">
+                            <h5 class="font-bold text-gray-800 border-b-2 border-[#d4a373] inline-block mb-2">核心概念</h5>
+                            <p class="text-gray-700 leading-relaxed">培養「積極旁觀者（Active Bystander）」的能力。演練第一時間的應對策略：不點閱、不下載、不分享，以及如何給予當事人不帶評判的心理支持與協助蒐證。</p>
+                        </div>
+                        
+                        <div class="bg-emerald-50 p-6 rounded-xl border border-emerald-100">
+                            <h5 class="font-bold text-emerald-900 mb-3 flex items-center"><span class="mr-2">🎭</span> 建議互動形式：Scenario (情境模擬)</h5>
+                            
+                            <div class="bg-white p-4 rounded-lg shadow-sm">
+                                <p class="font-medium text-gray-800 mb-4 border-l-4 border-emerald-500 pl-3">情境：你在系學會 LINE 群組看到有人轉傳疑似同系學妹的私密影像，底下還有人跟著起鬨。此時你會怎麼做？</p>
+                                
+                                <div class="grid grid-cols-1 gap-2 mb-4" id="scenario-choices">
+                                    <button onclick="handleScenario('ignore')" class="text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded text-sm transition">裝作沒看到，快速滑掉以免惹麻煩。</button>
+                                    <button onclick="handleScenario('curious')" class="text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded text-sm transition">好奇點開看，但保證不轉傳給別人。</button>
+                                    <button onclick="handleScenario('active')" class="text-left px-4 py-3 bg-gray-50 hover:bg-emerald-100 border border-gray-200 rounded text-sm transition font-medium">不點開。截圖該發言存證，並私訊提醒學妹或通報性平會。</button>
+                                </div>
+                                <div id="scenario-result" class="hidden p-4 rounded-lg text-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="mod4" class="tab-content">
+                        <h3 class="text-2xl font-bold text-[#8b7355] mb-2">法網與防護網</h3>
+                        <h4 class="text-lg mb-6">法律賦權與在地資源</h4>
+                        
+                        <div class="mb-6">
+                            <h5 class="font-bold text-gray-800 border-b-2 border-[#d4a373] inline-block mb-2">核心概念</h5>
+                            <p class="text-gray-700 leading-relaxed">認識台灣法規如何保障當事人，了解這不是「感情糾紛」而是「犯罪」與「校園性平事件」。熟悉下架機制與求助管道。</p>
+                        </div>
+                        
+                        <div class="bg-sky-50 p-6 rounded-xl border border-sky-100">
+                            <h5 class="font-bold text-sky-900 mb-3 flex items-center"><span class="mr-2">🔗</span> 建議互動形式：Resource Link (實機導覽)</h5>
+                            <p class="text-sm text-sky-800 mb-4">帶領學生瀏覽官方網頁與求助管道流程，建立實際的資源連結感。</p>
+                            
+                            <ul class="space-y-3">
+                                <li class="bg-white p-3 rounded border border-sky-200 flex items-center shadow-sm">
+                                    <span class="text-xl mr-3">🏛️</span>
+                                    <div>
+                                        <div class="font-bold text-sm text-gray-800">衛福部性影像處理中心</div>
+                                        <div class="text-xs text-gray-500">協助向國內外平台要求下架影片</div>
+                                    </div>
+                                </li>
+                                <li class="bg-white p-3 rounded border border-sky-200 flex items-center shadow-sm">
+                                    <span class="text-xl mr-3">📞</span>
+                                    <div>
+                                        <div class="font-bold text-sm text-gray-800">台灣展翅協會 Web850</div>
+                                        <div class="text-xs text-gray-500">網路檢舉諮詢熱線</div>
+                                    </div>
+                                </li>
+                                <li class="bg-white p-3 rounded border border-sky-200 flex items-center shadow-sm">
+                                    <span class="text-xl mr-3">🏫</span>
+                                    <div>
+                                        <div class="font-bold text-sm text-gray-800">校園性平會通報流程</div>
+                                        <div class="text-xs text-gray-500">保障學生就學權益與心理諮商資源</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div id="mod5" class="tab-content">
+                        <h3 class="text-2xl font-bold text-[#8b7355] mb-2">成為數位時代的盟友</h3>
+                        <h4 class="text-lg mb-6">承諾與賦權</h4>
+                        
+                        <div class="mb-6">
+                            <h5 class="font-bold text-gray-800 border-b-2 border-[#d4a373] inline-block mb-2">核心概念</h5>
+                            <p class="text-gray-700 leading-relaxed">總結課程，將焦點轉向集體力量。強調建立一個相互尊重、安全的數位校園社群，是每一個人的責任。</p>
+                        </div>
+                        
+                        <div class="bg-rose-50 p-6 rounded-xl border border-rose-100">
+                            <h5 class="font-bold text-rose-900 mb-3 flex items-center"><span class="mr-2">🤝</span> 建議互動形式：Reflection (行動宣言)</h5>
+                            
+                            <div class="bg-white p-4 rounded-lg shadow-sm border border-rose-200">
+                                <p class="text-sm font-medium mb-3 text-gray-700">寫下你願意成為數位盟友的承諾（將顯示在匿名牆上）：</p>
+                                <div class="flex space-x-2 mb-4">
+                                    <input type="text" id="pledge-input" class="flex-grow px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 text-sm" placeholder="例如：我承諾不點閱來源不明的私密影像...">
+                                    <button onclick="addPledge()" class="px-4 py-2 bg-[#d4a373] hover:bg-[#c29161] text-white rounded font-medium transition text-sm whitespace-nowrap">送出承諾</button>
+                                </div>
+                                
+                                <div class="bg-gray-50 rounded p-4 h-40 overflow-y-auto" id="pledge-wall">
+                                    <div class="text-center text-gray-400 text-xs mt-10" id="empty-pledge">牆面目前還是空的，成為第一個留下承諾的人吧！</div>
+                                    <!-- Pledges will appear here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold mb-2 text-center">關鍵法律知識節點</h2>
+            <p class="text-center text-gray-600 mb-8 max-w-2xl mx-auto border-b-2 border-[#d4a373] inline-block pb-1">了解台灣現行法規，明白這不是「感情糾紛」，而是具體的犯罪與校園性平事件。</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Law 1 -->
+                <div class="legal-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="bg-[#3d3834] text-white py-3 px-5 text-center font-bold">
+                        中華民國刑法
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="text-sm text-[#8b7355] font-bold mb-2">第 28 章之 1（妨害性隱私及不實性影像罪）</div>
+                            <p class="text-gray-600 text-sm mb-4">2023年修法增訂專章。含第 319-1 條（未經同意攝錄）及第 319-3 條（未經同意散布）。</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <h4 class="font-bold text-sm mb-1">⚖️ 白話解析</h4>
+                            <p class="text-sm text-gray-700">偷拍、硬要拍，或者雖然當初同意拍攝，但「未經同意就傳給別人看、放上網」，最重可處五年有期徒刑。若有營利目的刑責更重。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Law 2 -->
+                <div class="legal-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="bg-[#8b7355] text-white py-3 px-5 text-center font-bold">
+                        性別平等教育法
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="text-sm text-[#d4a373] font-bold mb-2">第 2 條 定義規範</div>
+                            <p class="text-gray-600 text-sm mb-4">將「校園性別事件」定義包含性侵害、性騷擾或性霸凌。數位環境發生的性別暴力亦適用。</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <h4 class="font-bold text-sm mb-1">⚖️ 白話解析</h4>
+                            <p class="text-sm text-gray-700">即便發生在 Dcard 或 Line 群組，只要雙方具學生身分，學校就有責任調查並提供心理諮商、學業協助，同學有權向性平會申訴。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Law 3 -->
+                <div class="legal-card bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                    <div class="bg-[#d4a373] text-white py-3 px-5 text-center font-bold">
+                        犯罪被害人權益保障法
+                    </div>
+                    <div class="p-6 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="text-sm text-[#8b7355] font-bold mb-2">數位性暴力防護專條</div>
+                            <p class="text-gray-600 text-sm mb-4">賦予主管機關（如衛福部）有要求網路平台業者限制瀏覽或移除性影像的權力。</p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <h4 class="font-bold text-sm mb-1">⚖️ 白話解析</h4>
+                            <p class="text-sm text-gray-700">當事人不再求助無門。國家專責單位（性影像處理中心）能協助向國內外平台要求下架影片，避免傷害持續擴大。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- New Section: Visual Campaign Scripts -->
+        <section class="mb-12">
+            <div class="bg-[#8b7355] bg-opacity-5 rounded-3xl p-8 border border-[#8b7355] border-opacity-20">
+                <h2 class="text-3xl font-bold mb-4 text-center">🎨 宣導圖卡視覺腳本</h2>
+                <p class="text-center text-gray-600 mb-10 max-w-2xl mx-auto">針對三個核心情境設計的宣導素材方案。包含 AI 繪圖指令、主文字與法律知識。建議用於 IG 宣導、課堂投影片。</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Card 1: Survivor -->
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+                        <div class="card-preview bg-gradient-to-br from-orange-400 to-red-500">
+                            <div class="absolute inset-0 bg-black bg-opacity-10"></div>
+                            <h3 class="text-xl font-black mb-4 z-10 leading-tight">一張截圖<br>改變了她的人生</h3>
+                            <p class="text-xs opacity-90 z-10">當信任被轉化為「傳送門」時<br>你要如何拾起破碎的隱私？</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="mb-4">
+                                <span class="text-xs font-bold text-orange-600 uppercase tracking-widest block mb-1">Visual Prompt</span>
+                                <p class="text-xs text-gray-500 italic bg-gray-50 p-2 rounded">Illustration style, a shattered glowing smartphone screen on a wooden dorm desk, a single warm light lamp, feeling of broken trust, warm orange and amber gradient, no violent imagery, safe-for-education, Taiwan college setting</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="bg-orange-50 p-3 rounded-lg">
+                                    <span class="text-xs font-bold text-orange-800">法律定義</span>
+                                    <p class="text-xs text-orange-900">非合意性影像散布罪</p>
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                    <strong class="text-gray-800">你可以：</strong>
+                                    <ul class="list-disc ml-4 mt-1">
+                                        <li>不指責、截圖存證</li>
+                                        <li>尋求性影像中心下架</li>
+                                        <li>聯繫 113 求助</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Bystander -->
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+                        <div class="card-preview bg-gradient-to-br from-slate-500 to-blue-700">
+                            <div class="absolute inset-0 bg-black bg-opacity-10"></div>
+                            <h3 class="text-xl font-black mb-4 z-10 leading-tight">退出群組後<br>然後呢？</h3>
+                            <p class="text-xs opacity-90 z-10">你的沉默是尊重<br>還是另一種傷害？</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="mb-4">
+                                <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Visual Prompt</span>
+                                <p class="text-xs text-gray-500 italic bg-gray-50 p-2 rounded">Illustration style, a laptop open in a busy university library showing a chat bubble notification, cold fluorescent lighting vs shadows, muted blue and grey tones, no violent imagery, safe-for-education, Taiwan college setting</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <span class="text-xs font-bold text-blue-800">法律定義</span>
+                                    <p class="text-xs text-blue-900">性平事件共同責任</p>
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                    <strong class="text-gray-800">你可以：</strong>
+                                    <ul class="list-disc ml-4 mt-1">
+                                        <li>不點閱、不轉傳</li>
+                                        <li>私訊當事人支持</li>
+                                        <li>截圖匿名向性平會舉報</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: AI/Deepfake -->
+                    <div class="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
+                        <div class="card-preview bg-gradient-to-br from-blue-900 to-indigo-950">
+                            <div class="absolute inset-0 bg-blue-500 bg-opacity-20"></div>
+                            <h3 class="text-xl font-black mb-4 z-10 leading-tight">螢幕裡的妳<br>是真的嗎？</h3>
+                            <p class="text-xs opacity-90 z-10">當 AI 學會「換臉」<br>你該如何守護被偽造的肖像？</p>
+                        </div>
+                        <div class="p-6">
+                            <div class="mb-4">
+                                <span class="text-xs font-bold text-indigo-600 uppercase tracking-widest block mb-1">Visual Prompt</span>
+                                <p class="text-xs text-gray-500 italic bg-gray-50 p-2 rounded">Illustration style, digital glitch patterns overlaid on a generic college student silhouette, futuristic neon blue and electric yellow warning signs, cold blue tones, no violent imagery, safe-for-education, Taiwan college setting</p>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="bg-indigo-50 p-3 rounded-lg">
+                                    <span class="text-xs font-bold text-indigo-800">法律定義</span>
+                                    <p class="text-xs text-indigo-900">製作散布不實性影像罪</p>
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                    <strong class="text-gray-800">你可以：</strong>
+                                    <ul class="list-disc ml-4 mt-1">
+                                        <li>求證來源、不轉發</li>
+                                        <li>向平台檢舉帳號</li>
+                                        <li>尋求 iWIN 移除內容</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Ethics & Support Block -->
+        <section class="bg-gray-900 text-gray-300 rounded-2xl p-8 mt-16 text-sm text-center">
+            <h3 class="text-white text-lg font-bold mb-4">教師備忘錄：教材倫理提醒</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left max-w-4xl mx-auto">
+                <div>
+                    <strong class="text-white block mb-1">🚫 絕無真實影像</strong>
+                    在探討案例時，僅使用文字描述。嚴禁展示任何真實新聞截圖或影像，避免二次傷害與替代性創傷。
+                </div>
+                <div>
+                    <strong class="text-white block mb-1">🤫 不強迫自我揭露</strong>
+                    小組討論建立「保密原則」。嚴格禁止要求學生分享個人或身邊朋友的真實被害經驗。
+                </div>
+                <div>
+                    <strong class="text-white block mb-1">🆘 提供立即支持</strong>
+                    確保有需要的學生能立刻找到求助管道。首頁與末頁必須放置輔導資源資訊。
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- Core Interaction Handling & State Management ---
+
+        // 1. Chart.js Initialization for Time Allocation
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('courseTimeChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [
+                        '模組一：定義與迷思 (30m)', 
+                        '模組二：結構與凝視 (35m)', 
+                        '模組三：旁觀者演練 (45m)', 
+                        '模組四：法網與資源 (40m)', 
+                        '模組五：成為盟友 (30m)'
+                    ],
+                    datasets: [{
+                        data: [30, 35, 45, 40, 30],
+                        backgroundColor: [
+                            '#d4a373', // Light terracotta
+                            '#bc6c25', // Deeper brown/orange
+                            '#8b7355', // Primary taupe
+                            '#6b5b4a', // Darker taupe
+                            '#e07a5f'  // Accent red
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Essential for respecting parent container height
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: "'Noto Sans TC', sans-serif" },
+                                color: '#4a443f',
+                                padding: 15,
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ' ' + context.label.split(' (')[0] + ': ' + context.raw + ' 分鐘';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        });
+
+        // 2. Tab Navigation Logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove active class from all
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked
+                btn.classList.add('active');
+                const targetId = btn.getAttribute('data-target');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // 3. Module 1 Quiz Logic
+        function handleQuiz(isMyth) {
+            const feedbackBox = document.getElementById('quiz-feedback');
+            feedbackBox.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
+            
+            if (isMyth) {
+                feedbackBox.classList.add('bg-red-100', 'text-red-800');
+                feedbackBox.innerHTML = '❌ 這是常見的迷思！同意拍攝不等於同意散布。同意權在數位空間同樣適用，且任何時候都可以撤回。將責任歸咎於拍攝者是典型的「檢討被害人」。';
+            } else {
+                feedbackBox.classList.add('bg-green-100', 'text-green-800');
+                feedbackBox.innerHTML = '✅ 答對了！這是一種指責被害人的迷思。「同意拍攝」與「同意上傳分享」是完全不同的兩件事。數位性暴力的責任永遠在加害者身上。';
+            }
+        }
+
+        // 4. Module 3 Scenario Logic
+        function handleScenario(choice) {
+            const resultBox = document.getElementById('scenario-result');
+            resultBox.classList.remove('hidden', 'bg-red-50', 'text-red-900', 'bg-yellow-50', 'text-yellow-900', 'bg-emerald-100', 'text-emerald-900', 'border', 'border-emerald-300');
+            
+            let message = '';
+            
+            switch(choice) {
+                case 'ignore':
+                    resultBox.classList.add('bg-yellow-50', 'text-yellow-900');
+                    message = '<strong>【旁觀者效應】</strong> 雖然你沒有直接加害，但群組中的沉默會讓加害者覺得這種行為被默許，暴力結構將繼續存在，當事人孤立無援。';
+                    break;
+                case 'curious':
+                    resultBox.classList.add('bg-red-50', 'text-red-900');
+                    message = '<strong>【點閱即是共犯】</strong> 只要點閱，就增加了影像的流量與傳播潛力。這不但滿足了散布者的目的，也是對當事人的二次傷害。';
+                    break;
+                case 'active':
+                    resultBox.classList.add('bg-emerald-100', 'text-emerald-900', 'border', 'border-emerald-300');
+                    message = '<strong>【積極旁觀者】</strong> 優秀的處理方式！不點閱阻斷傳播，截圖保留了證據（包含群組名稱、時間、發言者），並將主動權交還給當事人或專業單位處理。';
+                    break;
+            }
+            resultBox.innerHTML = message;
+        }
+
+        // 5. Module 5 Pledge Wall Logic (Data Storage)
+        let pledges = [];
+
+        function addPledge() {
+            const inputEl = document.getElementById('pledge-input');
+            const text = inputEl.value.trim();
+            const wallEl = document.getElementById('pledge-wall');
+            const emptyMsg = document.getElementById('empty-pledge');
+
+            if (text === '') return;
+
+            // Store data
+            pledges.push(text);
+            
+            // Hide empty message
+            if (emptyMsg) emptyMsg.style.display = 'none';
+
+            // Create DOM element
+            const pledgeDiv = document.createElement('div');
+            pledgeDiv.className = 'pledge-item bg-white p-3 rounded shadow-sm border border-gray-100 mb-2 text-sm text-gray-800 border-l-4 border-rose-300';
+            pledgeDiv.innerHTML = `「${text}」`;
+            
+            // Add to top of wall
+            wallEl.insertBefore(pledgeDiv, wallEl.firstChild);
+            
+            // Clear input
+            inputEl.value = '';
+        }
+
+        // Allow 'Enter' key for pledge input
+        document.getElementById('pledge-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addPledge();
+            }
+        });
+
+    </script>
+</body>
+</html>
