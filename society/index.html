@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>豐原尋寶記：尋找家鄉的起點</title>
+    <title>豐原尋寶記：發現家鄉的起點</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -12,7 +12,7 @@
         .hide { display: none; }
         .chart-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; height: 300px; }
         .clue-card, .video-card, .option-label, .ip-img, .travel-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .clue-card:hover, .video-card:hover, .travel-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }
+        .clue-card:hover, .video-card:hover, .travel-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px -10px rgba(0,0,0,0.1); }
         .correct-choice { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; }
         .wrong-choice { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
         .explanation-box { background-color: #f0fdf4; border-left: 5px solid #10b981; padding: 1rem; margin-top: 0.75rem; border-radius: 0.5rem; animation: slideIn 0.4s ease-out; }
@@ -25,16 +25,16 @@
     <!-- Header Navigation -->
     <header class="bg-emerald-600 text-white shadow-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col xl:flex-row justify-between items-center gap-4">
-            <h1 class="text-2xl font-black flex items-center gap-2">
+            <h1 class="text-2xl font-black flex items-center gap-2 tracking-wider">
                 <span class="text-3xl">🗺️</span> 豐原尋寶記
             </h1>
             <div class="flex flex-wrap justify-center items-center gap-2">
-                <nav class="flex flex-wrap gap-1 bg-emerald-700 p-1 rounded-2xl shadow-inner">
-                    <button id="nav-presentation" class="nav-btn bg-white text-emerald-700 px-4 py-2 rounded-xl font-bold transition-all text-sm">🔍 探索</button>
-                    <button id="nav-song" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-xl font-bold transition-all text-sm">🎵 歌曲</button>
-                    <button id="nav-video" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-xl font-bold transition-all text-sm">📺 影音</button>
-                    <button id="nav-worksheet" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-xl font-bold transition-all text-sm">📝 挑戰</button>
-                    <button id="nav-travel" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-xl font-bold transition-all text-sm">🚲 旅遊</button>
+                <nav class="flex flex-wrap gap-1 bg-emerald-700 p-1 rounded-2xl shadow-inner text-sm">
+                    <button id="nav-presentation" class="nav-btn bg-white text-emerald-700 px-4 py-2 rounded-xl font-bold transition-all">🔍 探索</button>
+                    <button id="nav-song" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-xl font-bold transition-all">🎵 歌曲</button>
+                    <button id="nav-video" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-xl font-bold transition-all">📺 影音</button>
+                    <button id="nav-worksheet" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-xl font-bold transition-all">📝 挑戰</button>
+                    <button id="nav-travel" class="nav-btn text-white hover:bg-emerald-500 px-4 py-2 rounded-xl font-bold transition-all">🚲 旅遊</button>
                 </nav>
                 <a href="https://lin5406.github.io/ball-lottery/ball.html" target="_blank" class="bg-amber-400 hover:bg-amber-300 text-amber-900 px-4 py-2 rounded-xl font-black shadow-md flex items-center gap-2 transition-transform hover:scale-105 text-sm">
                     🎰 抽籤工具
@@ -43,65 +43,77 @@
         </div>
     </header>
 
-    <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-8">
+    <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-10">
 
         <!-- SECTION: Presentation (探索簡報) -->
         <section id="sec-presentation" class="space-y-12 animate-fade-in">
             <div class="text-center space-y-4">
-                <h2 class="text-3xl md:text-5xl font-black text-amber-600">豐原的起點在哪裡？</h2>
+                <h2 class="text-3xl md:text-5xl font-black text-amber-600 tracking-tight">豐原的起點在哪裡？</h2>
                 <p class="text-lg text-slate-600 bg-amber-50 p-6 rounded-3xl border-2 border-amber-100 shadow-sm max-w-3xl mx-auto italic">
-                    「看見、說出來，咱攏不孤單。」<br>點擊卡片解開歷史線索，找出家鄉長大的能量！
+                    「看見、說出來，咱攏不孤單。」<br>探險家，點擊下方的線索卡片，找出讓家鄉長大的能量！
                 </p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="clue-card bg-white rounded-3xl border-2 border-emerald-100 p-8 cursor-pointer shadow-sm" onclick="revealClue(1)">
-                    <div class="flex justify-between items-center mb-4"><span class="bg-emerald-100 text-emerald-700 px-4 py-1 rounded-full text-xs font-black">地名由來</span><span id="icon-1" class="text-2xl animate-bounce">👇</span></div>
-                    <div id="cover-1" class="text-center py-12 text-slate-300 font-bold">點擊揭曉古老地名</div>
-                    <div id="content-1" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">舊名「葫蘆墩」🌾</h3><p class="text-slate-600">早期有三個像葫蘆的小土丘。因為大甲溪帶來的肥沃土壤，這裡曾產出高品質的進貢稻米。</p></div>
+                    <div class="flex justify-between items-center mb-4"><span class="bg-emerald-100 text-emerald-800 px-4 py-1 rounded-full text-xs font-black tracking-widest">地名由來</span><span id="icon-1" class="text-2xl animate-bounce">👇</span></div>
+                    <div id="cover-1" class="text-center py-12 text-slate-300 font-bold">點擊揭開名字的秘密</div>
+                    <div id="content-1" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">舊名「葫蘆墩」🌾</h3><p class="text-slate-600 leading-relaxed">以前境內有三個小土丘，形狀遠望像葫蘆。這裡因為大甲溪沖積而土地肥沃，生產的米曾是獻給日本天皇的「貢米」喔！</p></div>
                 </div>
                 <div class="clue-card bg-white rounded-3xl border-2 border-blue-100 p-8 cursor-pointer shadow-sm" onclick="revealClue(2)">
-                    <div class="flex justify-between items-center mb-4"><span class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-xs font-black">水利灌溉</span><span id="icon-2" class="text-2xl animate-bounce">👇</span></div>
-                    <div id="cover-2" class="text-center py-12 text-slate-300 font-bold">點擊解開水源秘密</div>
-                    <div id="content-2" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">葫蘆墩圳 💧</h3><p class="text-slate-600">由張達京與先民合作開鑿。引進水源後，豐原才真正活了起來，發展出強大的農業基礎。</p></div>
+                    <div class="flex justify-between items-center mb-4"><span class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-xs font-black tracking-widest">水利建設</span><span id="icon-2" class="text-2xl animate-bounce">👇</span></div>
+                    <div id="cover-2" class="text-center py-12 text-slate-300 font-bold">點擊揭開水源的秘密</div>
+                    <div id="content-2" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">葫蘆墩圳 💧</h3><p class="text-slate-600 leading-relaxed">先民張達京開鑿水圳，引進大甲溪的水。有了這條「母河」，豐原才有了發展農業最需要的生命之水。</p></div>
                 </div>
                 <div class="clue-card bg-white rounded-3xl border-2 border-red-100 p-8 cursor-pointer shadow-sm" onclick="revealClue(3)">
-                    <div class="flex justify-between items-center mb-4"><span class="bg-red-100 text-red-700 px-4 py-1 rounded-full text-xs font-black">信仰中心</span><span id="icon-3" class="text-2xl animate-bounce">👇</span></div>
+                    <div class="flex justify-between items-center mb-4"><span class="bg-red-100 text-red-800 px-4 py-1 rounded-full text-xs font-black tracking-widest">信仰中心</span><span id="icon-3" class="text-2xl animate-bounce">👇</span></div>
                     <div id="cover-3" class="text-center py-12 text-slate-300 font-bold">點擊揭開鬧區起源</div>
-                    <div id="content-3" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">慈濟宮 ⛩️</h3><p class="text-slate-600">信仰帶動人潮，人潮帶動商機。廟周邊聚集的攤商，就是現在熱鬧廟東鬧區的原型。</p></div>
+                    <div id="content-3" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">慈濟宮 (媽祖廟) ⛩️</h3><p class="text-slate-600 leading-relaxed">廟宇是信仰中心。因為拜拜人潮多，廟旁邊才漸漸出現商店，形成現在最熱鬧的市中心起點。</p></div>
                 </div>
                 <div class="clue-card bg-white rounded-3xl border-2 border-amber-100 p-8 cursor-pointer shadow-sm" onclick="revealClue(4)">
-                    <div class="flex justify-between items-center mb-4"><span class="bg-amber-100 text-amber-700 px-4 py-1 rounded-full text-xs font-black">交通發展</span><span id="icon-4" class="text-2xl animate-bounce">👇</span></div>
-                    <div id="cover-4" class="text-center py-12 text-slate-300 font-bold">點擊解開鐵路奇蹟</div>
-                    <div id="content-4" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">豐原火車站 🚂</h3><p class="text-slate-600">縱貫線通車讓豐原變成轉運中心，大量人口進駐，讓豐原從小農村變成了現代化城市。</p></div>
+                    <div class="flex justify-between items-center mb-4"><span class="bg-amber-100 text-amber-800 px-4 py-1 rounded-full text-xs font-black tracking-widest">交通運輸</span><span id="icon-4" class="text-2xl animate-bounce">👇</span></div>
+                    <div id="cover-4" class="text-center py-12 text-slate-300 font-bold">點擊揭開鐵路的秘密</div>
+                    <div id="content-4" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">豐原火車站 🚂</h3><p class="text-slate-600 leading-relaxed">日治時期火車通行，讓豐原的木材和米能運送到全台灣。交通變發達了，城市也就變得更進步了！</p></div>
                 </div>
             </div>
-            <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100"><h3 class="text-2xl font-black text-center text-slate-800 mb-8">📊 豐原發展關鍵要素比例</h3><div class="chart-container"><canvas id="devChart"></canvas></div></div>
+            <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 text-center">
+                <h3 class="text-2xl font-black text-slate-800 mb-8">📊 發現豐原之美：發展關鍵支柱</h3>
+                <div class="chart-container"><canvas id="devChart"></canvas></div>
+            </div>
         </section>
 
-        <!-- SECTION: Song & IP (主題歌曲 & 角色IP) -->
+        <!-- SECTION: Song & IP (主題歌曲) -->
         <section id="sec-song" class="hide space-y-12 animate-fade-in">
-            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-emerald-100">
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border-2 border-emerald-100">
                 <div class="bg-emerald-600 p-10 text-white text-center">
-                    <h2 class="text-3xl font-black mb-2 tracking-widest">🎵 豐原尋寶記：主題歌曲</h2>
+                    <h2 class="text-3xl font-black mb-2 tracking-widest">🎵 豐原尋寶記 主題曲</h2>
                     <p class="opacity-90 italic">「看見、說出來，咱攏不孤單。」</p>
                 </div>
                 <div class="p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-12">
                     <div class="space-y-8">
-                        <h3 class="text-2xl font-black text-emerald-700 flex items-center gap-2">🎯 教學亮點</h3>
-                        <div class="space-y-4">
-                            <p class="bg-emerald-50 p-4 rounded-2xl text-sm leading-relaxed"><strong>● 開場：</strong>Intro + Verse 快速入戲。<br><strong>● 中段：</strong>副歌洗腦，適合「拍手＋律動」。<br><strong>● 橋段：</strong>引導討論「我可以為家鄉做什麼？」。<br><strong>● 結尾：</strong>Outro 當作班級下課口號。</p>
+                        <h3 class="text-2xl font-black text-emerald-700 flex items-center gap-2 mb-6">🎯 歌曲教學亮點</h3>
+                        <div class="space-y-3 text-sm leading-relaxed text-slate-600">
+                            <p class="bg-emerald-50 p-4 rounded-xl border-l-4 border-emerald-500"><strong>● 開場：</strong>直接用 Intro + Verse 帶學生進入情境。</p>
+                            <p class="bg-emerald-50 p-4 rounded-xl border-l-4 border-emerald-500"><strong>● 中段：</strong>副歌洗腦，適合做「拍手＋律動」。</p>
+                            <p class="bg-emerald-50 p-4 rounded-xl border-l-4 border-emerald-500"><strong>● 橋段：</strong>討論「我可以為家鄉做什麼？」。</p>
+                            <p class="bg-emerald-50 p-4 rounded-xl border-l-4 border-emerald-500"><strong>● 結尾：</strong>Outro當作班級大合唱口號。</p>
                         </div>
-                        <div class="flex flex-col gap-3 pt-4">
-                            <h4 class="font-black text-slate-800">🎧 Suno 播放連結</h4>
-                            <a href="https://suno.com/s/kRciIVHMWW7GWKVG" target="_blank" class="bg-slate-100 hover:bg-emerald-100 p-4 rounded-2xl font-bold flex justify-between items-center transition-all"><span>版本一：活潑動感版</span><span class="text-xl">▶️</span></a>
-                            <a href="https://suno.com/s/pYpABm0nmwOxxqaF" target="_blank" class="bg-slate-100 hover:bg-emerald-100 p-4 rounded-2xl font-bold flex justify-between items-center transition-all"><span>版本二：溫馨敘事版</span><span class="text-xl">▶️</span></a>
+                        <div class="bg-amber-50 p-6 rounded-2xl border-l-8 border-amber-400">
+                            <h4 class="text-amber-800 font-black text-lg mb-1 italic">✨ 一句帶走：</h4>
+                            <p class="text-amber-700 text-2xl font-black italic">「看見、說出來，咱攏不孤單。」</p>
+                        </div>
+                        <div class="flex flex-col gap-3 pt-4 font-bold">
+                            <h4 class="text-slate-800">🎧 Suno 播放連結</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <a href="https://suno.com/s/kRciIVHMWW7GWKVG" target="_blank" class="bg-slate-100 hover:bg-emerald-100 p-4 rounded-xl text-center transition-all">版本一：活潑版</a>
+                                <a href="https://suno.com/s/pYpABm0nmwOxxqaF" target="_blank" class="bg-slate-100 hover:bg-emerald-100 p-4 rounded-xl text-center transition-all">版本二：溫馨版</a>
+                            </div>
                         </div>
                     </div>
                     <div class="flex flex-col items-center justify-center text-center space-y-6">
                         <h3 class="text-2xl font-black text-slate-800">🎤 豐原小隊：角色 IP</h3>
                         <div class="relative group cursor-pointer" onclick="window.open('https://lin5406.github.io/lin/society/imp115042601.png', '_blank')">
-                            <img id="ip-image" src="https://lin5406.github.io/lin/society/imp115042601.png" alt="豐原小隊" class="ip-img rounded-3xl shadow-2xl border-4 border-white max-w-full h-auto group-hover:scale-105">
-                            <div class="absolute inset-0 bg-black/10 rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"><span class="bg-white/90 text-slate-800 px-4 py-2 rounded-full font-bold shadow-md">點擊開啟原圖</span></div>
+                            <img id="ip-image" src="https://lin5406.github.io/lin/society/imp115042601.png" alt="豐原小隊" class="ip-img rounded-3xl shadow-2xl border-4 border-white max-w-full h-auto transition-transform group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/10 rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all font-bold text-white shadow-inner">點擊開啟原圖</div>
                         </div>
                         <button id="btn-save-ip" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 px-10 rounded-2xl shadow-lg flex items-center gap-2 transition-transform active:scale-95">💾 儲存角色圖片</button>
                     </div>
@@ -111,54 +123,63 @@
 
         <!-- SECTION: Video (影音實境) -->
         <section id="sec-video" class="hide space-y-12 animate-fade-in">
-            <div class="text-center"><h2 class="text-3xl font-black text-emerald-700">📺 影音實境室</h2><p class="text-slate-600 mt-2">連結真實紀錄片，穿越時空見證歷史。</p></div>
+            <div class="text-center"><h2 class="text-3xl font-black text-emerald-700">📺 影音實境室</h2><p class="text-slate-600 mt-2">點擊卡片跳轉觀看真實影像紀錄！</p></div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <a href="https://www.youtube.com/results?search_query=豐原+葫蘆墩圳+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-emerald-900 flex items-center justify-center text-4xl">🌊</div><div class="p-5 font-bold text-slate-800">葫蘆墩圳：母河歷史</div></a>
-                <a href="https://www.youtube.com/results?search_query=豐原+慈濟宮+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-red-800 flex items-center justify-center text-4xl">⛩️</div><div class="p-5 font-bold text-slate-800">信仰核心：慈濟宮巡禮</div></a>
-                <a href="https://www.youtube.com/results?search_query=豐原火車站+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-blue-900 flex items-center justify-center text-4xl">🚂</div><div class="p-5 font-bold text-slate-800">火車站：百年變遷</div></a>
-                <a href="https://www.facebook.com/reel/939180528711910" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md border-2 border-emerald-500 block group"><div class="aspect-video bg-slate-900 flex items-center justify-center text-4xl">📱</div><div class="p-5 font-bold text-emerald-700 text-center text-sm">課程短影音參考點</div></a>
+                <a href="https://www.youtube.com/results?search_query=豐原+葫蘆墩圳+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-emerald-900 flex items-center justify-center text-4xl">🌊</div><div class="p-5 font-bold text-slate-800 text-center text-sm">葫蘆墩圳故事</div></a>
+                <a href="https://www.youtube.com/results?search_query=豐原+慈濟宮+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-red-800 flex items-center justify-center text-4xl">⛩️</div><div class="p-5 font-bold text-slate-800 text-center text-sm">慈濟宮巡禮</div></a>
+                <a href="https://www.youtube.com/results?search_query=豐原火車站+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-blue-900 flex items-center justify-center text-4xl">🚂</div><div class="p-5 font-bold text-slate-800 text-center text-sm">百年車站變遷</div></a>
+                <a href="https://www.facebook.com/reel/939180528711910" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md border-2 border-emerald-500 block group text-center"><div class="aspect-video bg-slate-900 flex items-center justify-center text-4xl">🎬</div><div class="p-5 font-bold text-emerald-700 text-sm">原始影片參考點</div></a>
             </div>
         </section>
 
-        <!-- SECTION: Worksheet (挑戰學習單) -->
+        <!-- SECTION: Worksheet (測驗) -->
         <section id="sec-worksheet" class="hide space-y-12 animate-fade-in">
             <div class="bg-white rounded-3xl shadow-2xl p-8 lg:p-12 border-t-8 border-emerald-500">
-                <div class="text-center mb-10"><h2 class="text-3xl font-black text-slate-800">📝 隨機測驗：豐原小達人</h2><p class="text-slate-500 mt-2">每次抽題都不同！提交後將為您詳細分析對錯與解析。</p><button onclick="initQuiz()" class="mt-4 bg-slate-800 text-white px-6 py-2 rounded-full text-sm font-bold">🔄 重新抽題挑戰</button></div>
+                <div class="text-center mb-10"><h2 class="text-3xl font-black text-slate-800">📝 豐原小達人：挑戰學習單</h2><p class="text-slate-500 mt-2">每次抽題都不同！提交後將為您詳細分析對錯與答案解析。</p><button onclick="initQuiz()" class="mt-4 bg-slate-800 text-white px-6 py-2 rounded-full text-sm font-bold shadow-md hover:bg-slate-700">🔄 重新抽題挑戰</button></div>
                 <div id="quiz-area" class="space-y-12"></div>
                 <div class="mt-12 space-y-6"><button id="btn-submit-quiz" onclick="submitQuiz()" class="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-emerald-700 transition text-xl">提交答案並分析對錯</button><div id="quiz-final-score" class="hide p-6 rounded-2xl text-center text-2xl font-black"></div></div>
             </div>
         </section>
 
-        <!-- SECTION: Travel (旅遊導覽) [NEW] -->
-        <section id="sec-travel" class="hide space-y-12 animate-fade-in">
+        <!-- SECTION: Travel (旅遊導覽) -->
+        <section id="sec-travel" class="hide space-y-16 animate-fade-in">
             <div class="text-center">
-                <h2 class="text-3xl font-black text-amber-600">🚲 葫蘆墩踏查導覽</h2>
-                <p class="text-slate-600 mt-2">學會了知識，現在就出發親眼看看豐原吧！</p>
+                <h2 class="text-3xl font-black text-amber-600 tracking-tight">🚲 葫蘆墩踏查路線</h2>
+                <p class="text-slate-600 mt-2">看完了起點的故事，現在出發去親自走走吧！</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <!-- Trip Card 1 -->
-                <div class="travel-card bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-emerald-100 flex flex-col">
-                    <div class="bg-emerald-600 p-5 text-white text-center font-black text-xl">1. 葫蘆墩一日遊建議</div>
-                    <div class="p-4 flex-grow flex items-center justify-center bg-slate-50">
-                        <img src="https://lin5406.github.io/lin/society/imp115042603.png" alt="葫蘆墩一日遊" class="rounded-xl shadow-md cursor-pointer hover:scale-[1.02] transition-transform" onclick="window.open(this.src, '_blank')" onerror="this.src='https://placehold.co/600x400?text=一日遊建議圖片'">
+
+            <!--一日遊部分 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-emerald-700 border-l-8 border-emerald-600 pl-4">1. 葫蘆墩一日遊建議</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="travel-card bg-white rounded-3xl shadow-xl overflow-hidden p-4 border border-slate-100 flex flex-col items-center">
+                        <img src="https://lin5406.github.io/lin/society/imp115042603.png" alt="一日遊A" class="rounded-2xl shadow-md cursor-pointer mb-4" onclick="window.open(this.src, '_blank')">
+                        <p class="text-sm font-bold text-slate-500 italic">行程建議圖 A</p>
                     </div>
-                    <div class="p-4 text-center">
-                        <a href="https://lin5406.github.io/lin/society/imp115042603.png" target="_blank" class="inline-block bg-emerald-100 text-emerald-800 px-6 py-2 rounded-full font-bold text-sm">🔍 點擊查看原圖</a>
-                    </div>
-                </div>
-                <!-- Trip Card 2 -->
-                <div class="travel-card bg-white rounded-3xl overflow-hidden shadow-xl border-2 border-amber-100 flex flex-col">
-                    <div class="bg-amber-500 p-5 text-white text-center font-black text-xl">2. 葫蘆墩當日吃喝攻略</div>
-                    <div class="p-4 flex-grow flex items-center justify-center bg-slate-50">
-                        <img src="https://lin5406.github.io/lin/society/imp115042602.png" alt="葫蘆墩吃喝攻略" class="rounded-xl shadow-md cursor-pointer hover:scale-[1.02] transition-transform" onclick="window.open(this.src, '_blank')" onerror="this.src='https://placehold.co/600x400?text=吃喝攻略圖片'">
-                    </div>
-                    <div class="p-4 text-center">
-                        <a href="https://lin5406.github.io/lin/society/imp115042602.png" target="_blank" class="inline-block bg-amber-100 text-amber-800 px-6 py-2 rounded-full font-bold text-sm">🔍 點擊查看原圖</a>
+                    <div class="travel-card bg-white rounded-3xl shadow-xl overflow-hidden p-4 border border-slate-100 flex flex-col items-center">
+                        <img src="https://lin5406.github.io/lin/society/imp115042603b.png" alt="一日遊B" class="rounded-2xl shadow-md cursor-pointer mb-4" onclick="window.open(this.src, '_blank')">
+                        <p class="text-sm font-bold text-slate-500 italic">行程建議圖 B</p>
                     </div>
                 </div>
             </div>
-            <div class="bg-amber-50 p-8 rounded-3xl border-l-8 border-amber-400 max-w-4xl mx-auto text-center">
-                <p class="text-amber-800 font-bold leading-relaxed text-lg">💡 小提醒：實地踏查時，別忘了注意安全，並且帶著今天學到的知識去對照看看喔！</p>
+
+            <!--吃喝攻略部分 -->
+            <div class="space-y-8">
+                <h3 class="text-2xl font-black text-amber-600 border-l-8 border-amber-500 pl-4">2. 葫蘆墩當日吃喝攻略</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="travel-card bg-white rounded-3xl shadow-xl overflow-hidden p-4 border border-slate-100 flex flex-col items-center">
+                        <img src="https://lin5406.github.io/lin/society/imp115042602.png" alt="吃喝A" class="rounded-2xl shadow-md cursor-pointer mb-4" onclick="window.open(this.src, '_blank')">
+                        <p class="text-sm font-bold text-slate-500 italic">在地美食圖 A</p>
+                    </div>
+                    <div class="travel-card bg-white rounded-3xl shadow-xl overflow-hidden p-4 border border-slate-100 flex flex-col items-center">
+                        <img src="https://lin5406.github.io/lin/society/imp115042602b.png" alt="吃喝B" class="rounded-2xl shadow-md cursor-pointer mb-4" onclick="window.open(this.src, '_blank')">
+                        <p class="text-sm font-bold text-slate-500 italic">在地美食圖 B</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 p-8 rounded-3xl border-l-8 border-amber-400 max-w-4xl mx-auto text-center shadow-inner">
+                <p class="text-amber-800 font-bold leading-relaxed text-lg">💡 踏查小叮嚀：走讀時請注意安全，並試著找找看這學期學到的「城市起點」遺跡喔！</p>
             </div>
         </section>
 
@@ -167,38 +188,37 @@
     <!-- Footer -->
     <footer class="bg-slate-800 text-slate-400 py-12 px-4 mt-auto border-t-8 border-emerald-600 text-center">
         <p class="text-xl font-black text-white tracking-widest">🗺️ 鄉土教育互動學習網 ｜ 發現豐原之美 (💻 A_fu 老師製作)</p>
-        <p class="text-xs mt-3 opacity-60 leading-relaxed max-w-xl mx-auto italic">結合音樂、視覺、隨機評量與旅遊引導。讓孩子在起點中看見家鄉的無限可能。</p>
+        <p class="text-xs mt-3 opacity-60 leading-relaxed max-w-xl mx-auto italic">結合音樂、視覺與實踐。從起點出發，愛上我們生長的這片土地。</p>
     </footer>
 
     <script>
         // --- DATA POOL ---
         const mcqPool = [
-            { q: "豐原的舊地名「葫蘆墩」主要是因為境內早期有？", options: ["很多葫蘆菜園", "三個像葫蘆的土堆", "居民愛吃葫蘆"], correct: 1, explanation: "早期豐原境內有三座小土丘，形狀遠望像葫蘆，所以叫葫蘆墩。" },
-            { q: "被稱為豐原農業生命之水、由張達京與先民開鑿的是？", options: ["嘉南大圳", "葫蘆墩圳", "曹公圳"], correct: 1, explanation: "張達京與先民開鑿葫蘆墩圳，成功引水灌溉奠定了豐原米之名。" },
-            { q: "豐原最熱鬧的鬧區(廟東)，最初是圍繞哪座廟宇發展出來的？", options: ["慈濟宮", "萬和宮", "武德宮"], correct: 0, explanation: "慈濟宮是豐原的信仰核心，人潮聚集帶動了商業活動。" },
-            { q: "日治時期，哪項建設讓豐原成為木材與農產的轉運中心？", options: ["飛機場", "高速公路", "火車站"], correct: 2, explanation: "縱貫線鐵路通車讓貨物能快速運送到全台各地，促進了豐原繁榮。" },
-            { q: "豐原著名的「葫蘆墩米」在早期品質極佳，曾進貢給誰？", options: ["日本天皇", "清朝皇帝", "英國女王"], correct: 0, explanation: "豐原水好土肥，產出稻米美味，曾被選為進貢給日皇的貢米。" },
-            { q: "葫蘆墩圳的水源主要是引自哪一條河流？", options: ["濁水溪", "大甲溪", "淡水河"], correct: 1, explanation: "葫蘆墩圳是引用大甲溪的溪水進行農業灌溉。" },
-            { q: "早期豐原能發展農業，最重要的兩個因素是水源與？", options: ["肥沃土地", "天氣寒冷", "人口稀少"], correct: 0, explanation: "肥沃土壤配合完善的水利設施，才讓這片土地豐收。" },
-            { q: "豐原慈濟宮主要供奉的神明是？", options: ["土地公", "天上聖母(媽祖)", "關聖帝君"], correct: 1, explanation: "慈濟宮主祀媽祖，是當地最重要的守護神信仰中心。" },
-            { q: "火車站對城市起點的意義，在於帶動了？", options: ["交通與工商便利", "原始林開發", "海洋漁業"], correct: 0, explanation: "火車站帶來了人流與商機，讓豐原邁向現代化的繁忙大都市。" },
+            { q: "豐原的舊地名「葫蘆墩」主要是因為境內早期有？", options: ["產很多葫蘆", "三個像葫蘆的土堆", "居民愛吃葫蘆"], correct: 1, explanation: "早期豐原境內有三座小土丘，形狀遠望像葫蘆，所以叫葫蘆墩。" },
+            { q: "哪項水利工程被稱為豐原農業發展命脈，是由張達京開鑿的？", options: ["嘉南大圳", "葫蘆墩圳", "曹公圳"], correct: 1, explanation: "張達京與先民開拓葫蘆墩圳，引水灌溉奠定了豐原稻米繁榮的基礎。" },
+            { q: "豐原最熱鬧的鬧區(廟東)，最初是圍繞哪座廟宇發展出來的？", options: ["慈濟宮", "萬和宮", "武德宮"], correct: 0, explanation: "慈濟宮是豐原的信仰中心，人潮聚集帶動了商業繁榮。" },
+            { q: "日治時期，哪項建設讓豐原成為木材與農產品的轉運中心？", options: ["飛機場", "高速公路", "火車站"], correct: 2, explanation: "鐵路通車讓貨物能快速運輸到全台各地，促進了城市成長。" },
+            { q: "豐原著名的「葫蘆墩米」在早期品質極佳，曾進貢給誰？", options: ["日本天皇", "清朝皇帝", "英國女王"], correct: 0, explanation: "豐原水質好土肥，種出的米極佳，曾是著名的貢米。" },
+            { q: "葫蘆墩圳的水源主要是引用哪一條大河？", options: ["濁水溪", "大甲溪", "淡水河"], correct: 1, explanation: "葫蘆墩圳是引用大甲溪的溪水進行農業灌溉。" },
+            { q: "早期豐原能發展農業，最重要的自然優勢是水源與？", options: ["肥沃土地", "天氣寒冷", "人口稀少"], correct: 0, explanation: "肥沃土壤配合完善的水利設施，才讓這片土地豐收。" },
+            { q: "豐原慈濟宮主要供奉的是哪位神明？", options: ["土地公", "媽祖(天上聖母)", "文昌帝君"], correct: 1, explanation: "慈濟宮主祀天上聖母，是當地的守護神信仰中心。" },
+            { q: "火車站對城市起點的意義，在於帶動了？", options: ["交通便利與工商發展", "原始林開發", "海洋漁業發展"], correct: 0, explanation: "火車站帶來了人流與物流，讓豐原邁向現代化的繁忙大都市。" },
             { q: "這堂課告訴我們，城市的「起點」是由什麼形成的？", options: ["只有運氣", "水源、信仰、交通等因素交織", "隨機產生的"], correct: 1, explanation: "城市是由多種資源與歷史要素共同積累而成的結果。" }
         ];
 
         const qaPool = [
-            { q: "為什麼「水源」是豐原歷史發展的第一個關鍵起點？", a: "農業生產需要水，有了穩定的水源才能吸引先民開墾並定居。"},
-            { q: "「慈濟宮」如何幫助豐原鬧區的形成？", a: "廟宇聚集人潮，有人就有商機需求，周邊逐漸形成市場。"},
+            { q: "為什麼「水源」是豐原歷史發展的第一個關鍵起點？", a: "農業生產需要水灌溉，有了穩定水源才能吸引先民開墾並居住。"},
+            { q: "「慈濟宮」如何幫助豐原鬧區的形成？", a: "廟宇聚集人潮，有人就有商機需求，周圍逐漸形成市場。"},
             { q: "火車站對豐原的轉變有什麼重大貢獻？", a: "大幅增加運輸效率，將農產與木材外銷，吸引人口進駐。"},
-            { q: "「貢米」反映了當時豐原具備什麼優點？", a: "反映了當地擁有極佳的水質與肥沃的土壤。"},
-            { q: "如果豐原沒有蓋火車站，現在的生活可能會有什麼不同？", a: "發展速度可能變慢，對外貿易不便，可能維持在農村狀態。"},
-            { q: "金句「看見、說出來，咱攏不孤單」對你的意義？", a: "分享家鄉故事，能讓我們的心連結在一起。"}
+            { q: "「貢米」這名稱背後代表豐原具備什麼優點？", a: "反映了當地擁有極佳的水質與肥沃的土壤環境。"},
+            { q: "如果豐原當初沒有蓋火車站，你覺得現在會是什麼樣子？", a: "發展速度可能變慢，對外貿易不便，可能維持農村樣貌。"},
+            { q: "「看見、說出來，咱攏不孤單」這句話對你的意義？", a: "代表家鄉的故事需要被傳承，當我們分享時，心會凝聚在一起。"}
         ];
 
-        // --- STATE & UTILS ---
         let currentMcqs = []; let currentQas = []; let chartInstance = null; let progressFlags = [false, false, false, false];
         function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
 
-        // --- CORE FUNCTIONS ---
+        // --- QUIZ LOGIC ---
         function initQuiz() {
             currentMcqs = shuffle([...mcqPool]).slice(0, 5); currentQas = shuffle([...qaPool]).slice(0, 3); renderQuiz();
             document.getElementById('quiz-final-score').classList.add('hide'); document.getElementById('btn-submit-quiz').classList.remove('hide');
@@ -206,38 +226,38 @@
 
         function renderQuiz() {
             const area = document.getElementById('quiz-area');
-            let html = `<div class="space-y-8"><h3 class="text-xl font-black text-emerald-700 flex items-center gap-2"><span class="bg-emerald-100 p-1 px-3 rounded-lg">1</span> 基礎選擇測驗</h3>`;
+            let html = `<div class="space-y-8"><h3 class="text-xl font-black text-emerald-700 flex items-center gap-2"><span class="bg-emerald-100 p-1 px-3 rounded-lg">1</span> 隨機抽題測驗 (5 題)</h3>`;
             currentMcqs.forEach((item, idx) => {
                 html += `<div id="q-block-${idx}" class="p-6 bg-slate-50 rounded-2xl border-2 border-transparent transition-all"><p class="font-bold text-slate-800 mb-4">${idx+1}. ${item.q}</p><div class="space-y-2">
                         ${item.options.map((opt, oidx) => `<label id="label-${idx}-${oidx}" class="option-label flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50 border-2 border-transparent"><input type="radio" name="q${idx}" value="${oidx}"> <span class="text-slate-700 text-sm md:text-base">${['(A)','(B)','(C)'][oidx]} ${opt}</span></label>`).join('')}
                     </div><div id="feedback-${idx}" class="hide mt-4"></div></div>`;
             });
-            html += `</div><hr class="my-10 border-dashed border-gray-200"><div class="space-y-8"><h3 class="text-xl font-black text-amber-700 flex items-center gap-2"><span class="bg-amber-100 p-1 px-3 rounded-lg">2</span> 問答思考區</h3>`;
+            html += `</div><hr class="my-10 border-dashed border-gray-200"><div class="space-y-8"><h3 class="text-xl font-black text-amber-700 flex items-center gap-2"><span class="bg-amber-100 p-1 px-3 rounded-lg">2</span> 問答思考挑戰 (3 題)</h3>`;
             currentQas.forEach((item, idx) => {
-                html += `<div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm"><p class="font-black text-slate-800 mb-4">Q${idx+1}: ${item.q}</p><textarea class="w-full border-2 border-slate-50 rounded-2xl p-4 outline-none focus:ring-4 focus:ring-emerald-100 transition text-sm" rows="2" placeholder="在此輸入想法..."></textarea><button onclick="this.nextElementSibling.classList.toggle('hide')" class="mt-4 text-emerald-600 font-bold hover:underline">💡 觀看解析參考</button><div class="hide explanation-box text-sm text-emerald-800 italic">解析參考：${item.a}</div></div>`;
+                html += `<div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm"><p class="font-black text-slate-800 mb-4">Q${idx+1}: ${item.q}</p><textarea class="w-full border-2 border-slate-50 rounded-2xl p-4 outline-none focus:ring-4 focus:ring-emerald-100 transition text-sm" rows="2" placeholder="在此輸入想法..."></textarea><button onclick="this.nextElementSibling.classList.toggle('hide')" class="mt-4 text-emerald-600 font-bold hover:underline">💡 參考解析</button><div class="hide bg-emerald-50 p-4 mt-2 border-l-4 border-emerald-500 text-sm text-emerald-800 italic">解析：${item.a}</div></div>`;
             });
             area.innerHTML = html + `</div>`;
         }
 
         function submitQuiz() {
-            let score = 0; let ansCount = 0;
+            let score = 0; let answered = 0;
             currentMcqs.forEach((item, idx) => {
                 const picked = document.querySelector(`input[name="q${idx}"]:checked`);
                 const fb = document.getElementById(`feedback-${idx}`);
                 if(picked) {
-                    ansCount++; const val = parseInt(picked.value); const lbl = document.getElementById(`label-${idx}-${val}`);
+                    answered++; const val = parseInt(picked.value); const lbl = document.getElementById(`label-${idx}-${val}`);
                     if(val === item.correct) { score += 20; lbl.classList.add('correct-choice'); fb.innerHTML = `<p class="text-emerald-700 font-bold">✅ 答對了！ ${item.explanation}</p>`; }
                     else { lbl.classList.add('wrong-choice'); document.getElementById(`label-${idx}-${item.correct}`).classList.add('correct-choice'); fb.innerHTML = `<p class="text-red-600 font-bold">❌ 答錯囉！正確答案是 (${['A','B','C'][item.correct]})</p><p class="text-slate-500 text-sm italic mt-1">解析：${item.explanation}</p>`; }
                     fb.classList.remove('hide');
                 } else { document.getElementById(`q-block-${idx}`).classList.add('border-amber-300'); }
             });
-            if(ansCount < 5) { alert('還有題目沒寫完喔！'); return; }
-            const final = document.getElementById('quiz-final-score'); final.classList.remove('hide'); final.textContent = `得分：${score} 分！${score === 100 ? '🎉 你是豐原尋寶大師！' : '👍 很棒的努力！'}`;
+            if(answered < 5) { alert('還有題目沒寫完喔！'); return; }
+            const final = document.getElementById('quiz-final-score'); final.classList.remove('hide'); final.textContent = `得分：${score} 分！${score === 100 ? '🎉 你是豐原小隊最強戰士！' : '👍 表現得很好！可以複習解析加強喔！'}`;
             final.className = `p-6 rounded-2xl text-center text-2xl font-black mt-8 ${score >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
             document.getElementById('btn-submit-quiz').classList.add('hide'); window.scrollTo({ top: final.offsetTop - 150, behavior: 'smooth' });
         }
 
-        // --- IMAGE SAVE REFIXED ---
+        // --- IMAGE SAVE ---
         async function saveIPImage() {
             const url = 'https://lin5406.github.io/lin/society/imp115042601.png'; const btn = document.getElementById('btn-save-ip');
             const originalText = btn.innerHTML;
@@ -249,11 +269,11 @@
                 document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(bUrl);
                 btn.innerHTML = '✅ 下載成功';
             } catch (e) {
-                alert('安全性限制：請對圖片按「右鍵」或「長按」並選擇「儲存圖片」即可。'); btn.innerHTML = '❌ 請右鍵另存';
+                alert('因為安全性政策，若下載未自動開始，請對圖片按「右鍵」或「長按」進行儲存。'); btn.innerHTML = '❌ 請右鍵另存';
             } finally { setTimeout(() => btn.innerHTML = originalText, 3000); }
         }
 
-        // --- UI & NAV ---
+        // --- NAVIGATION ---
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const target = this.id.replace('nav-', '');
