@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數位性別暴力教材審查儀表板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans TC', sans-serif; 
+            background-color: #fdfbf7; 
+            color: #4a443f; 
+        }
+        
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 600px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 350px; 
+            max-height: 400px; 
+        }
+        @media (min-width: 768px) { 
+            .chart-container { height: 400px; } 
+        }
+
+        .filter-btn.active {
+            background-color: #bc6c25;
+            color: white;
+            border-color: #bc6c25;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Chosen Palette: Calm Harmony (Warm Neutrals: #fdfbf7, #4a443f, #bc6c25, #d4a373, #283618) -->
+    <!-- Application Structure Plan: The SPA is designed as a modern executive dashboard to present the curriculum review report. It is divided into thematic sections: an executive summary header, a quantitative chart section for teaching quality, an interactive grid for ethics, a status layout for reusability, and a filterable interactive list for actionable recommendations. This structure transforms a static markdown report into an explorable, task-oriented interface, allowing stakeholders to immediately grasp the 4.8/5.0 score and intuitively drill down into specific feedback categories. -->
+    <!-- Visualization & Content Choices: 
+         1. Teaching Quality -> Goal: Compare -> Viz: Chart.js Bar Chart -> Interaction: Hover tooltips -> Justification: Clearly compares the four sub-scores (all near 5.0) visually. No SVG.
+         2. Ethics & Sensitivity -> Goal: Organize -> Viz: HTML/Tailwind Grid Cards -> Interaction: Hover elevation -> Justification: Categorizes qualitative assessments into distinct, easy-to-read blocks. No SVG.
+         3. Actionable Suggestions -> Goal: Organize/Filter -> Viz: HTML List with JS Filtering -> Interaction: Clickable filter buttons (All/Mandatory/Suggested) -> Justification: Allows curriculum developers to prioritize tasks effectively. No SVG. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <header class="w-full bg-[#bc6c25] text-white py-12 px-6 shadow-md">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+            <div class="flex-1">
+                <div class="inline-block px-3 py-1 bg-white bg-opacity-20 rounded-full text-xs font-bold tracking-widest mb-4">
+                    FINAL EVALUATION REPORT
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black mb-4 leading-tight">數位性別暴力防治教材<br>審查儀表板</h1>
+                <p class="text-lg text-orange-100 max-w-xl font-medium">此應用程式將《數位性別暴力防治教材：最終評估報告》轉化為互動式儀表板。您可以透過此介面快速掌握教材的整體表現、各面向的評估分數，以及具體的改善建議，幫助您了解該教材的優勢與未來優化方向。</p>
+            </div>
+            <div class="bg-white text-[#bc6c25] p-8 rounded-[2rem] shadow-xl text-center transform rotate-2">
+                <p class="text-sm font-bold uppercase tracking-widest mb-2">整體評分</p>
+                <div class="text-6xl font-black mb-2">4.8<span class="text-2xl text-gray-400">/5.0</span></div>
+                <div class="text-xl">⭐⭐⭐⭐✨</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-5xl mx-auto px-6 py-12 flex-grow space-y-20">
+
+        <section class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100">
+            <div class="mb-8">
+                <h2 class="text-2xl font-black text-[#283618] flex items-center mb-4"><span class="mr-3 text-3xl">📊</span> 評估面向一：教學品質評點</h2>
+                <p class="text-gray-600 leading-relaxed">此區塊展示教材在教學品質上的各項得分，幫助使用者了解教材在學習目標、情境真實性、互動設計與認知層次等維度的具體成效。圖表直觀呈現了各項指標的極高達成率。</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div class="space-y-4">
+                    <div class="p-4 bg-[#fefae0] rounded-xl border-l-4 border-[#bc6c25]">
+                        <h3 class="font-bold text-lg mb-1">學習目標清晰度 (5/5)</h3>
+                        <p class="text-sm text-gray-700">模組開頭與圖表標示明確，涵蓋了從識讀到行動的全過程。</p>
+                    </div>
+                    <div class="p-4 bg-[#fefae0] rounded-xl border-l-4 border-[#bc6c25]">
+                        <h3 class="font-bold text-lg mb-1">情境案例真實性 (5/5)</h3>
+                        <p class="text-sm text-gray-700">選擇分手勒索、群組霸凌、AI偽造三組高頻率校園事件，極具帶入感。</p>
+                    </div>
+                    <div class="p-4 bg-[#fefae0] rounded-xl border-l-4 border-[#bc6c25]">
+                        <h3 class="font-bold text-lg mb-1">互動設計主動性 (4.5/5)</h3>
+                        <p class="text-sm text-gray-700">四步驟實驗室強制學習者必須「做出決策」，有效觸發道德思考。</p>
+                    </div>
+                    <div class="p-4 bg-[#fefae0] rounded-xl border-l-4 border-[#bc6c25]">
+                        <h3 class="font-bold text-lg mb-1">測驗題認知層次 (5/5)</h3>
+                        <p class="text-sm text-gray-700">10 題隨機題庫嚴格遵守 Bloom 分類，檢核層次分明。</p>
+                    </div>
+                </div>
+                <div class="w-full">
+                    <div class="chart-container">
+                        <canvas id="qualityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100">
+            <div class="mb-10 text-center">
+                <h2 class="text-2xl font-black text-[#283618] flex items-center justify-center mb-4"><span class="mr-3 text-3xl">⚖️</span> 評估面向二：倫理與敏感度檢核</h2>
+                <p class="text-gray-600 leading-relaxed max-w-3xl mx-auto">此區塊評估教材在處理敏感議題時的倫理考量，確保內容不會對學習者造成二次傷害，並檢視法律資訊的正確性與資源連結的有效性。</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-[#e9edc9] p-6 rounded-2xl transform transition hover:-translate-y-2">
+                    <div class="text-3xl mb-3">✅</div>
+                    <h3 class="font-black text-lg mb-2">汙名化語言規避</h3>
+                    <p class="text-sm text-gray-700">教材全程使用「行為主體」與「當事人」稱呼，成功卸除受害者的恥辱感。</p>
+                    <div class="mt-4 text-xs font-bold text-green-800 bg-green-200 inline-block px-2 py-1 rounded">通過</div>
+                </div>
+                <div class="bg-[#e9edc9] p-6 rounded-2xl transform transition hover:-translate-y-2">
+                    <div class="text-3xl mb-3">🌟</div>
+                    <h3 class="font-black text-lg mb-2">暴力細節描述</h3>
+                    <p class="text-sm text-gray-700">採用「環境象徵」與「螢幕隱喻」代替具體的性暴力描述，將再創傷風險降至最低。</p>
+                    <div class="mt-4 text-xs font-bold text-green-800 bg-green-200 inline-block px-2 py-1 rounded">優良</div>
+                </div>
+                <div class="bg-[#ffedd5] p-6 rounded-2xl transform transition hover:-translate-y-2 border border-orange-200">
+                    <div class="text-3xl mb-3">⚠️</div>
+                    <h3 class="font-black text-lg mb-2">性別身份多元性</h3>
+                    <p class="text-sm text-gray-700">目前敘事仍偏向女性受害者為主，建議在口頭引導中加入男性或多元性別者受害的討論。</p>
+                    <div class="mt-4 text-xs font-bold text-orange-800 bg-orange-200 inline-block px-2 py-1 rounded">建議優化</div>
+                </div>
+                <div class="bg-[#e9edc9] p-6 rounded-2xl transform transition hover:-translate-y-2 md:col-span-1">
+                    <div class="text-3xl mb-3">🏛️</div>
+                    <h3 class="font-black text-lg mb-2">法律準確度</h3>
+                    <p class="text-sm text-gray-700">完美對齊台灣 2024 現行法規，特別是 AI 換臉的刑事責任部分。</p>
+                    <div class="mt-4 text-xs font-bold text-green-800 bg-green-200 inline-block px-2 py-1 rounded">精確</div>
+                </div>
+                <div class="bg-[#e9edc9] p-6 rounded-2xl transform transition hover:-translate-y-2 md:col-span-2">
+                    <div class="text-3xl mb-3">📞</div>
+                    <h3 class="font-black text-lg mb-2">資源連結有效性</h3>
+                    <p class="text-sm text-gray-700">包含 24 小時專線與行政下架機制說明，具備極強的實務救濟功能。</p>
+                    <div class="mt-4 text-xs font-bold text-green-800 bg-green-200 inline-block px-2 py-1 rounded">有效</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100">
+            <div class="mb-8">
+                <h2 class="text-2xl font-black text-[#283618] flex items-center mb-4"><span class="mr-3 text-3xl">♻️</span> 評估面向三：可重複使用性</h2>
+                <p class="text-gray-600 leading-relaxed">此區塊分析本教材架構套用於其他相關主題及不同學科背景的潛力，確保教材具備長期的教育價值與擴展性。</p>
+            </div>
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="flex-1 border-2 border-[#dda15e] rounded-2xl p-6">
+                    <div class="font-black text-xl mb-2 text-[#bc6c25]">極高</div>
+                    <h3 class="font-bold mb-2">架構套用潛力</h3>
+                    <p class="text-sm text-gray-600">此 SPA 結構可輕易套用至「數位跟蹤騷擾」或「網路詐騙」等主題。</p>
+                </div>
+                <div class="flex-1 border-2 border-[#dda15e] rounded-2xl p-6">
+                    <div class="font-black text-xl mb-2 text-[#bc6c25]">良好</div>
+                    <h3 class="font-bold mb-2">學科調整性</h3>
+                    <p class="text-sm text-gray-600">法律系可深挖 Feedback 條文；社工系可聚焦 Reflect 支持策略。</p>
+                </div>
+                <div class="flex-1 border-2 border-[#dda15e] rounded-2xl p-6">
+                    <div class="font-black text-xl mb-2 text-[#bc6c25]">包含</div>
+                    <h3 class="font-bold mb-2">教師引導完整度</h3>
+                    <p class="text-sm text-gray-600">歌曲與測驗模組均附帶「教師腳本」，降低非專業背景教師門檻。</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-[#fefae0] rounded-3xl p-8 md:p-12 shadow-sm border border-[#dda15e]">
+            <div class="mb-8">
+                <h2 class="text-2xl font-black text-[#283618] flex items-center mb-4"><span class="mr-3 text-3xl">💡</span> 綜合審查建議清單</h2>
+                <p class="text-gray-600 leading-relaxed">此區塊統整了審查委員提出的具體修改建議，可透過按鈕篩選「必改」或「建議改善」項目，明確指出後續優化路徑。</p>
+            </div>
+            
+            <div class="flex space-x-3 mb-8">
+                <button onclick="filterSuggestions('All')" id="btn-All" class="filter-btn active px-5 py-2 rounded-full border border-gray-300 font-bold text-sm transition">全部顯示</button>
+                <button onclick="filterSuggestions('必改')" id="btn-必改" class="filter-btn px-5 py-2 rounded-full border border-gray-300 font-bold text-sm transition text-red-700">必改項目</button>
+                <button onclick="filterSuggestions('建議改善')" id="btn-建議改善" class="filter-btn px-5 py-2 rounded-full border border-gray-300 font-bold text-sm transition text-blue-700">建議改善</button>
+            </div>
+
+            <div id="suggestions-container" class="space-y-4">
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="w-full bg-[#283618] text-[#fefae0] py-16 px-6 text-center">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-4xl mb-6">💡</div>
+            <p class="text-xl md:text-2xl font-medium leading-relaxed italic mb-8">
+                「教學不只是傳遞正確的資訊，更是建立一種『願意接住他人』的溫柔勇氣；<br>這份教材是您的盾，而您的溫暖導引將成為學生心中的光。」
+            </p>
+            <div class="w-16 h-1 bg-[#bc6c25] mx-auto mb-8"></div>
+            <p class="text-sm font-bold tracking-widest uppercase text-[#dda15e]">給教師的鼓勵與提醒</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+            renderSuggestions('All');
+        });
+
+        function initChart() {
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['學習目標清晰度', '情境案例真實性', '互動設計主動性', '測驗題認知層次'],
+                    datasets: [{
+                        label: '評估分數 (滿分 5.0)',
+                        data: [5.0, 5.0, 4.5, 5.0],
+                        backgroundColor: '#bc6c25',
+                        borderRadius: 6,
+                        barThickness: 30
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            min: 0,
+                            max: 5,
+                            grid: { color: '#f3f4f6' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { font: { family: "'Noto Sans TC', sans-serif", weight: 'bold' }, color: '#4a443f' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw + ' 分';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const suggestionsData = [
+            { level: '必改', title: '性別中性化描述', text: '在情境故事中增加如「林同學」、「張方」等中性稱謂，擴大共感群體。', category: '倫理敏感度' },
+            { level: '建議改善', title: '測驗結業證書', text: '在隨機測驗 5 題全對後，可增加一個「數位防衛官」視覺回饋。', category: '遊戲化激勵' },
+            { level: '建議改善', title: '歌詞文本朗讀', text: '為《賦能之歌》增加文字導讀或朗讀功能，支援視覺障礙學生的學習。', category: '無障礙設計' }
+        ];
+
+        function filterSuggestions(filterType) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + filterType).classList.add('active');
+
+            const container = document.getElementById('suggestions-container');
+            container.innerHTML = '';
+
+            const filtered = filterType === 'All' ? suggestionsData : suggestionsData.filter(s => s.level === filterType);
+
+            filtered.forEach(item => {
+                const badgeColor = item.level === '必改' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-blue-100 text-blue-800 border-blue-200';
+                const html = `
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:shadow-md">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="px-2 py-1 rounded text-xs font-bold border ${badgeColor}">${item.level}</span>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">${item.category}</span>
+                            </div>
+                            <h4 class="font-black text-lg text-gray-800 mb-1">${item.title}</h4>
+                            <p class="text-sm text-gray-600">${item.text}</p>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+    </script>
+</body>
+</html>
