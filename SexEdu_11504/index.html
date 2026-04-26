@@ -5,147 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>「傳送門」後的那些事：數位親密關係的防禦與核武</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap');
         
-        /* 暖陽賦能配色方案 (Solar Glow) */
         :root {
-            --primary: #92400e;   /* 深琥珀 */
-            --secondary: #f59e0b; /* 活力橘 */
-            --accent: #d97706;    /* 暖橘 */
+            --primary: #451a03;   /* 焦糖褐 */
+            --amber-deep: #92400e; /* 深琥珀 */
+            --amber-light: #f59e0b; /* 活力橘 */
             --bg-page: #fffbf5;   /* 乳木果白 */
             --bg-card: #ffffff;
-            --warning: #be123c;   /* 玫瑰紅 */
-            --text-main: #451a03; /* 焦糖褐 */
+            --analysis-bg: #fffbeb; /* 截圖中的白話解析底色 */
+            --restart-yellow: #fef3c7; /* 截圖中的重新開始按鈕色 */
         }
 
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
             background-color: var(--bg-page); 
-            color: var(--text-main); 
+            color: var(--primary); 
+            overflow-x: hidden;
         }
+
+        .chart-container { position: relative; width: 100%; max-width: 450px; margin: auto; height: 300px; }
         
-        .chart-container { 
-            position: relative; 
-            width: 100%; 
-            max-width: 450px; 
-            margin: auto;
-            height: 300px; 
+        /* 審查儀表板專用樣式 */
+        .review-chart-container { 
+            position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; 
         }
+        @media (min-width: 768px) { .review-chart-container { height: 400px; } }
+        .filter-btn.active { background-color: #bc6c25; color: white; border-color: #bc6c25; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-fade { animation: fadeIn 0.5s ease-out forwards; }
-
-        .legal-card {
-            transition: all 0.3s ease;
-            height: 100%;
+        .legal-card-main {
+            background-color: #ffffff;
+            border-radius: 2.5rem;
             border: 1px solid #fde68a;
-        }
-        .legal-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px -10px rgba(245, 158, 11, 0.2);
-            border-color: var(--secondary);
-        }
-
-        .card-preview {
-            aspect-ratio: 1 / 1;
-            border-radius: 1.25rem;
-            position: relative;
             overflow: hidden;
-            background-color: #fef3c7;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: transform 0.3s ease;
         }
-
-        .card-image {
-            width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-        .card-preview:hover .card-image { transform: scale(1.05); }
-
-        .card-overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(69, 26, 3, 0.95) 0%, rgba(69, 26, 3, 0.3) 60%, rgba(69, 26, 3, 0) 100%);
-            display: flex; flex-direction: column; justify-content: flex-end;
-            padding: 1.5rem; color: white;
-        }
-
-        .module-tab-btn {
-            transition: all 0.3s ease;
-            text-align: left;
-            border-left: 4px solid transparent;
-        }
-        .module-tab-btn.active {
-            background-color: #fef3c7;
-            border-left-color: var(--secondary);
-            color: var(--primary);
-        }
-
-        .scenario-selector {
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: 2px solid #fef3c7;
-        }
-        .scenario-selector.selected {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
+        .legal-card-main:hover { transform: translateY(-5px); }
+        .analysis-box { background-color: var(--analysis-bg); border: 1px solid #fef3c7; border-radius: 1.5rem; padding: 1.5rem; margin-top: auto; }
+        .module-tab-btn { transition: all 0.3s ease; text-align: left; border-left: 4px solid transparent; }
+        .module-tab-btn.active { background-color: #78350f; color: #ffffff; border-left-color: #f59e0b; }
+        .progress-dot { transition: all 0.3s ease; background-color: #e5e7eb; width: 0.75rem; height: 0.75rem; border-radius: 999px; }
+        .progress-dot.active { background-color: #f59e0b; transform: scale(1.2); }
         .step-inactive { display: none !important; }
         .step-active { display: block !important; animation: fadeIn 0.4s ease-out; }
-        
-        .progress-dot { transition: all 0.3s ease; background-color: #e5e7eb; }
-        .progress-dot.active { background-color: var(--secondary); transform: scale(1.2); }
-
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .quiz-option { border: 2px solid #fef3c7; transition: all 0.2s ease; }
+        .quiz-option:hover:not(:disabled) { border-color: #f59e0b; background-color: #fffbeb; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 10px; }
-
-        .quiz-option {
-            transition: all 0.2s ease;
-            border: 2px solid #fef3c7;
-        }
-        .quiz-option:hover:not(:disabled) { border-color: var(--secondary); background-color: #fffbeb; }
-        .quiz-option.selected-correct { background-color: #d1fae5; border-color: #10b981; color: #064e3b; }
-        .quiz-option.selected-wrong { background-color: #ffe4e6; border-color: #f43f5e; color: #881337; }
+        #defender-badge { display: none; animation: badgePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes badgePop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="antialiased min-h-screen">
 
     <div class="w-full bg-[#92400e] text-white py-3 px-4 shadow-lg sticky top-0 z-50">
         <div class="max-w-6xl mx-auto flex items-center text-sm font-bold">
-            <span class="text-xl mr-3">🛡️</span>
-            <p>創傷知情提醒：內容涉及敏感議題，若感不適請隨時暫停。求助專線：113 / 1925。</p>
+            <span class="text-xl mr-3 leading-none">🛡️</span>
+            <p>創傷知情提醒：教材涉及敏感議題。若感不適請隨時暫停。求助專線：113 / 1925。</p>
         </div>
     </div>
 
     <main class="w-full max-w-6xl px-4 py-12 mx-auto">
-        
-        <header class="text-center mb-20">
-            <div class="inline-block px-4 py-1 bg-[#f59e0b]/10 text-[#92400e] rounded-full text-xs font-black tracking-widest mb-6 border border-[#f59e0b]">
-                大學通識教育・3 小時互動工作坊
-            </div>
-            <h1 class="text-4xl md:text-6xl font-black text-[#451a03] mb-6 tracking-tighter">「傳送門」後的那些事</h1>
-            <h2 class="text-2xl md:text-3xl font-bold text-[#f59e0b] mb-8 text-center">數位親密關係的防禦與核武</h2>
+        <header class="text-center mb-20 animate-fade text-center">
+            <div class="inline-block px-4 py-1 bg-[#f59e0b]/10 text-[#92400e] rounded-full text-xs font-black tracking-widest mb-6 border border-[#f59e0b] uppercase">大學通識教育・3 小時互動工作坊</div>
+            <h1 class="text-4xl md:text-6xl font-black text-[#451a03] mb-6 tracking-tighter text-center">「傳送門」後的那些事</h1>
+            <h2 class="text-2xl md:text-3xl font-bold text-[#f59e0b] mb-8 text-center font-black text-center">數位親密關係的防禦與核武</h2>
         </header>
 
-        <!-- 區塊一：教材模組架構 (Tabs) -->
+        <!-- 區塊一：教材模組架構 -->
         <section class="mb-24">
-            <div class="text-center mb-10">
-                <h2 class="text-3xl font-black text-amber-950">教材模組架構</h2>
-                <p class="text-sm text-amber-800/70 mt-2 text-center">點擊左側模組，探索課程五大核心環節與教學設計。</p>
-            </div>
-            <div class="bg-white rounded-[2rem] shadow-xl border border-amber-100 overflow-hidden flex flex-col md:flex-row min-h-[500px]">
-                <div class="w-full md:w-1/3 bg-amber-50/30 border-r border-amber-100 flex flex-col">
-                    <button onclick="switchModule(1)" id="mod-tab-1" class="module-tab-btn active p-6"><span class="text-xs font-bold text-amber-600 block mb-1">30 分鐘</span><span class="font-black text-sm">模組一：無所不在的鏡頭</span></button>
-                    <button onclick="switchModule(2)" id="mod-tab-2" class="module-tab-btn p-6"><span class="text-xs font-bold text-amber-600 block mb-1">35 分鐘</span><span class="font-black text-sm">模組二：滑鼠背後的權力網</span></button>
-                    <button onclick="switchModule(3)" id="mod-tab-3" class="module-tab-btn p-6"><span class="text-xs font-bold text-amber-600 block mb-1">45 分鐘</span><span class="font-black text-sm">模組三：如果是我，怎麼辦？</span></button>
-                    <button onclick="switchModule(4)" id="mod-tab-4" class="module-tab-btn p-6"><span class="text-xs font-bold text-amber-600 block mb-1">40 分鐘</span><span class="font-black text-sm">模組四：法網與防護網</span></button>
-                    <button onclick="switchModule(5)" id="mod-tab-5" class="module-tab-btn p-6"><span class="text-xs font-bold text-amber-600 block mb-1">30 分鐘</span><span class="font-black text-sm">模組五：成為數位時代盟友</span></button>
+            <div class="bg-white rounded-[2rem] shadow-xl border border-amber-100 overflow-hidden flex flex-col md:flex-row min-h-[550px]">
+                <div class="w-full md:w-1/3 bg-amber-50/30 border-r border-amber-100 flex flex-col text-left">
+                    <button onclick="switchModule(1)" id="mod-tab-1" class="module-tab-btn active p-8 border-b border-amber-50 text-left"><span class="text-xs font-bold text-amber-600 block mb-1">30 分鐘</span><span class="font-black text-sm">模組一：無所不在的鏡頭</span></button>
+                    <button onclick="switchModule(2)" id="mod-tab-2" class="module-tab-btn p-8 border-b border-amber-50 text-left"><span class="text-xs font-bold text-amber-600 block mb-1">35 分鐘</span><span class="font-black text-sm">模組二：滑鼠背後的權力網</span></button>
+                    <button onclick="switchModule(3)" id="mod-tab-3" class="module-tab-btn p-8 border-b border-amber-50 text-left"><span class="text-xs font-bold text-amber-600 block mb-1">45 分鐘</span><span class="font-black text-sm">模組三：如果是我，怎麼辦？</span></button>
+                    <button onclick="switchModule(4)" id="mod-tab-4" class="module-tab-btn p-8 border-b border-amber-50 text-left"><span class="text-xs font-bold text-amber-600 block mb-1">40 分鐘</span><span class="font-black text-sm">模組四：法網與防護網</span></button>
+                    <button onclick="switchModule(5)" id="mod-tab-5" class="module-tab-btn p-8 border-b-0 text-left"><span class="text-xs font-bold text-amber-600 block mb-1">30 分鐘</span><span class="font-black text-sm">模組五：成為數位時代盟友</span></button>
                 </div>
-                <div class="w-full md:w-2/3 p-10 overflow-y-auto max-h-[600px] custom-scrollbar text-left">
+                <div class="w-full md:w-2/3 p-12 overflow-y-auto max-h-[600px] custom-scrollbar text-left bg-white font-medium text-left">
                     <div id="module-content"></div>
                 </div>
             </div>
@@ -154,248 +97,177 @@
         <!-- 區塊二：實戰抉擇實驗室 -->
         <section id="scenario-lab" class="mb-24">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 text-left">
-                <div class="lg:col-span-4 space-y-8">
-                    <h2 class="text-3xl font-black text-amber-950 flex items-center"><span class="mr-3">🎯</span> 實戰抉擇實驗室</h2>
-                    <div class="space-y-4">
-                        <div onclick="selectScenario(1)" id="selector1" class="scenario-selector p-5 rounded-3xl selected text-left"><h4 class="font-black text-sm uppercase">情境 1：破碎的信任</h4><p class="text-[10px] opacity-80">當事人視角｜非合意影像散布</p></div>
-                        <div onclick="selectScenario(2)" id="selector2" class="scenario-selector p-5 rounded-3xl text-left"><h4 class="font-black text-sm uppercase">情境 2：寂靜的迴聲</h4><p class="text-[10px] opacity-80">旁觀者視角｜群組起鬨轉傳</p></div>
-                        <div onclick="selectScenario(3)" id="selector3" class="scenario-selector p-5 rounded-3xl text-left"><h4 class="font-black text-sm uppercase">情境 3：虛構的真實</h4><p class="text-[10px] opacity-80">技術風險視角｜AI 換臉偽造</p></div>
+                <div class="lg:col-span-4 space-y-8 text-left">
+                    <h2 class="text-3xl font-black text-amber-950 flex items-center text-left">🎯 <span class="ml-3 font-black">實戰抉擇實驗室</span></h2>
+                    <div class="space-y-4 text-left">
+                        <div onclick="selectScenario(1)" id="selector1" class="scenario-selector p-5 rounded-3xl selected text-left"><h4 class="font-black text-sm uppercase">情境 1：破碎的信任</h4><p class="text-[10px] opacity-80 text-left">當事人視角｜非合意影像散布</p></div>
+                        <div onclick="selectScenario(2)" id="selector2" class="scenario-selector p-5 rounded-3xl text-left"><h4 class="font-black text-sm uppercase">情境 2：寂靜的迴聲</h4><p class="text-[10px] opacity-80 text-left">旁觀者視角｜群組起鬨轉傳</p></div>
+                        <div onclick="selectScenario(3)" id="selector3" class="scenario-selector p-5 rounded-3xl text-left"><h4 class="font-black text-sm uppercase">情境 3：虛構的真實</h4><p class="text-[10px] opacity-80 text-left">技術風險視角｜AI 換臉偽造</p></div>
                     </div>
-                    <div class="chart-container pt-6 border-t border-amber-50 text-left"><canvas id="courseTimeChart"></canvas></div>
+                    <div class="chart-container pt-8 border-t border-amber-50 text-left"><canvas id="courseTimeChart"></canvas></div>
                 </div>
-                
-                <div class="lg:col-span-8 bg-amber-50/50 p-8 md:p-12 rounded-[3rem] border border-amber-200 flex flex-col justify-between min-h-[600px] shadow-inner text-left">
-                    <div id="scenario-inner">
-                        <div class="flex items-center justify-between mb-8">
-                            <h3 class="text-xl font-black text-amber-800 text-left">🔬 行為模擬器</h3>
-                            <span id="currentScenarioTitle" class="text-[10px] bg-amber-700 text-white px-4 py-1.5 rounded-full font-black uppercase text-left">當事人視角</span>
+                <div class="lg:col-span-8 bg-amber-50/50 p-10 md:p-14 rounded-[3.5rem] border border-amber-200 flex flex-col justify-between min-h-[620px] shadow-inner relative text-left">
+                    <div id="scenario-inner" class="text-left">
+                        <div class="flex items-center justify-between mb-10 text-left">
+                            <h3 class="text-xl font-black text-amber-800 text-left text-left">🔬 行為模擬器</h3>
+                            <span id="currentScenarioTitle" class="text-[10px] bg-amber-700 text-white px-5 py-2 rounded-full font-black uppercase text-left">當事人視角</span>
                         </div>
-                        
-                        <div class="flex items-center justify-between mb-12 px-2 text-left">
-                            <div class="flex-grow h-2 bg-amber-200 rounded-full relative">
-                                <div id="progressBar" class="absolute top-0 left-0 h-full bg-amber-600 rounded-full transition-all duration-700" style="width: 25%"></div>
-                            </div>
-                            <div class="flex space-x-3 ml-6 text-left">
-                                <div id="dot1" class="progress-dot active w-3 h-3 rounded-full"></div>
-                                <div id="dot2" class="progress-dot w-3 h-3 rounded-full"></div>
-                                <div id="dot3" class="progress-dot w-3 h-3 rounded-full"></div>
-                                <div id="dot4" class="progress-dot w-3 h-3 rounded-full"></div>
-                            </div>
+                        <div class="flex items-center justify-between mb-14 px-2 text-left">
+                            <div class="flex-grow h-2 bg-amber-200 rounded-full relative text-left"><div id="progressBar" class="absolute top-0 left-0 h-full bg-amber-600 rounded-full transition-all duration-700 text-left" style="width: 25%"></div></div>
+                            <div class="flex space-x-4 ml-8 text-left"><div id="dot1" class="progress-dot active"></div><div id="dot2" class="progress-dot"></div><div id="dot3" class="progress-dot"></div><div id="dot4" class="progress-dot"></div></div>
                         </div>
-
                         <div id="step1" class="step-active text-left">
-                            <div class="bg-white border-l-8 border-amber-600 p-8 rounded-2xl shadow-sm mb-8 text-left">
-                                <h4 class="font-black text-amber-900 mb-4 text-xl text-left font-black" id="readTitle"></h4>
-                                <p class="text-base text-amber-800/80 leading-relaxed text-left font-medium" id="readStory"></p>
-                            </div>
-                            <button onclick="goToStep(2)" class="w-full bg-amber-900 text-white py-4 rounded-2xl font-black shadow-xl active:scale-95 transition-all text-center">展開行動演練</button>
+                            <div class="bg-white border-l-8 border-amber-600 p-8 rounded-2xl shadow-sm mb-10 text-left"><h4 class="font-black text-amber-900 mb-4 text-2xl font-black text-left" id="readTitle"></h4><p class="text-base text-amber-800/80 leading-relaxed font-medium text-left" id="readStory"></p></div>
+                            <button onclick="goToStep(2)" class="w-full bg-amber-900 text-white py-5 rounded-2xl font-black shadow-xl active:scale-95 transition-all text-center">展開行動演練</button>
                         </div>
-
-                        <div id="step2" class="step-inactive text-center">
-                            <h4 class="font-black text-amber-800 mb-8 text-xl text-center">在這個當下，你的選擇是？</h4>
-                            <div class="grid grid-cols-1 gap-4 text-left" id="choicesContainer"></div>
-                        </div>
-
-                        <div id="step3" class="step-inactive text-left">
-                            <h4 class="font-black text-amber-800 mb-8 text-xl text-left">行動評估與法律防線</h4>
-                            <div id="feedbackContent" class="space-y-6 text-left font-medium"></div>
-                            <button onclick="goToStep(4)" class="w-full mt-10 bg-amber-600 text-white py-4 rounded-2xl font-black text-center">進入最後深思</button>
-                        </div>
-
-                        <div id="step4" class="step-inactive text-left">
-                            <div class="bg-amber-900 text-amber-50 p-8 rounded-3xl shadow-2xl text-left font-medium">
-                                <h4 class="font-black text-amber-200 mb-6 text-xl text-left font-black">🌱 反思與共感</h4>
-                                <div class="space-y-8 text-left" id="reflectContainer"></div>
-                            </div>
-                            <button onclick="resetModule()" class="w-full mt-8 bg-amber-200 text-amber-950 py-4 rounded-2xl font-black hover:bg-amber-300 text-center">重新開始演練流程</button>
-                        </div>
+                        <div id="step2" class="step-inactive text-center"><h4 class="font-black text-amber-800 mb-10 text-2xl font-black text-center text-center">你的選擇是？</h4><div class="grid grid-cols-1 gap-5 text-left text-left" id="choicesContainer"></div></div>
+                        <div id="step3" class="step-inactive text-left"><h4 class="font-black text-amber-800 mb-10 text-2xl font-black text-left">行動評估與法律防線</h4><div id="feedbackContent" class="space-y-6 text-left font-medium text-left"></div><button onclick="goToStep(4)" class="w-full mt-12 bg-amber-600 text-white py-5 rounded-2xl font-black text-center shadow-lg">進入最後深思</button></div>
+                        <div id="step4" class="step-inactive text-left"><div class="bg-[#451a03] text-amber-50 p-12 rounded-[2.5rem] shadow-2xl relative text-left"><h4 class="font-black text-amber-200 mb-8 text-2xl flex items-center font-black text-left">🌱 <span class="ml-3 font-black text-left">反思與共感</span></h4><div class="space-y-12 text-left font-medium text-left" id="reflectContainer"></div></div><button onclick="resetModule()" class="w-full mt-12 bg-[#fef3c7] text-amber-950 py-5 rounded-2xl font-black text-lg shadow-lg hover:bg-amber-100 active:scale-95 transition-all text-center">重新開始演練流程</button></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 區塊三：關鍵法律知識地標 -->
-        <section class="mb-24 text-left">
-            <h2 class="text-3xl font-black mb-12 text-center flex items-center justify-center text-amber-950 text-center">
-                <span class="mr-4 text-4xl">⚖️</span> 關鍵法律知識地標
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                <div class="legal-card bg-white rounded-3xl overflow-hidden flex flex-col text-left">
-                    <div class="bg-amber-950 text-white py-4 text-center font-black uppercase text-xs">刑法專章</div>
-                    <div class="p-8 flex-grow flex flex-col text-left">
-                        <div class="mb-8 text-left">
-                            <h4 class="text-sm text-amber-700 font-black mb-3 text-left font-black">刑法第 28 章之 1</h4>
-                            <p class="text-amber-900/60 text-xs leading-relaxed mb-6 text-left">明定性影像定義，涵蓋攝錄、散布、營利、AI換臉。重點條文：319-3 散布罪。</p>
-                        </div>
-                        <div class="bg-amber-50 p-6 rounded-2xl mt-auto text-left border border-amber-100">
-                            <h5 class="font-black text-sm text-amber-900 mb-3 flex items-center text-left font-black">⚖️ 白話解析</h5>
-                            <p class="text-[11px] text-amber-800 leading-relaxed font-medium text-left">
-                                即便當初同意拍，**未經同意傳出去即違法**。最重處 5 年徒刑。如果是為了賺錢而散布，罰得更重。AI 偽造亦適用此法。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="legal-card bg-white rounded-3xl overflow-hidden flex flex-col text-left">
-                    <div class="bg-amber-800 text-white py-4 text-center font-black uppercase text-xs">性別平等教育法</div>
-                    <div class="p-8 flex-grow flex flex-col text-left">
-                        <div class="mb-8 text-left font-black">
-                            <h4 class="text-sm text-amber-700 font-black mb-3 text-left font-black">校園事件處理</h4>
-                            <p class="text-amber-900/60 text-xs leading-relaxed mb-6 text-left">不論地點，只要牽涉學生，散布即屬校園性別事件。學校必須受理並絕對保密身分。</p>
-                        </div>
-                        <div class="bg-amber-50 p-6 rounded-2xl mt-auto text-left border border-amber-100 font-black">
-                            <h5 class="font-black text-sm text-amber-900 mb-3 flex items-center text-left font-black">⚖️ 白話解析</h5>
-                            <p class="text-[11px] text-amber-800 leading-relaxed font-medium text-left">
-                                **不必報警也能求助學校**。校方有責任保護你的受教權與人身安全，受理窗口會保密你的身分。
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="legal-card bg-white rounded-3xl overflow-hidden flex flex-col text-left">
-                    <div class="bg-amber-600 text-white py-4 text-center font-black uppercase text-xs text-left">被害人權益保障法</div>
-                    <div class="p-8 flex-grow flex flex-col text-left">
-                        <div class="mb-8 text-left text-left font-black">
-                            <h4 class="text-sm text-amber-700 font-black mb-3 text-left font-black text-left">數位下架權</h4>
-                            <p class="text-amber-900/60 text-xs leading-relaxed mb-6 text-left text-left">主管機關可要求業者強制移除不法影像。求助性影像中心，能發函平台要求刪除。</p>
-                        </div>
-                        <div class="bg-amber-50 p-6 rounded-2xl mt-auto text-left border border-amber-100 text-left">
-                            <h5 class="font-black text-sm text-amber-900 mb-3 flex items-center text-left font-black text-left">⚖️ 白話解析</h5>
-                            <p class="text-[11px] text-amber-800 leading-relaxed font-medium text-left text-left">
-                                國家能強制 Google/FB 刪除影片，**防止傷害在網路永久留存**。發現流出，請立即尋求行政力量止血。
-                            </p>
-                        </div>
-                    </div>
-                </div>
+        <!-- 區塊三：關鍵法律知識地標 (對齊截圖) -->
+        <section class="mb-24 text-center">
+            <h2 class="text-3xl font-black mb-14 flex items-center justify-center text-amber-950 font-black text-center"><span class="mr-4 text-4xl text-center">⚖️</span> 關鍵法律知識地標</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-left">
+                <div class="legal-card-main text-left"><div class="bg-[#451a03] text-white py-5 text-center font-black uppercase text-xs tracking-widest text-center">刑法專章</div><div class="p-10 flex-grow flex flex-col text-left"><h4 class="text-xl font-black text-amber-700 mb-4 font-black">刑法第 28 章之 1</h4><p class="text-amber-900/70 text-sm leading-relaxed mb-10 font-medium">明定性影像定義，重點為第 319-3 條散布罪。</p><div class="analysis-box text-left"><h5 class="font-black text-base text-amber-900 mb-3 flex items-center font-black text-left">⚖️ <span class="ml-2 font-black">白話解析</span></h5><p class="text-sm text-amber-800 leading-relaxed font-bold">即便當初同意拍，**未經同意傳出去即違法**。AI 偽造亦適用。</p></div></div></div>
+                <div class="legal-card-main text-left"><div class="bg-[#92400e] text-white py-5 text-center font-black uppercase text-xs tracking-widest text-center">性別平等教育法</div><div class="p-10 flex-grow flex flex-col text-left"><h4 class="text-xl font-black text-amber-700 mb-4 font-black text-left">校園事件處理</h4><p class="text-amber-900/70 text-sm leading-relaxed mb-10 font-medium text-left">牽涉學生之散布即屬校園事件。學校必須受理調查並絕對保密。</p><div class="analysis-box text-left"><h5 class="font-black text-base text-amber-900 mb-3 flex items-center font-black text-left">⚖️ <span class="ml-2 font-black">白話解析</span></h5><p class="text-sm text-amber-800 leading-relaxed font-bold text-left">**不必報警也能求助學校**。校方需保密身分並提供諮商協助。</p></div></div></div>
+                <div class="legal-card-main text-left text-left"><div class="bg-[#d97706] text-white py-5 text-center font-black uppercase text-xs tracking-widest text-center">被害人權益保障法</div><div class="p-10 flex-grow flex flex-col text-left"><h4 class="text-xl font-black text-amber-700 mb-4 font-black text-left">數位下架權</h4><p class="text-amber-900/70 text-sm leading-relaxed mb-10 font-medium text-left text-left">主管機關可要求業者強制移除。發現流出，請立即尋求官方力量止血。</p><div class="analysis-box text-left"><h5 class="font-black text-base text-amber-900 mb-3 flex items-center font-black text-left text-left">⚖️ <span class="ml-2 font-black text-left">白話解析</span></h5><p class="text-sm text-amber-800 leading-relaxed font-bold text-left text-left">國家能強制 FB/Google 刪片，**防止傷害在網路永久留存**。</p></div></div></div>
             </div>
         </section>
 
-        <!-- 區塊四：宣導素材庫 -->
-        <section class="mb-24 text-left">
-            <div class="bg-amber-100/50 rounded-[3rem] p-12 border border-amber-200 shadow-inner text-left">
-                <div class="text-center mb-16 text-center text-center">
-                    <h2 class="text-4xl font-black text-amber-950 mb-4 flex items-center justify-center text-center"><span class="mr-4 text-center">🎨</span> 宣導素材庫：視覺宣導腳本</h2>
-                    <p class="text-sm text-amber-800/70 max-w-2xl mx-auto font-medium text-center text-center">結合 AI 指令與法律觀念的教育圖卡。</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-left text-left text-left">
-                    <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden group text-left text-left">
-                        <div class="card-preview text-left text-left"><img src="https://lin5406.github.io/lin/SexEdu_11504/s1150425_001.png" class="card-image" alt="一張截圖"><div class="card-overlay"><h3 class="text-2xl font-black leading-tight text-left">一張截圖<br>改變了她的人生</h3></div></div>
-                        <div class="p-7 text-left text-left"><span class="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-2 border-l-4 border-amber-600 pl-2 text-left">VISUAL PROMPT</span><p class="text-[10px] text-amber-700 italic bg-amber-50 p-3 rounded-xl mb-6 text-left">Illustration style, a shattered glowing smartphone screen on a wooden dorm desk, feeling of broken trust, warm orange gradient, Taiwan college setting</p>
-                        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 mb-6 text-left"><h4 class="text-[11px] font-black text-amber-900 mb-1 text-left">法律定義：非合意性影像散布罪</h4></div>
-                        <p class="text-[10px] font-black text-amber-900 uppercase mb-2 text-left">你可以：</p><ul class="text-[10px] text-amber-800 font-medium list-disc ml-4 space-y-1 text-left"><li>不指責、截圖存證</li><li>尋求性影像中心下架</li><li>聯繫 113 求助</li></ul></div>
-                    </div>
-                    <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden group text-left text-left">
-                        <div class="card-preview text-left text-left"><img src="https://lin5406.github.io/lin/SexEdu_11504/s1150425_002.png" class="card-image" alt="退出群組後"><div class="card-overlay text-left"><h3 class="text-2xl font-black leading-tight text-left text-left">退出群組後<br>然後呢？</h3></div></div>
-                        <div class="p-7 text-left text-left"><span class="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-2 border-l-4 border-amber-600 pl-2 text-left">VISUAL PROMPT</span><p class="text-[10px] text-amber-700 italic bg-amber-50 p-3 rounded-xl mb-6 text-left text-left">Illustration style, a laptop open in a library showing a chat bubble notification, cold fluorescent lighting, blue and grey tones, Taiwan college setting</p>
-                        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 mb-6 text-left text-left"><h4 class="text-[11px] font-black text-amber-900 mb-1 text-left text-left">法律定義：性平事件共同責任</h4></div>
-                        <p class="text-[10px] font-black text-amber-900 uppercase mb-2 text-left">你可以：</p><ul class="text-[10px] text-amber-800 font-medium list-disc ml-4 space-y-1 text-left text-left"><li>不點閱、不轉傳</li><li>私訊當事人支持</li><li>截圖向性平會舉報</li></ul></div>
-                    </div>
-                    <div class="bg-white rounded-[2rem] shadow-xl overflow-hidden group text-left text-left">
-                        <div class="card-preview text-left text-left text-left"><img src="https://lin5406.github.io/lin/SexEdu_11504/s1150425_003.png" class="card-image" alt="螢幕裡的妳"><div class="card-overlay text-left text-left text-left"><h3 class="text-2xl font-black leading-tight text-left text-left text-left">螢幕裡的妳<br>是真的嗎？</h3></div></div>
-                        <div class="p-7 text-left text-left text-left"><span class="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-2 border-l-4 border-amber-600 pl-2 text-left text-left text-left">VISUAL PROMPT</span><p class="text-[10px] text-amber-700 italic bg-amber-50 p-3 rounded-xl mb-6 text-left text-left text-left">Illustration style, digital glitch patterns on a generic silhouette, neon blue warning signs, cold blue tones, Taiwan college setting</p>
-                        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 mb-6 text-left text-left text-left"><h4 class="text-[11px] font-black text-amber-900 mb-1 text-left text-left text-left text-left">法律定義：製作散布不實性影像罪</h4></div>
-                        <p class="text-[10px] font-black text-amber-900 uppercase mb-2 text-left">你可以：</p><ul class="text-[10px] text-amber-800 font-medium list-disc ml-4 space-y-1 text-left text-left text-left"><li>冷靜查證來源</li><li>向平台檢舉帳號</li><li>尋求 iWIN 移除內容</li></ul></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 區塊五：賦能之歌 -->
-        <section class="mb-24 text-left">
-            <h2 class="text-3xl font-black mb-10 text-center flex items-center justify-center text-amber-950 text-center"><span class="mr-4 text-4xl text-center text-center">🎵</span> 賦能之歌：建立數位防護網</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 text-left text-left text-left">
-                <div class="bg-white p-10 rounded-[2.5rem] shadow-xl border border-amber-100 text-left text-left text-left">
-                    <div class="flex items-center justify-between mb-8 text-left text-left"><div><h3 class="font-black text-2xl text-amber-900 leading-tight text-left">《隱形的網，由我們來織》</h3></div>
-                    <div class="flex flex-col gap-2 text-left">
-                        <a href="https://suno.com/s/WeUDzMLA9AgdKMFg" target="_blank" class="bg-amber-700 text-white py-1.5 px-5 rounded-full text-[10px] font-black shadow-md text-center transition-all">▶ suno1 試聽</a>
-                        <a href="https://suno.com/s/PKclF96KGE4i1czL" target="_blank" class="bg-amber-600 text-white py-1.5 px-5 rounded-full text-[10px] font-black shadow-md text-center transition-all">▶ suno2 試聽</a>
-                        <button onclick="toggleSpeakLyrics()" id="tts-btn" class="bg-amber-900 text-white py-2.5 px-8 rounded-full text-[11px] font-black shadow-lg flex items-center justify-center gap-2 text-center text-center">🔊 導讀歌詞</button>
-                    </div></div>
-                    <div class="space-y-8 text-sm leading-relaxed text-amber-900 max-h-[500px] overflow-y-auto pr-6 custom-scrollbar font-medium text-left text-left">
-                        <div class="p-6 bg-amber-50/50 rounded-2xl border-l-4 border-amber-400 text-left">[Verse 1]<br>螢幕的光 在課堂後方的角落 閃爍<br>群組叮咚 有一則沒名字的消息 傳過<br>原本以為 只是大家平常的 講笑<br>但那張截圖 卻讓空氣變得 好沈重</div>
-                        <div class="p-8 bg-amber-100 rounded-2xl border-l-4 border-amber-600 shadow-inner font-bold text-left">[Chorus]<br>這不是妳的錯 不要獨自躲在 窗口<br>我們看見了 那道被撕裂的 傷口<br>不點閱、不轉傳 是我們給的 溫柔<br>數位世界的 門口 由我們一起 守候</div>
-                        <div class="p-6 bg-amber-50/50 rounded-2xl border-l-4 border-amber-400 text-left">[Verse 2]<br>有人在起鬨 說那是「大家都有」的 傳送門<br>有人在沈默 卻感覺自己也成了 傷害的人<br>法律的界線 不只是寫在課本 裡面的字</div>
-                    </div>
-                </div>
-                <div class="space-y-8 flex flex-col text-left text-left">
-                    <div class="bg-white p-10 rounded-[2.5rem] shadow-xl border border-amber-100 flex-grow text-left text-left">
-                        <h3 class="font-black text-xl text-amber-900 mb-8 flex items-center text-left text-left">📝 教學應用腳本</h3>
-                        <div class="space-y-8 text-left text-left text-left">
-                            <div class="text-left text-left text-left">
-                                <h4 class="text-xs font-black text-amber-600 mb-3 uppercase tracking-widest border-b border-amber-100 pb-2 text-left text-left text-left">引導語語氣</h4>
-                                <p class="text-sm text-amber-800 leading-relaxed italic bg-amber-50 p-6 rounded-2xl border border-amber-100 font-medium text-left text-left">「聽聽這首歌寫出的掙扎，我們是在織網，織一張能接住彼此的安全網。不點開、不轉發，就是一種最溫柔的守護。」</p>
-                            </div>
-                            <div class="text-left text-left text-left">
-                                <h4 class="text-xs font-black text-amber-600 mb-3 uppercase tracking-widest border-b border-amber-100 pb-2 text-left text-left">討論提問</h4>
-                                <ul class="space-y-4 text-left text-left text-left">
-                                    <li class="text-sm font-bold text-amber-900 bg-amber-50/50 p-4 rounded-xl text-left">1. 歌詞中哪一段情緒轉折最讓你深刻？</li>
-                                    <li class="text-sm font-bold text-amber-900 bg-amber-50/50 p-4 rounded-xl text-left">2. 如果群組傳來類似消息，哪句歌詞會提醒你做出不同選擇？</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-amber-950 text-white p-10 rounded-[3rem] shadow-2xl flex flex-col items-center justify-center text-center border-8 border-amber-600 transform rotate-1 text-center">
-                        <span class="text-amber-400 text-[11px] font-black tracking-[0.4em] mb-6 uppercase">The Final Promise</span>
-                        <p class="font-black text-3xl md:text-4xl tracking-tighter leading-tight text-center">數位世界的門口，<br><span class="text-amber-400">由我們一起守候。</span></p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 區塊六：測驗實驗室 (抽 5 題邏輯實作) -->
+        <!-- 區塊四：數位測驗 -->
         <section id="quiz-lab" class="mb-24 text-left">
-            <div class="bg-amber-950 rounded-[4rem] p-10 md:p-20 text-white shadow-2xl relative overflow-hidden text-left">
-                <div class="absolute top-0 right-0 p-10 opacity-5 font-black text-[12rem] pointer-events-none select-none text-left">QUIZ</div>
-                <div class="text-center mb-16 relative z-10 text-center"><h2 class="text-4xl font-black mb-4 flex items-center justify-center text-center"><span class="mr-4 text-4xl text-amber-400 text-center">🛡️</span> 測驗實驗室：數位防衛力測試</h2><p class="text-amber-200 max-w-2xl mx-auto font-medium text-center">檢驗你的法律識讀。每次進入將隨機抽選 5 題。</p></div>
-                <div class="max-w-4xl mx-auto space-y-12 relative z-10 text-left text-left text-left" id="quiz-container"></div>
+            <div class="bg-[#451a03] rounded-[4rem] p-12 md:p-24 text-white shadow-2xl relative overflow-hidden text-left">
+                <div class="absolute top-0 right-0 p-12 opacity-5 font-black text-[15rem] pointer-events-none select-none text-left">QUIZ</div>
+                <div class="text-center mb-24 relative z-10 text-center"><h2 class="text-5xl font-black mb-6 flex items-center justify-center text-amber-400 font-black text-center">🛡️ <span class="ml-5">數位防衛力測試</span></h2><p class="text-amber-200 max-w-2xl mx-auto font-medium text-center">檢驗法律識讀。每次隨機挑選 5 題。全對獲得勳章。</p></div>
+                <div class="max-w-4xl mx-auto space-y-16 relative z-10 text-left" id="quiz-container"></div>
+                <div id="defender-badge" class="mt-24 p-16 bg-white/5 border-4 border-amber-400 rounded-[5rem] text-center max-w-3xl mx-auto backdrop-blur-3xl text-center"><div class="text-9xl mb-12">🎖️</div><h3 class="text-5xl font-black text-amber-400 mb-8 font-black">授予「數位防衛官」勳章</h3><p class="text-white text-2xl font-bold mb-12 leading-loose font-black text-center">恭喜獲得滿分！你已具備完整法律認知與積極行動力。</p><button onclick="renderQuiz()" class="px-16 py-5 bg-amber-600 hover:bg-amber-500 rounded-full font-black tracking-widest text-lg transition-all shadow-2xl text-center font-black">挑戰下一組題庫</button></div>
+            </div>
+        </section>
+
+        <!-- [整合區塊] 教材品質與倫理審查器 -->
+        <section id="quality-reviewer" class="mb-32 animate-fade">
+            <div class="w-full bg-[#bc6c25] text-white py-16 px-10 rounded-[3rem] shadow-xl mb-16">
+                <div class="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-12">
+                    <div class="flex-1">
+                        <div class="inline-block px-4 py-1 bg-white bg-opacity-20 rounded-full text-xs font-bold tracking-widest mb-6 border border-white border-opacity-30 uppercase">Final Evaluation Report</div>
+                        <h2 class="text-3xl md:text-5xl font-black mb-6 leading-tight">教材品質與倫理審查器</h2>
+                        <p class="text-lg text-orange-100 max-w-xl font-medium leading-relaxed">此功能將《數位性別暴力防治教材：最終評估報告》視覺化。您可以掌握教材在教學設計、倫理敏感度及可重複使用性等維度的專業審查指標。</p>
+                    </div>
+                    <div class="bg-white text-[#bc6c25] p-10 rounded-[2.5rem] shadow-2xl text-center transform rotate-2">
+                        <p class="text-sm font-bold uppercase tracking-widest mb-3">審查總得分</p>
+                        <div class="text-7xl font-black mb-3">4.8<span class="text-2xl text-gray-400">/5.0</span></div>
+                        <div class="text-xl">⭐⭐⭐⭐✨</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-20">
+                <!-- 教學品質評點 -->
+                <div class="bg-white rounded-[2.5rem] p-10 md:p-16 shadow-sm border border-gray-100">
+                    <div class="mb-10">
+                        <h3 class="text-2xl font-black text-[#283618] flex items-center mb-6"><span class="mr-4 text-3xl">📊</span> 評估面向一：教學品質評點</h3>
+                        <p class="text-gray-600 leading-relaxed font-medium">此區塊展示教材在學習目標、案例真實性及測驗層次等維度的成效指標。圖表直觀呈現了極高的教學達成率。</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                        <div class="space-y-6">
+                            <div class="p-6 bg-[#fefae0] rounded-2xl border-l-8 border-[#bc6c25] text-left"><h4 class="font-black text-lg mb-2 text-[#451a03]">學習目標清晰度 (5/5)</h4><p class="text-sm text-gray-700">模組標示明確，涵蓋識讀到行動全過程。</p></div>
+                            <div class="p-6 bg-[#fefae0] rounded-2xl border-l-8 border-[#bc6c25] text-left"><h4 class="font-black text-lg mb-2 text-[#451a03]">案例真實性 (5/5)</h4><p class="text-sm text-gray-700">涵蓋勒索、霸凌、AI換臉等高頻校園事件。</p></div>
+                            <div class="p-6 bg-[#fefae0] rounded-2xl border-l-8 border-[#bc6c25] text-left"><h4 class="font-black text-lg mb-2 text-[#451a03]">測驗認知層次 (5/5)</h4><p class="text-sm text-gray-700">隨機題庫嚴格遵守 Bloom 分類，檢核層次分明。</p></div>
+                        </div>
+                        <div class="w-full"><div class="review-chart-container"><canvas id="qualityChart"></canvas></div></div>
+                    </div>
+                </div>
+
+                <!-- 倫理與敏感度 -->
+                <div class="bg-white rounded-[2.5rem] p-10 md:p-16 shadow-sm border border-gray-100">
+                    <div class="mb-12 text-center">
+                        <h3 class="text-2xl font-black text-[#283618] flex items-center justify-center mb-6"><span class="mr-4 text-3xl">⚖️</span> 評估面向二：倫理與敏感度檢核</h3>
+                        <p class="text-gray-600 leading-relaxed max-w-3xl mx-auto font-medium">確保內容不造成二次傷害，並檢視法律與資源的有效性。</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="bg-[#e9edc9] p-8 rounded-[2rem] transform transition hover:-translate-y-2 text-left"><div class="text-4xl mb-4">✅</div><h4 class="font-black text-xl mb-3 text-[#283618]">汙名化語言規避</h4><p class="text-sm text-gray-700 leading-relaxed">使用「行為主體」與「當事人」，成功卸除受害者恥辱感。</p><div class="mt-6 text-xs font-bold text-green-800 bg-green-200 inline-block px-3 py-1 rounded-full uppercase">Passed</div></div>
+                        <div class="bg-[#e9edc9] p-8 rounded-[2rem] transform transition hover:-translate-y-2 text-left"><div class="text-4xl mb-4">🌟</div><h4 class="font-black text-xl mb-3 text-[#283618]">暴力細節描述</h4><p class="text-sm text-gray-700 leading-relaxed">採用「環境象徵」代替具體描述，將再創傷風險降至最低。</p><div class="mt-6 text-xs font-bold text-green-800 bg-green-200 inline-block px-3 py-1 rounded-full uppercase">Excellent</div></div>
+                        <div class="bg-[#ffedd5] p-8 rounded-[2rem] transform transition hover:-translate-y-2 border border-orange-200 text-left"><div class="text-4xl mb-4">⚠️</div><h4 class="font-black text-xl mb-3 text-[#9a3412]">性別身份多元性</h4><p class="text-sm text-gray-700 leading-relaxed">目前敘事偏向女性。建議加入男性或多元性別者討論。</p><div class="mt-6 text-xs font-bold text-orange-800 bg-orange-200 inline-block px-3 py-1 rounded-full uppercase">Suggested</div></div>
+                    </div>
+                </div>
+
+                <!-- 可重複使用性與建議 -->
+                <div class="bg-[#fefae0] rounded-[3rem] p-10 md:p-16 shadow-sm border border-[#dda15e]">
+                    <div class="mb-12">
+                        <h3 class="text-2xl font-black text-[#283618] flex items-center mb-6"><span class="mr-4 text-3xl">♻️</span> 面向三：架構套用與優化建議</h3>
+                        <p class="text-gray-600 leading-relaxed font-medium">探索此 SPA 架構在其他主題的套用潛力與具體改善項目。</p>
+                    </div>
+                    
+                    <div class="flex space-x-4 mb-10 overflow-x-auto pb-2">
+                        <button onclick="filterSuggestions('All')" id="btn-All" class="filter-btn active px-8 py-3 rounded-full border border-gray-300 font-black text-sm transition-all whitespace-nowrap shadow-sm">全部顯示</button>
+                        <button onclick="filterSuggestions('必改')" id="btn-必改" class="filter-btn px-8 py-3 rounded-full border border-gray-300 font-black text-sm transition-all text-red-700 whitespace-nowrap shadow-sm">必改項目</button>
+                        <button onclick="filterSuggestions('建議改善')" id="btn-建議改善" class="filter-btn px-8 py-3 rounded-full border border-gray-300 font-black text-sm transition-all text-blue-700 whitespace-nowrap shadow-sm">建議改善</button>
+                    </div>
+                    <div id="suggestions-container" class="space-y-6"></div>
+                </div>
             </div>
         </section>
 
     </main>
 
-    <footer class="w-full bg-amber-950 text-amber-400/50 py-20 px-6 text-left border-t border-amber-900 text-left">
-        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-16 text-left">
-            <div class="space-y-6 text-left text-left"><h4 class="text-white font-black text-lg text-left">關於本教材</h4><p class="text-sm leading-relaxed text-left font-medium">專為大學通識課程設計，致力於消除校園數位性別暴力，建立尊重的數位社群文化。</p></div>
-            <div class="space-y-6 text-left text-left"><h4 class="text-white font-black text-lg text-left">緊急資源網絡</h4><ul class="text-sm space-y-3 font-bold text-left text-left"><li class="text-amber-300">性影像處理中心：(02) 2576-2000</li><li class="text-amber-300">教育部性平專線：0800-580-785</li><li class="text-amber-300">安心專線：1925 (依舊愛我)</li></ul></div>
-            <div class="space-y-6 text-left text-left text-left"><h4 class="text-white font-black text-lg text-left">倫理守則</h4><p class="text-xs leading-relaxed text-left italic">本教材嚴禁展示真實受害影像，所有討論應建立在「不指責被害人」基礎上。</p></div>
+    <footer class="w-full bg-[#283618] text-[#fefae0] py-20 px-8 text-center border-t border-amber-900">
+        <div class="max-w-5xl mx-auto">
+            <div class="text-5xl mb-8">💡</div>
+            <p class="text-xl md:text-3xl font-medium leading-relaxed italic mb-12 max-w-4xl mx-auto">
+                「教學不只是傳遞正確的資訊，更是建立一種『願意接住他人』的溫柔勇氣；<br>這份教材是您的盾，而您的溫暖導引將成為學生心中的光。」
+            </p>
+            <div class="w-24 h-1.5 bg-[#bc6c25] mx-auto mb-10 rounded-full"></div>
+            <p class="text-sm font-black tracking-widest uppercase text-[#dda15e] mb-6">給教師的鼓勵與提醒</p>
+            <div class="text-xs opacity-50 space-y-2">
+                <p>性影像處理中心：(02) 2576-2000 | 安心專線：1925 | 性平專線：0800-580-785</p>
+                <p>© 2024 Digital Respect Project. All Content Audited.</p>
+            </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const MODULE_DATA = {
             1: { title: "無所不在的「鏡頭」", subtitle: "定義與迷思破解", concept: "釐清「非合意性影像」的定義。探討社會常見指責迷思，理解「同意權」在數位空間可隨時撤回。", interaction: "💡 建議互動形式：Quiz (迷思測驗)" },
             2: { title: "滑鼠背後的權力網", subtitle: "結構與社會凝視", concept: "分析數位暴力如何作為一種權力控制手段。探討旁觀者效應如何成為暴力的共犯結構。", interaction: "💭 建議互動形式：Reflection (小組討論)" },
-            3: { title: "如果是我，怎麼辦？", subtitle: "積極旁觀者演練", concept: "培養「積極旁觀者」能力。演練不點閱、不下載、不分享，以及如何給予支持。", interaction: "🎭 建議互動形式：Scenario (情境模擬)" },
-            4: { title: "法網與防護網", subtitle: "法律賦權與在地資源", concept: "認識台灣法規如何保障當事人。熟悉性影像中心下架機制與校內性平會管道。", interaction: "🔗 建議互動形式：Resource Link (實機導覽)" },
-            5: { title: "成為數位時代的盟友", subtitle: "承諾與賦權", concept: "總結課程，將焦點轉向集體力量。強調建立安全、尊重的校園社群是每個人的責任。", interaction: "🤝 建議互動形式：Reflection (行動宣言)" }
+            3: { title: "如果是我，怎麼辦？", subtitle: "積極旁觀者演練", concept: "培養「積極旁觀者」能力。演練應對策略：不點閱、不下載、不分享，以及如何給予支持。", interaction: "🎭 建議互動形式：Scenario (情境模擬)" },
+            4: { title: "法網與防護網", subtitle: "法律賦權與在地資源", concept: "認識台灣法規保障。熟悉下架機制（性影像中心）與校內管道。", interaction: "🔗 建議互動形式：Resource Link (實機導覽)" },
+            5: { title: "成為數位時代盟友", subtitle: "承諾與賦權", concept: "總結課程，將焦點轉向集體力量。強調建立安全、尊重的校園社群是每個人的責任。", interaction: "🤝 建議互動形式：Reflection (行動宣言)" }
         };
 
         const SCENARIO_DATA = {
-            1: { title: "當事人視角", read: { title: "曾經深愛的人，變成了最陌生的威脅", story: "分手後，前任突然私訊側拍照片。他威脅如果不復合，就要將照片傳到 Dcard 班版。你感到全身發冷，不知道該怎麼辦。" }, choices: [{ id: '1A', label: "(A) 嘗試安撫對方", sub: "希望透過交換條件阻止外流。", color: "border-amber-200", hover: "hover:bg-amber-900" }, { id: '1B', label: "(B) 立即截圖並報案", sub: "前往派出所控告恐嚇罪。", color: "border-amber-500", hover: "hover:bg-amber-700" }, { id: '1C', label: "(C) 求助性影像中心", sub: "尋求專業管道強制下架內容。", color: "border-amber-500", hover: "hover:bg-amber-700" }], feedback: { '1A': `<div class="bg-red-50 p-6 rounded-3xl border border-red-100 text-sm text-red-800 font-bold text-left leading-loose">⚠️ 妥協通常會讓威脅升高。這不是感情糾紛，這是嚴重犯罪。</div>`, '1B': `<div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-sm text-amber-900 font-bold text-left leading-loose">👍 賦權動作：報案能啟動刑事查扣。截圖是法律上最重要的武裝。</div>`, '1C': `<div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-sm text-amber-900 font-bold text-left leading-loose">🌐 止血：中心可跨平台強制阻斷傳播。</div>` }, reflect: ["「同意拍攝」與「同意散布」有何不同？", "你如何幫助遇到這種威脅的朋友？"] },
-            2: { title: "旁觀者視角", read: { title: "退出群組後，然後呢？", story: "深夜群組傳來學妹私密影像，底下一堆人起鬨嘲笑。你知道退出群組只是逃避，傷害還在繼續..." }, choices: [{ id: '2A', label: "(A) 群組內公開制止", sub: "打破沈默，警告這已觸法。", color: "border-amber-200", hover: "hover:bg-amber-900" }, { id: '2B', label: "(B) 私下聯繫當事人", sub: "提供溫暖的支持與證據。", color: "border-amber-500", hover: "hover:bg-amber-700" }, { id: '2C', label: "(C) 匿名向校方舉報", sub: "交由正式機制調查處理。", color: "border-amber-500", hover: "hover:bg-amber-700" }], feedback: { '2A': `<div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-sm text-amber-800 font-bold text-left">👍 勇氣：打破沈默螺旋，讓其他觀望者意識到錯誤。</div>`, '2B': `<div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-sm text-amber-800 font-bold text-left">👍 盟友：你的支持是受害者最需要的心理防線。</div>`, '2C': `<div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-sm text-amber-800 font-bold text-left">🛡️ 保障：性平法保密你的檢舉，啟動校園機制。</div>` }, reflect: ["在群組中阻止霸凌最難的是什麼？", "法律為何加重處罰「散布」行為？"] },
-            3: { title: "技術風險視角", read: { title: "螢幕裡的妳，是我嗎？", story: "你在論壇看到 AI 換臉偽造的短片，主角長得跟你一樣。雖然是假的，但嘲諷是真的。" }, choices: [{ id: '3A', label: "(A) 發佈聲明澄清事實", sub: "解釋是 AI 偽造而非本人。", color: "border-amber-200", hover: "hover:bg-amber-900" }, { id: '3B', label: "(B) 向 iWIN 申訴移除", sub: "利用平台機制封鎖內容。", color: "border-amber-500", hover: "hover:bg-amber-700" }, { id: '3C', label: "(C) 對發文者提起訴訟", sub: "利用刑法 319-4 追究責任。", color: "border-amber-500", hover: "hover:bg-amber-700" }], feedback: { '3A': `<div class="bg-yellow-50 p-4 text-[11px] font-bold text-left text-yellow-900 font-medium">⚠️ 提醒：建議與法律行動並行，防止流量助長擴散。</div>`, '3B': `<div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-sm text-amber-900 font-bold text-left">👍 關鍵：AI 偽造影像同樣適用行政下架機制。</div>`, '3C': `<div class="bg-amber-50 p-6 rounded-3xl border border-amber-100 text-sm text-amber-900 font-bold text-left text-left text-left">⚖️ 武裝：刑法 319-4 處罰科技偽造影像，最重 5 年。</div>` }, reflect: ["如何建立數位時代的信任？", "校園應如何推廣「數位媒體識讀」？"] }
+            1: { title: "當事人視角", read: { title: "曾經深愛的人，變成了最陌生的威脅", story: "分手後，前任突然私訊側拍照片威脅不復合就傳班版。你感到全身發冷不知道怎麼辦。" }, choices: [{ id: '1A', label: "(A) 嘗試安撫對方", sub: "希望透過交換條件阻止外流。", color: "border-amber-200", hover: "hover:bg-amber-900" }, { id: '1B', label: "(B) 立即截圖並報案", sub: "前往派出所控告恐嚇罪。", color: "border-amber-500", hover: "hover:bg-amber-700" }, { id: '1C', label: "(C) 求助性影像中心", sub: "尋求專業管道強制下架內容。", color: "border-amber-500", hover: "hover:bg-amber-700" }], feedback: { '1A': `⚠️ 妥協通常會讓威脅升高。這是嚴重犯罪。`, '1B': `👍 報案能啟動刑事查扣。截圖是法律上最重要的武裝。`, '1C': `🌐 止血：性影像中心可向平台要求下架影像，阻斷傳播。` }, reflect: ["「同意拍攝」不代表「同意散布」，如何區分？", "遭遇威脅時心理障礙該如何排解？"] },
+            2: { title: "旁觀者視角", read: { title: "退出群組後，然後呢？", story: "深夜群組傳來學妹私密影像，底下一堆人起鬨嘲笑。你知道退出只是逃避，傷害在繼續..." }, choices: [{ id: '2A', label: "(A) 公開制止", sub: "打破沈默，警告這已觸法。", color: "border-amber-200", hover: "hover:bg-amber-900" }, { id: '2B', label: "(B) 聯繫當事人", sub: "提供溫暖的支持與證據。", color: "border-amber-500", hover: "hover:bg-amber-700" }, { id: '2C', label: "(C) 匿名舉報", sub: "交由正式機制調查處理。", color: "border-amber-500", hover: "hover:bg-amber-700" }], feedback: { '2A': `👍 勇氣。打破沈默螺旋，讓其他觀望者意識到錯誤。`, '2B': `👍 盟友。你的支持是受害者最需要的心理防線。`, '2C': `🛡️ 性平法保障你的檢舉秘密。` }, reflect: ["為何沈默也是共犯行為？", "群組阻止霸凌最難的部分是什麼？"] },
+            3: { title: "技術風險視角", read: { title: "螢幕裡的妳，是我嗎？", story: "你在論壇看到 AI 換臉短片主角長得跟你一模一樣。雖然是假的，但嘲諷是真的。" }, choices: [{ id: '3A', label: "(A) 發佈聲明", sub: "解釋是 AI 偽造。", color: "border-amber-200", hover: "hover:bg-amber-900" }, { id: '3B', label: "(B) 申訴移除", sub: "利用下架機制。", color: "border-amber-500", hover: "hover:bg-amber-700" }, { id: '3C', label: "(C) 提起訴訟", sub: "追究責任。", color: "border-amber-500", hover: "hover:bg-amber-700" }], feedback: { '3A': `⚠️ 提醒：建議與法律行動並行。`, '3B': `👍 關鍵：AI 偽造同樣適用行政下架。`, '3C': `⚖️ 刑法 319-4 最重 5 年。` }, reflect: ["如何建立 AI 時代的資訊識讀力？", "法律應如何追上科技？"] }
         };
 
-        // --- 10 題完整題庫 ---
         const QUIZ_POOL = [
-            { id: 1, level: "記憶", q: "依據台灣刑法第 28 章之 1，散布他人未經同意之性影像，最高可判處幾年有期徒刑？", options: ["1 年", "3 年", "5 年", "7 年"], correct: 2, note: "刑法 319-3 條規定：五年以下有期徒刑。", link: "https://law.moj.gov.tw/" },
-            { id: 2, level: "記憶", q: "針對校園內數位性暴力，哪項法律規定學校必須對通報人身分「絕對保密」？", options: ["個人資料保護法", "性別平等教育法", "兒童及少年福利法", "數位發展法"], correct: 1, note: "性平法第 22 條保障檢舉人身分。", link: "https://gender.moe.edu.tw/" },
-            { id: 3, level: "理解", q: "「拍攝時雙方均同意，但分手後男方未經授權將照片傳至群組」，此行為是否違法？", options: ["不違法，當初有同意", "違法，構成散布性影像罪", "不構成犯罪，屬私人通訊", "僅屬民事侵權"], correct: 1, note: "刑法 319-3 條強調的是「散布時」需具備同意權。", link: "https://tw-ncii.win.org.tw/" },
-            { id: 4, level: "理解", q: "關於 AI 換臉（Deepfake）偽造性影像，下列何者法律敘述正確？", options: ["不構成犯罪", "最重可判 5 年有期徒刑", "標註 AI 製作即合法", "僅屬於民事賠償範疇"], correct: 1, note: "刑法 319-4 條專門處罰製作不實影像入罪。", link: "https://i.win.org.tw/" },
-            { id: 5, level: "應用", q: "林同學收到匿名帳號威脅，若不支付金額將散布其私密照。第一時間何種處置最正確？", options: ["刪除原始對話", "轉帳給對方", "截圖存證聯繫中心", "在 Dcard 發文反擊"], correct: 2, note: "保留證據（截圖、URL）是行政下架的唯一關鍵。", link: "https://tw-ncii.win.org.tw/" },
-            { id: 6, level: "應用", q: "在系學會群組發現有人轉傳疑似同學性影像，身為旁觀者何者是積極介入？", options: ["私下提醒當事人並協助截圖", "參與討論有沒有更多照片", "退出群組裝沒看見", "把照片轉傳到別處嘲諷"], correct: 0, note: "積極旁觀者應不轉傳並給予支持。", link: "https://www.ecpat.org.tw/" },
-            { id: 7, level: "應用", q: "關於數位影像下架機制，應向哪個官方機構尋求「強制行政下架」？", options: ["大學系辦公室", "性影像處理中心 (NCII)", "數位發展部新聞司", "地方警察調解委"], correct: 1, note: "性影像中心具行政力量要求平台移除。", link: "https://tw-ncii.win.org.tw/" },
-            { id: 8, level: "分析", q: "校園事件處理流程中為何「避免當事人與行為人對質」是避免二次傷害的核心？", options: ["節省校方行政時間", "避免引發替代性創傷與恐懼", "為了讓行為人自由辯護", "因為法律程序不需要"], correct: 1, note: "避免對質是保護受害者心理邊界的關鍵。", link: "https://gender.moe.edu.tw/" },
-            { id: 9, level: "分析", q: "評估「撤回同意」權利。即使拍攝合意，散布仍需即時同意，是基於什麼？", options: ["著作權保護", "身體自主與數位足跡權", "肖像法律契約", "隱私契約"], correct: 1, note: "強調同意的動態性與主導權。", link: "https://www.ecpat.org.tw/" },
-            { id: 10, level: "評估", q: "當數位暴力發生在匿名社群時，哪種防治機制在「預防傷害擴大」上最有效？", options: ["事後判刑", "行政下架強制力與即時審核", "道德觀念宣導", "檢討受害者"], correct: 1, note: "斷開傳播鏈的行政權力比判刑更急迫。", link: "https://tw-ncii.win.org.tw/" }
+            { id: 1, q: "依據台灣刑法，散布他人未經同意之性影像，最高可處幾年？", options: ["1 年", "3 年", "5 年", "7 年"], correct: 2, note: "刑法 319-3 條：五年以下有期徒刑。" },
+            { id: 2, q: "哪項法律規定學校接獲檢舉後，必須對身分絕對保密？", options: ["個資法", "性別平等教育法", "兒少法", "通訊法"], correct: 1, note: "性平法第 22 條保障檢舉人身分。" },
+            { id: 3, q: "「拍攝合意但分手後未授權散布」，此行為是否違法？", options: ["不違法", "違法，構成散布罪", "不構成犯罪", "民事侵權而已"], correct: 1, note: "刑法強調的是「散布時」需具備同意權。" },
+            { id: 4, q: "關於 AI 換臉偽造影像責任，下列何者正確？", options: ["不構成犯罪", "最重可判 5 年徒刑", "註明 AI 製作即合法", "僅屬校規處分"], correct: 1, note: "刑法 319-4 條專門處罰偽造不實影像入罪。" },
+            { id: 5, q: "發現私密照在論壇傳播，下列步驟何者最優先？", options: ["刪對話", "匯款止損", "完整截圖 URL 求助中心", "發文回擊"], correct: 2, note: "截圖 URL 是行政下架唯一關鍵。" },
+            { id: 6, q: "旁觀者發現有人傳閱同學偷拍照，何種做法最具盟友精神？", options: ["提醒當事人並截圖", "裝沒看見", "轉傳好友討論", "參與起鬨"], correct: 0, note: "不轉傳並給予情感支持。" },
+            { id: 7, q: "要尋求平台強制下架影像，應求助哪個專責機構？", options: ["派出所", "性影像處理中心 (NCII)", "各系辦", "Google"], correct: 1, note: "中心可跨平台發文強制移除。" },
+            { id: 8, q: "校園調查中「避免當事人與行為人對質」的原因？", options: ["省時間", "避免二次傷害與恐懼", "讓行為人自由編造", "不需要陳述"], correct: 1, note: "保護受害者不因對質而崩潰。" },
+            { id: 9, q: "「撤回同意」權利是基於什麼核心價值？", options: ["肖像權", "身體自主與數位主導權", "著作權", "隱私契約"], correct: 1, note: "強調同意具動態可撤回性。" },
+            { id: 10, q: "匿名社群防治機制中，哪項最有效預防傷害擴大？", options: ["刑事重判", "行政下架強制力與審核", "道德觀念", "檢討受害者"], correct: 1, note: "行政介入斷開傳播鏈最急迫。" }
+        ];
+
+        const suggestionsData = [
+            { level: '必改', title: '性別中性化描述', text: '在情境故事中增加如「林同學」、「張方」等中性稱謂，擴大共感群體。', category: '倫理敏感度' },
+            { level: '建議改善', title: '測驗結業證書', text: '在隨機測驗 5 題全對後，可增加一個「數位防衛官」視覺回饋。', category: '遊戲化激勵' },
+            { level: '建議改善', title: '歌詞文本朗讀', text: '為《賦能之歌》增加文字導讀或朗讀功能，支援視覺障礙學生的學習。', category: '無障礙設計' }
         ];
 
         let currentScenario = 1;
+        let correctQuizCount = 0;
 
         document.addEventListener('DOMContentLoaded', function() {
-            switchModule(1);
-            updateLabContent();
-            renderQuiz();
-            initChart();
+            switchModule(1); updateLabContent(); renderQuiz(); initCourseChart(); initReviewChart(); renderSuggestions('All');
         });
 
         function switchModule(id) {
@@ -403,119 +275,125 @@
             const content = document.getElementById('module-content');
             document.querySelectorAll('.module-tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('mod-tab-' + id).classList.add('active');
-            content.innerHTML = `<div class="animate-fade text-left"><h3 class="text-3xl font-black text-amber-900 mb-2">${data.title}</h3><h4 class="text-xl font-bold text-amber-800/70 mb-8">${data.subtitle}</h4><div class="mb-10 text-left"><h5 class="font-black text-amber-900 border-b-2 border-amber-400 inline-block mb-4">核心概念</h5><p class="text-amber-800 leading-loose">${data.concept}</p></div><div class="bg-amber-50 p-6 rounded-2xl border border-amber-100 text-left"><h5 class="font-black text-amber-900 mb-3 flex items-center">${data.interaction}</h5>${id === 5 ? `<div class="bg-white p-6 rounded-xl shadow-sm mt-4 text-left"><p class="text-xs font-bold mb-4 text-amber-900 font-black">寫下你願意成為數位盟友的承諾：</p><div class="flex gap-2"><input type="text" class="flex-grow p-3 border border-amber-100 rounded-xl text-sm" placeholder="例如：我不點閱、不轉傳..."><button class="bg-amber-700 text-white px-6 py-3 rounded-xl font-bold text-sm">送出承諾</button></div></div>` : '<p class="text-xs text-amber-700 italic">具體演練請參考行為模擬器。</p>'}</div></div>`;
+            content.innerHTML = `<div class="animate-fade text-left"><h3 class="text-3xl font-black text-amber-900 mb-2 font-black">${data.title}</h3><h4 class="text-xl font-bold text-amber-800/70 mb-10 font-black">${data.subtitle}</h4><div class="mb-12"><h5 class="font-black text-amber-900 border-b-2 border-amber-400 inline-block mb-6 font-black">核心概念</h5><p class="text-xl text-amber-800 leading-loose font-medium">${data.concept}</p></div><div class="bg-amber-50 p-8 rounded-[2rem] border border-amber-100 text-left"><h5 class="font-black text-amber-900 mb-6 flex items-center font-black">${data.interaction}</h5>${id === 5 ? `<div class="bg-white p-8 rounded-2xl shadow-sm mt-6 text-left"><p class="text-sm font-bold mb-6 font-black text-amber-900">寫下你的承諾：</p><div class="flex gap-4"><input type="text" class="flex-grow p-4 border rounded-xl text-sm" placeholder="例如：我不點閱..."><button class="bg-amber-700 text-white px-10 py-4 rounded-xl font-black text-sm">送出</button></div></div>` : ''}</div></div>`;
         }
 
-        // --- 抽 5 題邏輯 ---
         function renderQuiz() {
             const container = document.getElementById('quiz-container');
-            container.innerHTML = '';
-            
-            // 洗牌並抽 5 題
+            container.innerHTML = ''; correctQuizCount = 0; 
+            document.getElementById('defender-badge').style.display = 'none';
             const shuffled = [...QUIZ_POOL].sort(() => Math.random() - 0.5).slice(0, 5);
-            
             shuffled.forEach((item, idx) => {
                 const card = document.createElement('div');
                 card.className = "bg-amber-900/40 p-10 rounded-[3rem] border border-amber-800 shadow-xl transition-all duration-300 mb-10 text-left text-white";
-                card.innerHTML = `<div class="flex items-center mb-6"><span class="bg-amber-400 text-[10px] font-black px-5 py-1.5 rounded-full text-amber-950 tracking-widest mr-4 uppercase font-black">${item.level}</span><span class="text-amber-200 font-black text-xs uppercase tracking-widest font-black">Quiz ${idx + 1}</span></div><p class="text-xl font-bold mb-10 text-white leading-relaxed text-left font-black">${item.q}</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left" id="quiz-options-${idx}">${item.options.map((opt, oIdx) => `<button onclick="handleQuizAnswer(${idx}, ${oIdx}, ${item.correct}, '${item.note}', '${item.link}')" class="quiz-option text-left p-6 rounded-2xl bg-amber-950/50 text-amber-50 text-sm font-bold active:scale-95 text-left"><span class="mr-3 opacity-30">${String.fromCharCode(65+oIdx)}</span> ${opt}</button>`).join('')}</div><div id="quiz-feedback-${idx}" class="mt-10 hidden text-left"><div class="p-8 rounded-[2rem] border-l-8 flex flex-col space-y-4 text-left" id="quiz-feedback-box-${idx}"><p class="font-black uppercase tracking-widest text-sm text-left" id="quiz-result-title-${idx}"></p><p class="text-xs leading-relaxed font-medium text-left font-black" id="quiz-explanation-${idx}"></p><a id="quiz-link-${idx}" href="#" target="_blank" class="text-[10px] underline font-black opacity-80 text-amber-300 text-left">🔗 延伸學習與法律原文</a></div></div>`;
+                card.innerHTML = `<div class="flex items-center mb-6 text-left"><span class="bg-amber-400 text-[10px] font-black px-5 py-1.5 rounded-full text-amber-950 tracking-widest mr-4 uppercase">Quiz</span><span class="text-amber-200 font-black text-xs uppercase text-left font-black">Question ${idx + 1}</span></div><p class="text-2xl font-bold mb-10 text-white leading-relaxed text-left font-black">${item.q}</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left" id="quiz-options-${idx}">${item.options.map((opt, oIdx) => `<button onclick="handleQuizAnswer(${idx}, ${oIdx}, ${item.correct}, '${item.note}')" class="quiz-option text-left p-6 rounded-2xl bg-amber-950/50 text-amber-50 text-base font-bold active:scale-95 text-left font-black text-left"><span class="mr-4 opacity-30">${String.fromCharCode(65+oIdx)}</span> ${opt}</button>`).join('')}</div><div id="quiz-feedback-${idx}" class="mt-10 hidden text-left"><div class="p-8 rounded-[2rem] border-l-8 flex flex-col space-y-4 text-left font-black" id="quiz-feedback-box-${idx}"><p class="font-black uppercase tracking-widest text-sm text-left font-black" id="quiz-result-title-${idx}"></p><p class="text-base leading-relaxed font-medium text-left font-black" id="quiz-explanation-${idx}"></p></div></div>`;
                 container.appendChild(card);
             });
         }
 
-        window.handleQuizAnswer = function(qIdx, oIdx, correctIdx, note, link) {
+        window.handleQuizAnswer = function(qIdx, oIdx, correctIdx, note) {
             const optionsGroup = document.getElementById(`quiz-options-${qIdx}`);
             const buttons = optionsGroup.querySelectorAll('button');
             const feedbackArea = document.getElementById(`quiz-feedback-${qIdx}`);
             const feedbackBox = document.getElementById(`quiz-feedback-box-${qIdx}`);
             const resultTitle = document.getElementById(`quiz-result-title-${qIdx}`);
             const explanation = document.getElementById(`quiz-explanation-${qIdx}`);
-            const linkEl = document.getElementById(`quiz-link-${qIdx}`);
-
             buttons.forEach(btn => btn.disabled = true);
-            
             if (oIdx === correctIdx) {
-                buttons[oIdx].classList.add('selected-correct');
-                resultTitle.innerText = "✓ 答對了！";
-                feedbackBox.className = "p-8 rounded-[2rem] border-l-8 border-green-400 bg-green-900 bg-opacity-20 text-green-200";
+                buttons[oIdx].classList.add('selected-correct'); resultTitle.innerText = "✓ 答對了！";
+                feedbackBox.className = "p-8 rounded-[2rem] border-l-8 border-green-400 bg-green-900 bg-opacity-20 text-green-200 text-left font-black";
+                correctQuizCount++;
             } else {
-                buttons[oIdx].classList.add('selected-wrong');
-                buttons[correctIdx].classList.add('selected-correct');
-                resultTitle.innerText = "❌ 答錯了";
-                feedbackBox.className = "p-8 rounded-[2rem] border-l-8 border-red-500 bg-red-900 bg-opacity-20 text-rose-200";
+                buttons[oIdx].classList.add('selected-wrong'); buttons[correctIdx].classList.add('selected-correct'); resultTitle.innerText = "❌ 答錯了";
+                feedbackBox.className = "p-8 rounded-[2rem] border-l-8 border-red-500 bg-red-900 bg-opacity-20 text-rose-200 text-left font-black";
             }
-            
-            explanation.innerText = "📖 解析：" + note;
-            linkEl.href = link;
-            feedbackArea.classList.remove('hidden');
+            explanation.innerText = "📖 解析：" + note; feedbackArea.classList.remove('hidden');
+            if (correctQuizCount === 5) { document.getElementById('defender-badge').style.display = 'block'; }
         };
 
-        function selectScenario(id) {
-            currentScenario = id;
-            document.querySelectorAll('.scenario-selector').forEach(el => el.classList.remove('selected'));
-            document.getElementById('selector' + id).classList.add('selected');
-            resetModule();
-            updateLabContent();
-        }
+        function selectScenario(id) { currentScenario = id; document.querySelectorAll('.scenario-selector').forEach(el => el.classList.remove('selected')); document.getElementById('selector' + id).classList.add('selected'); resetModule(); updateLabContent(); }
 
         function updateLabContent() {
             const data = SCENARIO_DATA[currentScenario];
             document.getElementById('currentScenarioTitle').innerText = data.title;
             document.getElementById('readTitle').innerText = data.read.title;
             document.getElementById('readStory').innerText = data.read.story;
-            const container = document.getElementById('choicesContainer');
-            container.innerHTML = '';
+            const container = document.getElementById('choicesContainer'); container.innerHTML = '';
             data.choices.forEach(c => {
                 const btn = document.createElement('button');
-                btn.className = `w-full text-left p-4 border-2 ${c.color} rounded-2xl ${c.hover} hover:text-white transition-all group duration-200 text-left`;
+                btn.className = `w-full text-left p-5 border-2 ${c.color} rounded-2xl ${c.hover} hover:text-white transition-all group font-black text-left`;
                 btn.onclick = () => showFeedback(c.id);
-                btn.innerHTML = `<span class="font-black block text-sm text-left">${c.label}</span><span class="text-[10px] opacity-80 font-bold text-left">${c.sub}</span>`;
+                btn.innerHTML = `<span class="block text-xl text-left">${c.label}</span><span class="text-sm opacity-80 font-bold text-left">${c.sub}</span>`;
                 container.appendChild(btn);
             });
-            const refContainer = document.getElementById('reflectContainer');
-            refContainer.innerHTML = '';
+            const refContainer = document.getElementById('reflectContainer'); refContainer.innerHTML = '';
             data.reflect.forEach((q, i) => {
                 const qDiv = document.createElement('div');
-                qDiv.className = 'text-left';
-                qDiv.innerHTML = `<p class="text-[11px] font-black text-amber-200 leading-relaxed text-left font-black">${i+1}. ${q}</p><textarea class="w-full mt-3 p-4 text-[10px] border-2 border-amber-800 bg-amber-900/50 rounded-2xl h-20 outline-none focus:border-amber-400 text-amber-50 text-left font-medium" placeholder="分享見解..."></textarea>`;
+                qDiv.innerHTML = `<p class="text-[16px] font-black text-amber-200 mb-6 text-left">${i+1}. ${q}</p><textarea class="w-full p-8 text-base border-2 border-amber-800 bg-amber-950/30 rounded-3xl h-36 outline-none focus:border-amber-400 text-white font-medium text-left" placeholder="分享見解..."></textarea>`;
                 refContainer.appendChild(qDiv);
             });
         }
 
         function goToStep(step) {
-            const steps = [1, 2, 3, 4];
-            steps.forEach(s => {
-                const el = document.getElementById('step' + s);
-                if (s === step) {
-                    el.classList.remove('step-inactive');
-                    el.classList.add('step-active');
-                } else {
-                    el.classList.remove('step-active');
-                    el.classList.add('step-inactive');
-                }
-                const dot = document.getElementById('dot' + s);
-                if (s <= step) dot.classList.add('active');
-                else dot.classList.remove('active');
+            [1, 2, 3, 4].forEach(s => {
+                const el = document.getElementById('step' + s); const dot = document.getElementById('dot' + s);
+                if (s === step) el.className = 'step-active'; else el.className = 'step-inactive';
+                if (s <= step) dot.classList.add('active'); else dot.classList.remove('active');
             });
             document.getElementById('progressBar').style.width = (step * 25) + '%';
         }
 
-        function showFeedback(optionId) {
-            document.getElementById('feedbackContent').innerHTML = SCENARIO_DATA[currentScenario].feedback[optionId];
-            goToStep(3);
-        }
+        function showFeedback(optionId) { document.getElementById('feedbackContent').innerText = SCENARIO_DATA[currentScenario].feedback[optionId]; goToStep(3); }
+        function resetModule() { goToStep(1); document.getElementById('feedbackContent').innerHTML = ''; }
 
-        function resetModule() {
-            goToStep(1);
-            document.getElementById('feedbackContent').innerHTML = '';
-        }
-
-        function initChart() {
+        function initCourseChart() {
             const canvas = document.getElementById('courseTimeChart');
-            if (!canvas || typeof Chart === 'undefined') return;
+            if (!canvas) return;
             new Chart(canvas.getContext('2d'), { 
-                type: 'doughnut', 
-                data: { labels: ['定義', '結構', '演練', '法律', '測驗'], datasets: [{ data: [30, 35, 45, 40, 30], backgroundColor: ['#92400e', '#d97706', '#f59e0b', '#fbbf24', '#fef3c7'], borderWidth: 3, borderColor: '#ffffff' }] }, 
+                type: 'doughnut', data: { labels: ['定義', '結構', '演練', '法律', '測驗'], datasets: [{ data: [30, 35, 45, 40, 30], backgroundColor: ['#92400e', '#d97706', '#f59e0b', '#fbbf24', '#fef3c7'], borderWidth: 3, borderColor: '#ffffff' }] }, 
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9, weight: 'bold' } } } }, cutout: '75%' } 
+            });
+        }
+
+        function initReviewChart() {
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar', data: {
+                    labels: ['學習目標清晰度', '情境案例真實性', '互動設計主動性', '測驗題認知層次'],
+                    datasets: [{ label: '評估分數 (滿分 5.0)', data: [5.0, 5.0, 4.5, 5.0], backgroundColor: '#bc6c25', borderRadius: 6, barThickness: 30 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                    scales: { x: { min: 0, max: 5, grid: { color: '#f3f4f6' } }, y: { grid: { display: false }, ticks: { font: { family: "'Noto Sans TC', sans-serif", weight: 'bold' }, color: '#4a443f' } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function filterSuggestions(filterType) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + filterType).classList.add('active');
+            renderSuggestions(filterType);
+        }
+
+        function renderSuggestions(filterType) {
+            const container = document.getElementById('suggestions-container');
+            container.innerHTML = '';
+            const filtered = filterType === 'All' ? suggestionsData : suggestionsData.filter(s => s.level === filterType);
+            filtered.forEach(item => {
+                const badgeColor = item.level === '必改' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-blue-100 text-blue-800 border-blue-200';
+                container.innerHTML += `
+                    <div class="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6 transition hover:shadow-md text-left">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-4 mb-4">
+                                <span class="px-4 py-1.5 rounded-full text-xs font-bold border ${badgeColor}">${item.level}</span>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">${item.category}</span>
+                            </div>
+                            <h4 class="font-black text-xl text-gray-800 mb-2">${item.title}</h4>
+                            <p class="text-sm text-gray-600 font-medium">${item.text}</p>
+                        </div>
+                    </div>
+                `;
             });
         }
     </script>
