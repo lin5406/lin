@@ -3,1501 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Fu 創新數位學習夥伴</title>
-    <!-- 已經徹底清除 Markdown 括號，還原純淨網址 -->
+    <title>豐原尋寶記：發現家鄉的起點</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            background: linear-gradient(135deg, #a855f7 0%, #d946ef 50%, #ec4899 100%);
-            min-height: 100vh;
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-        }
-        .part-card {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: block; 
-            position: relative;
-        }
-        .part-card:hover {
-            transform: translateY(-8px);
-        }
-        .gradient-purple { background: linear-gradient(135deg, #818cf8, #c084fc); }
-        
-        /* 隱藏外層捲動條 */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* 自訂優雅的捲動條樣式 (針對 Modal 內部) */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-            margin-block: 2rem;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(156, 163, 175, 0.4);
-            border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(107, 114, 128, 0.6);
-        }
-
-        /* Modal 動畫 */
-        .modal-overlay {
-            transition: opacity 0.3s ease-out;
-        }
-        .modal-content {
-            transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        .animate-spin-slow {
-            animation: spin 10s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #FDFBF7; color: #334155; scroll-behavior: smooth; }
+        .hide { display: none; }
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin: 0 auto; height: 300px; }
+        .clue-card, .video-card, .option-label, .ip-img, .travel-card, .storybook-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .clue-card:hover, .video-card:hover, .travel-card:hover, .storybook-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }
+        .correct-choice { background-color: #dcfce7 !important; border-color: #22c55e !important; color: #166534 !important; }
+        .wrong-choice { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; }
+        .explanation-box { background-color: #f0fdf4; border-left: 5px solid #10b981; padding: 1rem; margin-top: 0.75rem; border-radius: 0.5rem; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        input[type="radio"] { transform: scale(1.3); accent-color: #059669; }
     </style>
 </head>
-<body class="p-4 md:p-12 flex flex-col items-center">
+<body class="antialiased min-h-screen flex flex-col">
 
-    <!-- Header Section -->
-    <header class="text-center text-white mb-10 max-w-2xl">
-        <h1 class="text-4xl md:text-6xl font-bold mb-4 text-white drop-shadow-lg">A Fu 創新數位學習夥伴 </h1>
-        <p class="text-xl md:text-2xl font-light opacity-90 mb-6">從零開始的數位創意實踐</p>
+    <!-- Header Navigation -->
+    <header class="bg-emerald-600 text-white shadow-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col xl:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-black flex items-center gap-2 tracking-wider shrink-0 cursor-default">
+                <span class="text-3xl">🗺️</span> 豐原尋寶記
+            </h1>
+            <div class="flex flex-wrap justify-center items-center gap-2">
+                <nav class="flex flex-wrap gap-1 bg-emerald-700 p-1 rounded-2xl shadow-inner text-sm">
+                    <button id="nav-presentation" class="nav-btn bg-white text-emerald-700 px-3 py-2 rounded-xl font-bold transition-all">🔍 探索</button>
+                    <button id="nav-song" class="nav-btn text-white hover:bg-emerald-500 px-3 py-2 rounded-xl font-bold transition-all">🎵 歌曲</button>
+                    <button id="nav-video" class="nav-btn text-white hover:bg-emerald-500 px-3 py-2 rounded-xl font-bold transition-all">📺 影音</button>
+                    <button id="nav-storybook" class="nav-btn text-white hover:bg-emerald-500 px-3 py-2 rounded-xl font-bold transition-all">📚 故事書</button>
+                    <button id="nav-worksheet" class="nav-btn text-white hover:bg-emerald-500 px-3 py-2 rounded-xl font-bold transition-all">📝 挑戰</button>
+                    <button id="nav-travel" class="nav-btn text-white hover:bg-emerald-500 px-3 py-2 rounded-xl font-bold transition-all">🚲 旅遊</button>
+                </nav>
+                <a href="https://lin5406.github.io/ball-lottery/ball.html" target="_blank" class="bg-amber-400 hover:bg-amber-300 text-amber-900 px-4 py-2 rounded-xl font-black shadow-md flex items-center gap-2 transition-transform hover:scale-105 text-xs">
+                    🎰 抽籤工具
+                </a>
+            </div>
+        </div>
     </header>
 
-    <div class="cursor-pointer group relative text-center flex flex-col justify-end" onclick="openTOCModal()">
-        <img src="https://lin5406.github.io/pic/AFu創新數位學習夥伴.svg" alt="Logo" class="w-24 md:w-32 opacity-90 rounded-lg shadow-2xl shadow-red-900/40 border border-red-500/20 group-hover:opacity-100 group-hover:scale-105 group-hover:shadow-red-700/50 transition-all duration-300 block mx-auto object-cover">
-         <div class="text-xs text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity absolute w-full -bottom-6 left-0">A Fu 創新數位學習夥伴</div>
-   </div>
+    <main class="flex-grow max-w-6xl mx-auto w-full px-4 py-10">
 
-    <!-- ------------------------------------- -->
-    <!--  <div class="h-12 w-full"></div> -->
-    <div class="h-12 w-full"></div>
-    <!-- 經典研讀 Section -->
-    <section class="w-full max-w-5xl bg-[#fcb69f] border-4 border-[#ff9d8f] rounded-[2.5rem] p-8 text-center text-[#5c3a21] shadow-2xl relative overflow-visible ring-4 ring-[#ffcda3]/20">
-        <h2 class="text-2xl font-bold mb-2">經典研讀</h2>
-        <p class="text-[#8c5a35]/80 text-sm mb-6 uppercase tracking-widest font-bold">Classic Studies</p>
+        <!-- SECTION: Presentation (探索簡報) -->
+        <section id="sec-presentation" class="space-y-12 animate-fade-in">
+            <div class="text-center space-y-4">
+                <h2 class="text-3xl md:text-5xl font-black text-amber-600 tracking-tight">豐原的起點在哪裡？</h2>
+                <p class="text-lg text-slate-600 bg-amber-50 p-6 rounded-3xl border-2 border-amber-100 shadow-sm max-w-3xl mx-auto italic leading-relaxed">
+                    「看見、說出來，咱攏不孤單。」<br>小探險家，點擊卡片解開歷史線索，找出家鄉的起點！
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="clue-card bg-white rounded-3xl border-2 border-emerald-100 p-8 cursor-pointer shadow-sm" onclick="revealClue(1)">
+                    <div class="flex justify-between items-center mb-4"><span class="bg-emerald-100 text-emerald-800 px-4 py-1 rounded-full text-xs font-black tracking-widest">地名由來</span><span id="icon-1" class="text-2xl animate-bounce">👇</span></div>
+                    <div id="cover-1" class="text-center py-12 text-slate-300 font-bold">點擊揭曉古老地名</div>
+                    <div id="content-1" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">舊名「葫蘆墩」🌾</h3><p class="text-slate-600 leading-relaxed">早期境內有三個小土丘，形狀遠望像葫蘆。這裡因為大甲溪沖積而土地肥沃，生產的「葫蘆墩米」世界聞名。</p></div>
+                </div>
+                <div class="clue-card bg-white rounded-3xl border-2 border-blue-100 p-8 cursor-pointer shadow-sm" onclick="revealClue(2)">
+                    <div class="flex justify-between items-center mb-4"><span class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-xs font-black tracking-widest">水利建設</span><span id="icon-2" class="text-2xl animate-bounce">👇</span></div>
+                    <div id="cover-2" class="text-center py-12 text-slate-300 font-bold">點擊揭曉生命泉源</div>
+                    <div id="content-2" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">葫蘆墩圳 💧</h3><p class="text-slate-600 leading-relaxed">由張達京開鑿，成功引大甲溪水灌溉，奠定了農業基礎。水到哪裡，人的聚落就發展到哪裡。</p></div>
+                </div>
+                <div class="clue-card bg-white rounded-3xl border-2 border-red-100 p-8 cursor-pointer shadow-sm" onclick="revealClue(3)">
+                    <div class="flex justify-between items-center mb-4"><span class="bg-red-100 text-red-800 px-4 py-1 rounded-full text-xs font-black tracking-widest">信仰中心</span><span id="icon-3" class="text-2xl animate-bounce">👇</span></div>
+                    <div id="cover-3" class="text-center py-12 text-slate-300 font-bold">點擊揭開鬧區起源</div>
+                    <div id="content-3" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">慈濟宮 (媽祖廟) ⛩️</h3><p class="text-slate-600 leading-relaxed">廟宇是大家的人心守護者。拜拜的人潮多，周邊就形成了市集商店，這就是熱鬧「廟東」的發展起點。</p></div>
+                </div>
+                <div class="clue-card bg-white rounded-3xl border-2 border-amber-100 p-8 cursor-pointer shadow-sm" onclick="revealClue(4)">
+                    <div class="flex justify-between items-center mb-4"><span class="bg-amber-100 text-amber-800 px-4 py-1 rounded-full text-xs font-black tracking-widest">交通發展</span><span id="icon-4" class="text-2xl animate-bounce">👇</span></div>
+                    <div id="cover-4" class="text-center py-12 text-slate-300 font-bold">點擊揭曉鐵路秘密</div>
+                    <div id="content-4" class="hide space-y-3"><h3 class="text-2xl font-black text-slate-800">豐原火車站 🚂</h3><p class="text-slate-600 leading-relaxed">日治時期火車通行，讓豐原的木材和稻米能運送到全台。交通的進步，讓豐原從農村走向現代城市。</p></div>
+                </div>
+            </div>
+            <div class="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 text-center">
+                <h3 class="text-2xl font-black text-slate-800 mb-8">📊 發現豐原之美：發展關鍵支柱</h3>
+                <div class="chart-container"><canvas id="devChart"></canvas></div>
+            </div>
+        </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Part 1 -->
-            <a href="https://gemini.google.com/share/c609519e78ca" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 1</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    論語修煉
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">溫故而知新，可以為師矣。</p>
-            </a>
-            
-            <!-- Part 2 -->
-            <a href="https://gemini.google.com/share/9fa817e213e3" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 2</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    孟子修煉
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">古籍新生，智慧傳承</p>
-            </a>
-            
-            <!-- Part 3 -->
-            <a href="https://gemini.google.com/share/75b4cd2e3169" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 3</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    大學修煉
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">初學入德之門</p>
-            </a>
-            
-            <!-- Part 4 -->
-            <a href="https://gemini.google.com/share/b5179b7813d3" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 4</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    中庸修煉
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">天命之謂性，率性之謂道</p>
-            </a>            
-            <!-- Part 5 -->
-            <a href="https://lin5406.github.io/lin/lunyu/chunzu.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 5</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    莊子修煉
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">在人生的驚濤駭浪間存活、無傷，更鍊就日益精進的乘御之力，就請打開莊子。</p>
-            </a>
-        </div> 
-    </section>
-    <!-- 確保此區塊下方也有相同的間距，不要直接相連 -->
-
-
-    
-    <!----------------------------------------------------- -->
-    <!--  <div class="h-12 w-full"></div> -->
-    <div class="h-12 w-full"></div>
-    <!-- 學習輔助教材 Section -->
-    <section class="w-full max-w-5xl bg-[#9cb69f] border-4 border-[#ff9d8f] rounded-[2.5rem] p-8 text-center text-[#5c3a21] shadow-2xl relative overflow-visible ring-4 ring-[#ffcda3]/20">
-        <h2 class="text-2xl font-bold mb-2">學習輔助教材</h2>
-        <p class="text-[#8c5a35]/80 text-sm mb-6 uppercase tracking-widest font-bold">Learning supplementary materials</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Part 1 -->
-            <a href="https://aiteach.knsh.com.tw/index/" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 1</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    康軒AI高手
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">AI精準判斷用字,修辭及標點符號正確性，快速分析學生寫作能力及改善方法，也提升老師批改作文的效率。</p>
-            </a>
-            
-            <!-- Part 2 -->
-            <a href="https://teach.knsh.com.tw/j/page.html?s=math_%E6%B4%BB%E5%8C%96%E6%95%99%E5%AD%B8" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 2</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    康軒AI玩數學
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">教學補給、活化教學</p>
-            </a>
-            
-            <!-- Part 3 -->
-            <a href="https://gemini.google.com/share/75b4cd2e3169" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 3</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留...
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留...保留...</p>
-            </a>
-            
-            <!-- Part 4 -->
-            <a href="https://gemini.google.com/share/b5179b7813d3" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 4</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留...
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留...保留...</p>
-            </a>
-            
-            <!-- Part 5 -->
-            <a href="https://lin5406.github.io/lin/lunyu/chunzu.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 5</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留...
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留...保留...</p>
-            </a>
-        </div> 
-    </section>
-    <!------------------------------------------------- -->
-    
-    <!-- 確保此區塊下方也有相同的間距，不要直接相連 -->
-    <div class="h-12 w-full"></div>
-    <!-- Top Resources Section (個人生命密碼解析) -->
-    <section class="w-full max-w-5xl bg-yellow-400 border-4 border-yellow-500 rounded-[2.5rem] p-8 text-center text-yellow-950 shadow-2xl relative overflow-hidden ring-4 ring-yellow-400/20">
-        <h2 class="text-2xl font-bold mb-2">個人生命密碼解析</h2>
-        <p class="text-yellow-900/80 text-sm mb-6 uppercase tracking-widest font-bold">Life Code Analysis</p>
-
-        <!-- 保持一列 3 個的網格 (md:grid-cols-3) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Part 1 -->
-            <a href="https://lin5406.github.io/lin/life" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 1</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    生命靈數能量地圖
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">透過數據分析了解天賦、行為模式與成長方向。</p>
-            </a>
-            <!-- Part 2 -->
-            <a href="https://chatgpt.com/g/g-6995f7cdeb148191adc6334ff8f06efd-a-fu-xing-ming-xue-jie-xi-jin-yao" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 2</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    GPTs：姓名學解析金鑰
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">姓名分析與九宮格Q版漫畫出圖提示詞。</p>
-            </a>
-            <!-- Part 3 -->
-            <a href="https://gemini.google.com/gem/1LhzcxeQgYxSEIj2UXTHYZJaMSu4T5i_Q?usp=sharing" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 3</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    GEM：姓名學解析金鑰
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">三才五格、五行對應與深度解析。</p>
-            </a>
-            <!---------------------------------------------------------------->          
-            <!-- Part 4 -->
-            <a href="https://chatgpt.com/g/g-680ee9d3785081919993086afc907e32-a-fu-gu-shi-chan-xin" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 4</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    a_fu：故事禪心
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">只回應人情世故問題，以佛教短篇故事溫和中性應對。</p>
-            </a>            
-            <!-- Part 5 -->
-            <a href="https://azt156.notion.site/AI-1999ae758af380dd86c4fdcf3074b911" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 5</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留中...保留中...</p>
-            </a>            
-            <!-- Part 6 -->
-            <a href="https://azt156.notion.site/AI-1999ae758af380dd86c4fdcf3074b911" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 6</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留中...保留中...</p>
-            </a>
-        </div> 
-    </section>
-
-    
-    <!----------------------------------------------------- -->
-
-    <div class="h-12 w-full"></div>
-    <!-- 修行人生 Section -->
-    <section class="w-full max-w-5xl bg-[#9AF68E] border-4 border-[#7ED972] rounded-[2.5rem] p-8 text-center text-[#064E3B] shadow-2xl relative overflow-visible">
-        <h2 class="text-2xl font-bold mb-2">修行人生</h2>
-        <p class="text-[#065F46]/60 text-sm mb-6 uppercase tracking-widest font-bold">Cultivation Life</p>
-
-        <!-- 保持一列 3 個的網格 (md:grid-cols-3) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Part 1 -->
-            <div onclick="openNoteModal()" class="cursor-pointer group part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(360px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
-                    <div class="relative w-full aspect-[360/480] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] border-[5px] border-white overflow-hidden mx-auto">
-                        <img src="https://lin5406.github.io/pic/%E7%9C%9F%E6%AD%A3%E7%9A%84%E5%BC%B7%E5%A4%A7001.png" class="w-full h-full object-cover" alt="真正的強大預覽">
-                        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-center text-[11px] text-white font-medium">
-                            360 x 480 HD Preview
+        <!-- SECTION: Song & IP (主題歌曲) -->
+        <section id="sec-song" class="hide space-y-12 animate-fade-in">
+            <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-emerald-100">
+                <div class="bg-emerald-600 p-10 text-white text-center">
+                    <h2 class="text-3xl font-black mb-2 tracking-widest">🎵 豐原尋寶記 主題曲</h2>
+                    <p class="opacity-90 italic">「看見、說出來，咱攏不孤單。」</p>
+                </div>
+                <div class="p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-12 text-center md:text-left">
+                    <div class="space-y-8">
+                        <h3 class="text-2xl font-black text-emerald-700 flex items-center justify-center md:justify-start gap-2 mb-6">🎯 歌曲教學亮點</h3>
+                        <div class="space-y-3 text-sm text-slate-600 font-bold">
+                            <p class="bg-emerald-50 p-3 rounded-xl border-l-4 border-emerald-500">● 開場：Intro + Verse 快速入戲。</p>
+                            <p class="bg-emerald-50 p-3 rounded-xl border-l-4 border-emerald-500">● 中段：副歌做「拍手＋律動」。</p>
+                            <p class="bg-emerald-50 p-3 rounded-xl border-l-4 border-emerald-500">● 橋段：討論「我可以為家鄉做什麼？」。</p>
+                            <p class="bg-emerald-50 p-3 rounded-xl border-l-4 border-emerald-500">● 結尾：Outro當作班級大合唱口號。</p>
+                        </div>
+                        <div class="flex flex-col gap-3 pt-4">
+                            <h4 class="text-slate-800 font-black">🎧 Suno 播放連結</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <a href="https://suno.com/s/kRciIVHMWW7GWKVG" target="_blank" class="bg-slate-100 hover:bg-emerald-100 p-4 rounded-xl text-center font-bold transition-all">版本一：活潑版</a>
+                                <a href="https://suno.com/s/pYpABm0nmwOxxqaF" target="_blank" class="bg-slate-100 hover:bg-emerald-100 p-4 rounded-xl text-center font-bold transition-all">版本二：溫馨版</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-center justify-center space-y-6">
+                        <h3 class="text-2xl font-black text-slate-800">🎤 LINE 貼圖＋角色 IP</h3>
+                        <div class="relative group cursor-pointer" onclick="window.open('https://lin5406.github.io/lin/society/imp115042601.png', '_blank')">
+                            <img id="ip-image" src="https://lin5406.github.io/lin/society/imp115042601.png" alt="豐原小隊" class="ip-img rounded-3xl shadow-2xl border-4 border-white max-w-full h-auto transition-transform group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/10 rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all font-bold text-white shadow-inner">點擊開啟原圖</div>
+                        </div>
+                        <div class="w-full flex flex-col gap-2">
+                            <button id="btn-save-ip" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 px-10 rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">💾 儲存角色圖片</button>
+                            <p id="ip-save-tip" class="text-xs text-slate-400">※ 若按鈕無法下載，請直接對圖片「點擊右鍵」另存圖片即可。</p>
                         </div>
                     </div>
                 </div>
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 1</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        真正的強大
-                        <i data-lucide="scroll-text" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">「真正的強大，是允許一切發生」。深入核心哲學，修煉「允許」的智慧。</p>
-                    <div class="mt-4 flex items-center gap-2 text-[10px] bg-white/10 w-fit px-2 py-1 rounded-full border border-white/20">
-                        <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i>
-                        <span>點擊展開：心靈修行筆記</span>
-                    </div>
-                </div>
             </div>
+        </section>
 
-            <!-- Part 2 -->
-            <div onclick="openNoteModal2()" class="cursor-pointer group part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(640px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
-                    <div class="relative w-full aspect-[640/360] bg-white rounded-2xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] border-[5px] border-white overflow-hidden mx-auto">
-                        <img src="https://lin5406.github.io/pic/小我001.png" class="w-full h-full object-cover" alt="禪修筆記預覽">
-                        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-center text-[11px] text-white font-medium">
-                            640 x 360 HD Preview
-                        </div>
-                    </div>
-                </div>
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 2</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        小我、高我、真我
-                        <i data-lucide="compass" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">收錄修行過程中的感悟。看清「小我」的幻象，回歸內在清明。</p>
-                    <div class="mt-4 flex items-center gap-2 text-[10px] bg-white/10 w-fit px-2 py-1 rounded-full border border-white/20">
-                        <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i>
-                        <span>點擊展開：實修筆記 (三個我)</span>
-                    </div>
-                </div>
+        <!-- SECTION: Video (影音實境) -->
+        <section id="sec-video" class="hide space-y-12 animate-fade-in text-center">
+            <h2 class="text-3xl font-black text-emerald-700">📺 影音實境室</h2>
+            <p class="text-slate-600 mt-2 mb-10">點擊卡片，看見動態的豐原故事！</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <a href="https://www.youtube.com/results?search_query=豐原+葫蘆墩圳+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-emerald-900 flex items-center justify-center text-4xl">🌊</div><div class="p-5 font-bold text-slate-800 text-center text-sm">葫蘆墩圳歷史</div></a>
+                <a href="https://www.youtube.com/results?search_query=豐原+慈濟宮+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-red-800 flex items-center justify-center text-4xl">⛩️</div><div class="p-5 font-bold text-slate-800 text-center text-sm">慈濟宮巡禮</div></a>
+                <a href="https://www.youtube.com/results?search_query=豐原火車站+歷史" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md block group"><div class="aspect-video bg-blue-900 flex items-center justify-center text-4xl">🚂</div><div class="p-5 font-bold text-slate-800 text-center text-sm">百年車站變遷</div></a>
+                <a href="https://www.facebook.com/reel/939180528711910" target="_blank" class="video-card bg-white rounded-2xl overflow-hidden shadow-md border-2 border-emerald-500 block group text-center"><div class="aspect-video bg-slate-900 flex items-center justify-center text-4xl">🎬</div><div class="p-5 font-bold text-emerald-700 text-sm">原始影片參考點</div></a>
             </div>
+        </section>
 
-            <!-- Part 3 -->
-            <div onclick="openNoteModal3()" class="cursor-pointer group part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="absolute left-1/2 -translate-x-1/2 bottom-[115%] w-[min(640px,85vw)] opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 group-hover:-translate-y-4 transition-all duration-500 ease-out z-[50] pointer-events-none text-center">
-                    <div class="relative w-full aspect-[640/400] bg-white rounded-2xl shadow-[0_30px_70px_rgba(0,0,0,0.6)] border-[5px] border-white overflow-hidden mx-auto">
-                        <img src="https://lin5406.github.io/pic/易經六四卦001.png" class="w-full h-full object-cover" alt="易經六十四卦預覽">
-                        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-center text-[11px] text-white font-medium">
-                            640 x 400 HD Preview
-                        </div>
-                    </div>
-                </div>
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 3</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        能量頻率優化
-                        <i data-lucide="zap" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">調整個人數位生活與心理狀態的和諧頻率。照見易經大智慧。</p>
-                    <div class="mt-4 flex items-center gap-2 text-[10px] bg-white/10 w-fit px-2 py-1 rounded-full border border-white/20">
-                        <i data-lucide="mouse-pointer-2" class="w-3 h-3"></i>
-                        <span>點擊展開：易經學習筆記</span>
-                    </div>
-                </div>
-            </div>
-
-            
-            <a href="https://lin5406.github.io/lin/awakening/index.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 4</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    真正的覺醒
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">不是變強，而是徹底消失</p>
-            </a>
-            
-            <a href="https://lin5406.github.io/lin/FourteenUnrecorded/FourteenUnrecorded.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 5</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    十四無記
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">讀懂「十四無記」，你就吃透了佛法80%的核心智慧！</p>
-            </a>
-            <a href="https://lin5406.github.io/1150214_TheOriginalWay/" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 6</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    修行、平等性心態
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">以大自然為師，開啟心靈寶藏<br>圓融精神物質，展現無礙生命</p>
-            </a>
- 
-        </div> 
-    </section>
-
-    <!-- ============================================== -->
-    <!-- Modal 1: Part 1 心靈筆記 (Emerald 綠色調) -->
-    <!-- ============================================== -->
-    <div id="noteModal" class="modal-overlay fixed inset-0 z-[200] hidden flex items-center justify-center p-4 opacity-0">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-xl" onclick="closeNoteModal()"></div>
-        <div id="modalContent" class="modal-content relative bg-[#fcfcf9] w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-[3.5rem] shadow-2xl custom-scrollbar border border-emerald-100 flex flex-col translate-y-10">
-            <div class="sticky top-0 bg-[#fcfcf9]/95 backdrop-blur-md px-8 md:px-12 py-8 flex justify-between items-center border-b border-emerald-100 z-10">
-                <div class="flex items-center gap-4">
-                    <div class="bg-emerald-100 p-3 rounded-2xl text-emerald-600 shadow-sm"><i data-lucide="leaf" class="w-7 h-7"></i></div>
+        <!-- SECTION: Storybook (故事書) -->
+        <section id="sec-storybook" class="hide space-y-12 animate-fade-in text-center">
+            <h2 class="text-3xl md:text-5xl font-black text-emerald-700 tracking-tight">📚 豐原故事書</h2>
+            <p class="text-lg text-slate-600 bg-emerald-50 p-6 rounded-3xl border-2 border-emerald-100 shadow-sm max-w-3xl mx-auto italic mb-10">
+                走進時光隧道，聆聽葫蘆墩的傳說。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                <div class="storybook-card bg-white rounded-3xl p-8 border-2 border-emerald-100 shadow-sm flex flex-col justify-between">
                     <div>
-                        <span class="block font-bold text-emerald-950 text-2xl tracking-wider">心靈修行隨筆</span>
-                        <span class="block text-emerald-500 text-xs uppercase tracking-widest font-bold">Spiritual Insights</span>
+                        <div class="bg-emerald-100 w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6">📄</div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2">豐原尋寶記：葫蘆墩的祕密.pdf</h3>
+                        <p class="text-slate-600 text-sm font-bold">作者：卜十田</p>
                     </div>
+                    <a href="https://drive.google.com/file/d/1cCjg5ZUJf7sKFfylMgD8aB8mJm-9IMve/view?usp=sharing" target="_blank" class="mt-8 block bg-emerald-600 hover:bg-emerald-700 text-white text-center font-bold py-4 rounded-xl">開始閱讀 PDF</a>
                 </div>
-                <button onclick="closeNoteModal()" class="text-stone-400 hover:text-emerald-600 transition-all bg-stone-100 hover:bg-emerald-50 hover:rotate-90 p-4 rounded-full"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <div class="px-8 md:px-20 py-16 text-stone-800 leading-relaxed space-y-20">
-                <div class="text-center space-y-6 border-b border-emerald-50 pb-16">
-                    <h2 class="text-3xl md:text-5xl font-extrabold text-emerald-950 leading-tight">🌿 【心靈筆記】真正的強大，是允許一切發生</h2>
-                </div>
-                <section class="space-y-8">
-                    <div class="flex items-center gap-4"><span class="bg-emerald-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg">1</span><h3 class="text-3xl font-bold text-emerald-900 underline decoration-emerald-100 decoration-8 underline-offset-[-2px]">核心哲學：無常與執念</h3></div>
-                    <div class="bg-emerald-50/50 p-10 rounded-[3rem] border-l-8 border-emerald-500 shadow-sm"><p class="text-xl md:text-2xl leading-relaxed text-emerald-950 font-medium">佛法與心經早已道盡世間真相：「諸行無常，諸法無我」。真正的強大，不是對抗命運，而是看透無常後的通透。</p></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="bg-stone-50 p-10 rounded-[3rem] border border-stone-200 shadow-sm relative overflow-hidden group">
-                            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="link" class="w-20 h-20"></i></div>
-                            <p class="font-bold text-emerald-900 text-2xl mb-6 flex items-center gap-2"><i data-lucide="anchor" class="w-6 h-6 text-emerald-500"></i> 痛苦的根源——「執念」 (Attachment) 🔗</p>
-                            <ul class="space-y-5">
-                                <li><strong class="text-emerald-800 text-lg">定義：</strong>心中的執念生根，非要世事順著自己的心意流轉。</li>
-                                <li><strong class="text-emerald-800 text-lg">表現：</strong><ul class="list-disc list-inside pl-4 mt-2 space-y-1"><li>期待孩子成龍成鳳。</li><li>期待感情白頭偕老。</li><li>期待事業一帆風順。</li></ul></li>
-                                <li class="bg-red-50 p-4 rounded-2xl text-red-700 border border-red-100 font-bold mt-2 text-base leading-relaxed"><strong class="text-red-800 text-lg">後果：</strong>當期待變成「必須」、「一定」，就成了心靈的枷鎖。手中握得越緊，流失得越快。</li>
-                            </ul>
-                        </div>
-                        <div class="bg-amber-50 p-10 rounded-[3rem] border border-amber-100 shadow-sm relative overflow-hidden group">
-                            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="zap" class="w-20 h-20 text-amber-500"></i></div>
-                            <p class="font-bold text-amber-900 text-2xl mb-6 flex items-center gap-2"><i data-lucide="flame" class="w-6 h-6 text-amber-600"></i> 能量法則——「抗拒即強化」 ⚡</p>
-                            <ul class="space-y-5">
-                                <li><strong class="text-amber-800 text-lg">心理學原理：</strong>注意力在哪裡，能量就在哪裡。</li>
-                                <li><ul class="list-disc list-inside pl-4 space-y-1"><li>你越抗拒離別，離別的傷痛盤據越久。</li><li>你越抗拒失敗，挫敗感越讓你裹足不前。</li></ul></li>
-                                <li class="bg-amber-600 text-white p-4 rounded-2xl shadow-md font-bold mt-4 text-base leading-relaxed"><strong class="text-amber-100 text-lg">結論：</strong>抗拒其實是在不斷給負面事物「注入能量」，讓 text 變得更頑固。</li>
-                            </ul>
-                        </div>
-                    </div>
-                </section>
-                <section class="space-y-8">
-                    <div class="flex items-center gap-4"><span class="bg-emerald-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg">2</span><h3 class="text-3xl font-bold text-emerald-900">🌊 何謂「允許」？ (The Art of Allowing)</h3></div>
-                    <div class="text-2xl text-stone-600 italic border-l-8 border-emerald-100 pl-8 py-4 bg-emerald-50/20 rounded-r-[2rem]">「允許」不是消極避世，而是一種順應生命河流的高級智慧。</div>
-                    <div class="space-y-8 text-lg">
-                        <p><strong>允許的本質：</strong>並非妥協或放棄，而是看清無常後的從容與清醒。<br>承認所有發生都是「因緣和合」的結果，沒有偶然，只有必然。</p>
-                        <div class="bg-emerald-900 text-emerald-50 p-12 rounded-[3.5rem] shadow-2xl space-y-10 relative overflow-hidden">
-                             <div class="absolute -top-10 -left-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
-                             <h4 class="text-3xl font-bold border-b border-white/10 pb-6 flex items-center gap-4">河流的比喻 🛶：</h4>
-                             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors"><span class="text-red-300 font-bold text-2xl block mb-4 underline underline-offset-8 decoration-red-500/50">對抗：</span><p class="opacity-90 text-lg leading-relaxed">逆流而上，想要堵住命運的去路，最終筋疲力盡並被反噬。</p></div>
-                                <div class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors"><span class="text-emerald-300 font-bold text-2xl block mb-4 underline underline-offset-8 decoration-emerald-500/50">允許：</span><p class="opacity-90 text-lg leading-relaxed">順著水流的方向，駕著一葉扁舟。既能欣賞風景，也能坦然面對風浪。</p></div>
-                             </div>
-                             <div class="pt-10 border-t border-white/10 text-center"><p class="text-xl font-bold text-emerald-200">行動準則：「盡人事，聽天命」。</p><p class="opacity-80 mt-2 text-lg">努力不再帶著焦慮，而是帶著清醒。努力過便無怨無悔，結果如何皆隨緣。</p></div>
-                        </div>
-                    </div>
-                </section>
-                <section class="space-y-8">
-                    <div class="flex items-center gap-4"><span class="bg-emerald-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg">3</span><h3 class="text-3xl font-bold text-emerald-900">🛠️ 五大場景實修指南</h3></div>
-                    <p class="text-lg">生活中的每一個場景，都是修煉「允許」的道場。以下是抗拒與允許的對照修煉表：</p>
-                    <div class="overflow-x-auto rounded-[3.5rem] border-2 border-emerald-50 shadow-2xl">
-                        <table class="w-full text-left border-collapse bg-white">
-                            <thead class="bg-emerald-600 text-white text-lg">
-                                <tr>
-                                    <th class="px-10 py-8 font-bold">生活場景</th>
-                                    <th class="px-10 py-8 font-bold text-red-100">🚫 執念與抗拒 (痛苦模式)</th>
-                                    <th class="px-10 py-8 font-bold text-emerald-100">✅ 允許與接納 (解脫模式)</th>
-                                    <th class="px-10 py-8 font-bold">💡 核心心法</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-emerald-50 text-base leading-relaxed">
-                                <tr class="hover:bg-emerald-50/20 transition-colors">
-                                    <td class="px-10 py-10 font-bold text-emerald-950 text-xl whitespace-nowrap">👶 親子教育</td>
-                                    <td class="px-10 py-10 text-stone-600">逼孩子放棄愛好，強迫按規劃走，把孩子當傀儡或人生延續。</td>
-                                    <td class="px-10 py-10 text-emerald-900 font-medium">尊重孩子是獨立靈魂，允許他慢、允許他走彎路，給予愛與自由。</td>
-                                    <td class="px-10 py-10 italic text-stone-500 font-medium">拔苗助長只會枯萎，順應天性才能長成參天大樹。</td>
-                                </tr>
-                                <tr class="hover:bg-emerald-50/20 transition-colors">
-                                    <td class="px-10 py-10 font-bold text-emerald-950 text-xl whitespace-nowrap">❤️ 親密關係</td>
-                                    <td class="px-10 py-10 text-stone-600">想改變對方，希望對方按自己的方式來愛，依賴對方填補內心空缺。</td>
-                                    <td class="px-10 py-10 text-emerald-900 font-medium">接納對方的不完美與差異，專注提升自己，讓自己圓滿進而感染對方。</td>
-                                    <td class="px-10 py-10 italic text-stone-500 font-medium">想把玫瑰變成百合是徒勞，真正的愛不是改造。</td>
-                                </tr>
-                                <tr class="hover:bg-emerald-50/20 transition-colors">
-                                    <td class="px-10 py-10 font-bold text-emerald-950 text-xl whitespace-nowrap">🤝 人際邊界</td>
-                                    <td class="px-10 py-10 text-stone-600">總想干涉別人，也總想尋求別人認可。邊界不清，互相越界。</td>
-                                    <td class="px-10 py-10 text-emerald-900 font-medium">課題分離。別人的事是別人的因果，不干涉也不讓他人左右自己。</td>
-                                    <td class="px-10 py-10 italic text-stone-500 font-medium">兩棵樹各自扎根，既能枝葉繁茂又能彼此守望。</td>
-                                </tr>
-                                <tr class="hover:bg-emerald-50/20 transition-colors">
-                                    <td class="px-10 py-10 font-bold text-emerald-950 text-xl whitespace-nowrap">💼 工作事業</td>
-                                    <td class="px-10 py-10 text-stone-600">執著於職位升降、業績指標、他人評價，為名利勾心鬥角。</td>
-                                    <td class="px-10 py-10 text-emerald-900 font-medium">專注當下任務，盡力而不敷衍。把工作當修行，結果隨緣。</td>
-                                    <td class="px-10 py-10 italic text-stone-500 font-medium">放下證明自己的執念，工作反而輕鬆高效。</td>
-                                </tr>
-                                <tr class="hover:bg-emerald-50/20 transition-colors">
-                                    <td class="px-10 py-10 font-bold text-emerald-950 text-xl whitespace-nowrap">🏥 身體健康</td>
-                                    <td class="px-10 py-10 text-stone-600">暴飲暴食透支身體，生病時抗拒恐懼，導致病情加重。</td>
-                                    <td class="px-10 py-10 text-emerald-900 font-medium">健康時規律作息；生病時不抱怨恐懼，積極治療並與疾病和平共處。</td>
-                                    <td class="px-10 py-10 italic text-stone-500 font-medium">身體像機器需保養，生老病死是無法逃避的常態。</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                <section class="space-y-12">
-                    <div class="flex items-center gap-4"><span class="bg-emerald-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg">4</span><h3 class="text-3xl font-bold text-emerald-900">🧘‍♂️ 深層覺醒：照見五蘊皆空</h3></div>
-                    <p class="text-lg">要做到徹底的允許，需從「放下我執」開始，看清生命的虛幻本質。</p>
-                    <div class="bg-emerald-950 text-white p-16 rounded-[4rem] shadow-2xl relative overflow-hidden group">
-                         <div class="absolute -top-20 -right-20 w-80 h-80 bg-emerald-500/10 rounded-full group-hover:scale-125 transition-transform duration-1000"></div>
-                         <p class="text-2xl font-bold mb-8 flex items-center gap-4 text-emerald-300">🌀 五蘊皆空 (The Five Aggregates)</p>
-                         <p class="text-xl opacity-90 mb-12 leading-relaxed text-emerald-50 font-light">心經云：「照見五蘊皆空，度一切苦厄。」五蘊如天空中的雲朵，聚散無常：</p>
-                         <div class="grid grid-cols-2 md:grid-cols-5 gap-6 mb-16">
-                             <div class="bg-white/10 p-6 rounded-[2.5rem] text-center backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all"><span class="block font-bold text-3xl text-emerald-200 mb-2">色</span><span class="text-sm opacity-90 font-medium">(形體)：身體會衰老。</span></div>
-                             <div class="bg-white/10 p-6 rounded-[2.5rem] text-center backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all"><span class="block font-bold text-3xl text-emerald-200 mb-2">受</span><span class="text-sm opacity-90 font-medium">(感受)：感受會變化。</span></div>
-                             <div class="bg-white/10 p-6 rounded-[2.5rem] text-center backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all"><span class="block font-bold text-3xl text-emerald-200 mb-2">想</span><span class="text-sm opacity-90 font-medium">(念頭)：念頭會消失。</span></div>
-                             <div class="bg-white/10 p-6 rounded-[2.5rem] text-center backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all"><span class="block font-bold text-3xl text-emerald-200 mb-2">行</span><span class="text-sm opacity-90 font-medium">(行為)：言行會被遺忘。</span></div>
-                             <div class="bg-white/10 p-6 rounded-[2.5rem] text-center backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all"><span class="block font-bold text-3xl text-emerald-200 mb-2">識</span><span class="text-sm opacity-90 font-medium">(意識)：意識會流轉。</span></div>
-                         </div>
-                         <div class="bg-emerald-600/30 p-10 rounded-[3rem] border border-emerald-500/40 backdrop-blur-sm">
-                            <p class="font-bold text-emerald-200 text-xl mb-4">修煉法：</p>
-                            <p class="text-lg opacity-90 leading-loose">當執念升起，不要抗拒也不要追隨，只是靜靜地看著它。你會發現念頭本身是虛幻的，不執著於它，它就無法困擾你。</p>
-                         </div>
-                    </div>
-                </section>
-                <section class="space-y-10">
-                    <div class="flex items-center gap-4"><span class="bg-emerald-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg">5</span><h3 class="text-3xl font-bold text-emerald-900">🌾 誤區釐清：允許 = 擺爛？</h3></div>
-                    <p class="text-lg text-stone-800">很多人誤以為「允許一切發生」是消極避世或放任自流，這是錯誤的理解。</p>
-                    <div class="flex flex-col md:flex-row gap-16 items-center bg-stone-100 p-12 rounded-[4rem]">
-                        <div class="flex-1 space-y-8">
-                            <h4 class="text-3xl font-bold text-stone-950">👨‍🌾 農夫的智慧</h4>
-                            <div class="space-y-6 text-xl leading-relaxed">
-                                <p><strong class="text-emerald-800">耕耘 (盡人事)：</strong>農夫會辛勤耕耘、澆水施肥。</p>
-                                <p><strong class="text-emerald-800">允許 (聽天命)：</strong>農夫不會強迫莊稼按照自己的意願生長，而是順應節氣，耐心等待。</p>
-                            </div>
-                            <div class="bg-white p-10 rounded-[2.5rem] border-l-[12px] border-emerald-600 shadow-xl text-xl text-stone-900 font-medium leading-relaxed">
-                                <strong>結論：</strong>允許不是放棄努力，而是在努力中保持從容；不是縱容錯誤，而是在包容中引導改變。
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <section class="space-y-12">
-                    <div class="flex items-center gap-4"><span class="bg-emerald-600 text-white w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-xl shadow-lg">6</span><h3 class="text-3xl font-bold text-emerald-900">🌅 終極境界：活在當下</h3></div>
-                    <p class="text-lg">人生是一場旅行，不必在乎目的地，在乎的是沿途的風景。</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-                        <div class="p-12 bg-white border-2 border-stone-100 rounded-[3.5rem] text-center shadow-lg group">
-                            <span class="block text-stone-400 font-bold uppercase tracking-widest text-sm mb-4">時間觀</span>
-                            <p class="text-stone-800 font-bold text-xl">過去已去，無法改變。<br><span class="text-stone-400 text-base font-normal">（不必自責）</span></p>
-                        </div>
-                        <div class="p-12 bg-white border-2 border-stone-100 rounded-[3.5rem] text-center shadow-lg group">
-                            <span class="block text-stone-400 font-bold uppercase tracking-widest text-sm mb-4">時間觀</span>
-                            <p class="text-stone-800 font-bold text-xl">未來未到，無法預測。<br><span class="text-stone-400 text-base font-normal">（不必擔憂）</span></p>
-                        </div>
-                        <div class="p-12 bg-emerald-950 text-white rounded-[3.5rem] text-center shadow-2xl scale-105 transform">
-                            <span class="block text-emerald-400 font-bold uppercase tracking-widest text-sm mb-4">當下</span>
-                            <p class="font-extrabold text-2xl leading-relaxed">餓了吃飯，困了睡覺。<br>活在當下，心就會安住。</p>
-                        </div>
-                    </div>
-                    <div class="bg-stone-50 p-16 rounded-[4rem] text-center border-2 border-stone-200 font-medium text-stone-700 text-2xl leading-[2] shadow-inner space-y-6">
-                        <p><strong>生命觀：</strong>人生最珍貴的不是擁有多少，而是體驗了多少；不是得到了多少，而是放下了多少。</p>
-                        <p class="text-emerald-900 font-extrabold text-3xl">人生就像一杯茶：平淡是本色，苦澀是歷程，清香是饋贈。</p>
-                    </div>
-                </section>
-                <div class="text-center py-28 px-12 bg-gradient-to-br from-emerald-900 via-emerald-950 to-stone-950 text-white rounded-[5rem] shadow-2xl relative overflow-hidden">
-                    <div class="relative z-10">
-                        <h3 class="text-5xl font-extrabold mb-12 flex items-center justify-center gap-6">🌟 結語：</h3>
-                        <p class="max-w-4xl mx-auto leading-[2.8] text-emerald-50 font-light text-2xl md:text-3xl">
-                            從今天起，允許一切發生。讓命運自然流動，讓心安然自在。願你懂得人生真諦不在於擁有完美的外在，而在於擁有一顆無礙的內心。<br>
-                            <span class="font-bold text-emerald-300 mt-12 block text-3xl md:text-4xl">心無掛礙，無有恐怖，遠離顛倒夢想，究竟涅槃。</span>
-                        </p>
-                    </div>
-                </div>
-                <section class="space-y-12 pt-20 border-t border-emerald-100">
-                    <h4 class="text-4xl font-extrabold text-emerald-950 flex items-center gap-6">❓ 附錄問答</h4>
-                    <div class="grid grid-cols-1 gap-10">
-                        <div class="bg-white p-12 rounded-[3.5rem] border-2 border-stone-100 hover:border-emerald-200 transition-all shadow-xl">
-                            <p class="font-extrabold text-emerald-900 mb-6 text-2xl">問題 1：為什麼說「抗拒」反而會讓負面情緒或事件在生命中變得更頑固？</p>
-                            <p class="text-stone-700 text-xl leading-loose pl-10 border-l-4 border-emerald-300">
-                                <strong>簡答：</strong><br>
-                                根據心理學原理，「注意力在哪裡，能量就在哪裡」。當我們抗拒某件事（如失戀、失敗、誤解）時，其實是在不斷地將注意力集中在它上面，這等於持續給這些負面事物「注入能量」，導致它們在生命中愈發清晰、頑固，甚至讓痛苦盤據更久。
-                            </p>
-                        </div>
-                        <div class="bg-white p-12 rounded-[3.5rem] border-2 border-stone-100 hover:border-emerald-200 transition-all shadow-xl">
-                            <p class="font-extrabold text-emerald-900 mb-6 text-2xl">問題 2：「允許一切發生」是否意味著消極、什麼都不做或放任錯誤？</p>
-                            <p class="text-stone-700 text-xl leading-loose pl-10 border-l-4 border-emerald-300">
-                                <strong>簡答：</strong><br>
-                                不是。這是一種誤解。「允許」並非放棄努力或縱容錯誤，而是像農夫種莊稼一樣：依然需要辛勤耕耘、澆水施肥（盡人事），但同時順應自然規律，不強迫莊稼拔苗助長（聽天命）。它是在看清無常本質後，在努力中保持從容與清醒的智慧。
-                            </p>
-                        </div>
-                    </div>
-                </section>
-            </div>
-            <div class="p-12 border-t border-emerald-50 bg-emerald-50/20 text-center rounded-b-[3.5rem]">
-                <button onclick="closeNoteModal()" class="px-20 py-6 bg-emerald-600 text-white font-extrabold text-xl rounded-full hover:bg-emerald-700 shadow-2xl hover:shadow-emerald-500/20 transition-all transform hover:scale-105">關閉筆記，安住當下</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================== -->
-    <!-- Modal 2: Part 2 實修筆記 (Indigo/Slate 靛藍色調) -->
-    <!-- ============================================== -->
-    <div id="noteModal2" class="modal-overlay fixed inset-0 z-[200] hidden flex items-center justify-center p-4 opacity-0">
-        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-xl" onclick="closeNoteModal2()"></div>
-        <div id="modalContent2" class="modal-content relative bg-[#f8fafc] w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-[3.5rem] shadow-2xl custom-scrollbar border border-indigo-100 flex flex-col translate-y-10">
-            <div class="sticky top-0 bg-[#f8fafc]/95 backdrop-blur-md px-8 md:px-12 py-8 flex justify-between items-center border-b border-indigo-100 z-10">
-                <div class="flex items-center gap-4">
-                    <div class="bg-indigo-100 p-3 rounded-2xl text-indigo-600 shadow-sm"><i data-lucide="compass" class="w-7 h-7"></i></div>
+                <div class="storybook-card bg-white rounded-3xl p-8 border-2 border-blue-100 shadow-sm flex flex-col justify-between">
                     <div>
-                        <span class="block font-bold text-slate-900 text-2xl tracking-wider">實修筆記</span>
-                        <span class="block text-indigo-500 text-xs uppercase tracking-widest font-bold">Inner Compass</span>
+                        <div class="bg-blue-100 w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6">🎙️</div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2">聲音故事館</h3>
+                        <p class="text-slate-600 text-sm">戴上耳機，聽一段關於家鄉土地的呼吸聲。</p>
                     </div>
+                    <a href="https://drive.google.com/file/d/1w0QIBG3r6ZtlQ5KDGJdQpNTl7Wdof14e/view?usp=drive_link" target="_blank" class="mt-8 block bg-blue-600 hover:bg-blue-700 text-white text-center font-bold py-4 rounded-xl">點擊播放聲音</a>
                 </div>
-                <button onclick="closeNoteModal2()" class="text-slate-400 hover:text-indigo-600 transition-all bg-white hover:bg-indigo-50 hover:rotate-90 p-4 rounded-full shadow-sm border border-slate-100"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            
-            <div class="px-8 md:px-20 py-16 text-slate-700 leading-relaxed space-y-20">
-                <div class="text-center space-y-8 border-b border-indigo-50 pb-16">
-                    <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight">🧭 【實修筆記】<br>決定你人生的三個「我」：<br><span class="text-indigo-600">小我、高我、真我</span></h2>
-                </div>
-                 <section class="space-y-8">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-orange-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg shadow-orange-500/30">1</span>
-                        <h3 class="text-3xl font-bold text-slate-900 flex items-center gap-3">🚨 小我 (Ego)：受傷的生存防禦系統</h3>
-                    </div>
-                    <div class="bg-orange-50 border-l-[6px] border-orange-400 p-8 rounded-3xl text-lg text-orange-900">
-                        「小我」並非惡魔，它是你為了玩這場「地球遊戲」自帶的適應程序，就像一個被過往傷痛訓練出來的 AI 防禦機制。
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="bg-white border-2 border-orange-100 p-8 rounded-[2.5rem] shadow-sm">
-                            <h4 class="text-xl font-bold text-orange-800 mb-6 flex items-center gap-2"><i data-lucide="settings" class="w-6 h-6"></i> ⚙️ 運作模式：</h4>
-                            <ul class="space-y-4">
-                                <li class="flex items-start gap-3"><span class="text-orange-500 mt-1">•</span><div><strong>恐懼驅動：</strong>它的核心信念是「世界很危險，我必須完美才有價值」。</div></li>
-                                <li class="flex items-start gap-3"><span class="text-orange-500 mt-1">•</span><div><strong>控制與抓取：</strong>認為關係必須靠控制維持，否則就會被拋棄。</div></li>
-                                <li class="flex items-start gap-3"><span class="text-orange-500 mt-1">•</span><div><strong>三毒顯化：</strong>佛陀所說的「貪、嗔、痴、慢、疑」，正是小我的運作模式，也是人類痛苦的根源。</div></li>
-                            </ul>
-                        </div>
-                        <div class="space-y-8">
-                            <div class="bg-white border-2 border-orange-100 p-8 rounded-[2.5rem] shadow-sm">
-                                <h4 class="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2"><i data-lucide="message-circle" class="w-6 h-6"></i> 🗣️ 內在聲音：</h4>
-                                <ul class="space-y-2 text-slate-600 italic">
-                                    <li>◦ 「你不能失敗！」</li>
-                                    <li>◦ 「千萬別暴露脆弱！」</li>
-                                    <li>◦ 「直覺那玩意兒不靠譜，別信！」</li>
-                                </ul>
-                                <div class="mt-6 pt-6 border-t border-orange-50">
-                                    <p class="font-bold text-red-600"><i data-lucide="trending-down" class="inline w-5 h-5 mb-1 mr-1"></i> 📉 結果：</p>
-                                    <p class="mt-2 text-slate-700">導致你不斷地討好他人、精神內耗、控制局勢、壓抑真實感受。</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-gradient-to-r from-orange-100 to-amber-50 p-8 rounded-[2rem] border border-orange-200 flex gap-6 items-start">
-                        <i data-lucide="lightbulb" class="w-8 h-8 text-orange-600 shrink-0"></i>
-                        <div>
-                            <p class="font-bold text-orange-900 text-xl mb-2">💡 修行心法：</p>
-                            <p class="text-orange-800 leading-relaxed text-lg">對於小我，不可強攻，只能智取。不要憎恨它，它只是你過去所有創傷、恐懼、羞恥與匱乏的總和，它只是在用最笨拙的方式試圖保護你活下去。</p>
-                        </div>
-                    </div>
-                </section>
-                <section class="space-y-8">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-blue-500 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg shadow-blue-500/30">2</span>
-                        <h3 class="text-3xl font-bold text-slate-900 flex items-center gap-3">📡 高我 (Higher Self)：跨維度智慧導航</h3>
-                    </div>
-                    <div class="bg-blue-50 border-l-[6px] border-blue-400 p-8 rounded-3xl text-lg text-blue-900">
-                        「高我」是你靈魂的導航系統。現在這個肉體的你只是祂的一部分，而祂站在更高的維度，俯瞰著你玩這場遊戲。
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="bg-white border-2 border-blue-100 p-8 rounded-[2.5rem] shadow-sm">
-                            <h4 class="text-xl font-bold text-blue-800 mb-6 flex items-center gap-2"><i data-lucide="map" class="w-6 h-6"></i> 🗺️ 指引方式：</h4>
-                            <ul class="space-y-6">
-                                <li><strong>全知視角：</strong>你的人生劇本祂參與寫過。你要闖什麼關、解什麼卡點，祂早就知道答案。</li>
-                                <li><strong>溫柔喚醒：</strong>祂從不強迫，只會透過靈感、直覺、夢境或內在感召，溫柔而堅定地指引你。</li>
-                            </ul>
-                        </div>
-                        <div class="bg-slate-800 text-blue-50 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden">
-                            <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="swords" class="w-32 h-32"></i></div>
-                            <h4 class="text-xl font-bold text-blue-300 mb-6 flex items-center gap-2 relative z-10">⚔️ 內在衝突的真相：</h4>
-                            <ul class="space-y-4 relative z-10">
-                                <li class="flex items-start gap-2"><span class="text-blue-400">◦</span> 當你腦中冒出「我想辭職」、「不想再討好人」的念頭，你會以為是任性？</li>
-                                <li class="flex items-start gap-2"><span class="text-red-400 font-bold">◦ 錯！</span> 那往往是高我正在拼命叫醒你。</li>
-                                <li class="flex items-start gap-2 bg-white/10 p-4 rounded-xl mt-2"><span class="text-blue-200">◦ 心裡的劇烈拉扯，其實是 <strong>「小我的焦慮」 vs. 「高我的召喚」</strong> 兩個頻道同時在響。</span></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="bg-slate-100 p-6 rounded-[2rem] flex items-center gap-4 border border-slate-200">
-                        <div class="bg-red-100 p-3 rounded-full text-red-600"><i data-lucide="alert-triangle"></i></div>
-                        <p class="text-slate-700 font-medium"><strong>⚠️ 斷線後果：</strong>長期忽略高我的訊息，就像開車在山路裡卻關掉了導航，只能在原地打轉。</p>
-                    </div>
-                </section>
-                <section class="space-y-8">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-purple-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg shadow-purple-600/30">3</span>
-                        <h3 class="text-3xl font-bold text-slate-900 flex items-center gap-3">💎 真我 (True Self)：本自具足的源頭</h3>
-                    </div>
-                    <div class="bg-purple-50 border-l-[6px] border-purple-400 p-8 rounded-3xl text-lg text-purple-900">
-                        「真我」不是任何人格、標籤或角色，祂是你投生地球之前的本來面目。
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="bg-white border-2 border-purple-100 p-8 rounded-[2rem] shadow-sm">
-                            <h4 class="text-xl font-bold text-purple-800 mb-4">✨ 核心品質：</h4>
-                            <ul class="space-y-4">
-                                <li><strong>本自具足：</strong>祂是完整、自由、純淨的。</li>
-                                <li><strong>無畏無懼：</strong>祂不焦慮、不比較、不恐懼，因為祂深知「我本身就是愛」。</li>
-                            </ul>
-                        </div>
-                        <div class="bg-white border-2 border-purple-100 p-8 rounded-[2rem] shadow-sm">
-                            <h4 class="text-xl font-bold text-purple-800 mb-4">🧘 顯現時刻：</h4>
-                            <ul class="space-y-2 text-slate-700">
-                                <li>◦ 深度禪修打坐時。</li>
-                                <li>◦ 被催眠的深層狀態中。</li>
-                                <li>◦ 全神貫注做熱愛之事的「心流」狀態。</li>
-                                <li>◦ 與某人靈魂深度連結時。</li>
-                            </ul>
-                        </div>
-                        <div class="bg-purple-900 text-purple-50 p-8 rounded-[2rem] shadow-xl">
-                            <h4 class="text-xl font-bold text-purple-200 mb-4">🔓 覺醒的定義：</h4>
-                            <ul class="space-y-4">
-                                <li class="opacity-90">◦ 覺醒不是讓你變得更優秀或更正確。</li>
-                                <li class="bg-white/10 p-4 rounded-xl font-bold text-white leading-relaxed">
-                                    ◦ 真正的覺醒，是 <strong>真我</strong>開始接管你的人生，你終於不再被小我控制。
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </section>
-                <section class="space-y-8 pt-8">
-                    <h3 class="text-3xl font-bold text-slate-900 flex items-center gap-3"><i data-lucide="bar-chart-2" class="w-8 h-8 text-indigo-600"></i> 📊 三種「自我」層次比較表</h3>
-                    <p class="text-lg text-slate-600">為了讓各位同修更直觀地分辨當下的狀態，特整理此表以供觀照：</p>
-                    <div class="overflow-x-auto rounded-[3rem] border-2 border-indigo-100 shadow-2xl">
-                        <table class="w-full text-left border-collapse bg-white min-w-[800px]">
-                            <thead class="bg-indigo-900 text-indigo-50 text-lg">
-                                <tr>
-                                    <th class="px-8 py-6 font-bold w-1/4">比較維度</th>
-                                    <th class="px-8 py-6 font-bold text-orange-300 w-1/4">🚨 小我 (Ego)</th>
-                                    <th class="px-8 py-6 font-bold text-blue-300 w-1/4">📡 高我 (Higher Self)</th>
-                                    <th class="px-8 py-6 font-bold text-purple-300 w-1/4">💎 真我 (True Self)</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-indigo-50 text-base">
-                                <tr class="hover:bg-indigo-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-indigo-900">本質身分</td>
-                                    <td class="px-8 py-6 text-slate-700">生存防禦系統 (AI)</td>
-                                    <td class="px-8 py-6 text-slate-700">靈魂導航系統</td>
-                                    <td class="px-8 py-6 font-bold text-purple-800">本來面目 (源頭)</td>
-                                </tr>
-                                <tr class="hover:bg-indigo-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-indigo-900">運作動力</td>
-                                    <td class="px-8 py-6 text-slate-700">恐懼、匱乏、創傷</td>
-                                    <td class="px-8 py-6 text-slate-700">指引、靈感、直覺</td>
-                                    <td class="px-8 py-6 font-bold text-purple-800">愛、存在、完整</td>
-                                </tr>
-                                <tr class="hover:bg-indigo-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-indigo-900">核心信念</td>
-                                    <td class="px-8 py-6 text-slate-700">世界危險、必須完美、要控制</td>
-                                    <td class="px-8 py-6 text-slate-700">我知道劇本、我知道路怎麼走</td>
-                                    <td class="px-8 py-6 font-bold text-purple-800">本自具足、我即是愛</td>
-                                </tr>
-                                <tr class="hover:bg-indigo-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-indigo-900">常見狀態</td>
-                                    <td class="px-8 py-6 text-slate-700">貪嗔痴慢疑、內耗、討好</td>
-                                    <td class="px-8 py-6 text-slate-700">溫柔堅定、內在感召</td>
-                                    <td class="px-8 py-6 font-bold text-purple-800">自由、純淨、無分別</td>
-                                </tr>
-                                <tr class="bg-indigo-50/50">
-                                    <td class="px-8 py-6 font-bold text-indigo-950">應對策略</td>
-                                    <td class="px-8 py-6 text-orange-800 font-medium">智取不強攻，理解其保護意圖</td>
-                                    <td class="px-8 py-6 text-blue-800 font-medium">信任並跟隨指引，保持連線</td>
-                                    <td class="px-8 py-6 text-purple-800 font-bold bg-purple-100/50 rounded-br-[3rem]">對準頻率，讓其接管人生</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                <section class="space-y-10 pt-10">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg shadow-indigo-600/30">4</span>
-                        <h3 class="text-3xl font-bold text-slate-900 flex items-center gap-3">🔑 覺醒的行動：從防禦切換到信任</h3>
-                    </div>
-                    <p class="text-xl text-slate-700 font-medium px-4">同修們，導航已經開啟，你準備好調頻了嗎？覺醒的路徑非常清晰：</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="bg-white p-10 rounded-[3rem] border-2 border-indigo-100 shadow-lg hover:-translate-y-2 transition-transform duration-300">
-                            <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center text-indigo-600 mb-6">
-                                <i data-lucide="refresh-cw" class="w-8 h-8"></i>
-                            </div>
-                            <h4 class="text-2xl font-bold text-indigo-900 mb-4">🔄 調頻 (Shift)</h4>
-                            <ul class="space-y-3 text-slate-600">
-                                <li>◦ 主動意識到當下的恐懼來自「小我」。</li>
-                                <li>◦ 從「防禦與控制」模式，切換到「覺知與信任」模式。</li>
-                            </ul>
-                        </div>
-                        <div class="bg-white p-10 rounded-[3rem] border-2 border-indigo-100 shadow-lg hover:-translate-y-2 transition-transform duration-300 delay-100">
-                            <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center text-blue-600 mb-6">
-                                <i data-lucide="crosshair" class="w-8 h-8"></i>
-                            </div>
-                            <h4 class="text-2xl font-bold text-blue-900 mb-4">🎯 對準 (Align)</h4>
-                            <ul class="space-y-3 text-slate-600">
-                                <li>◦ 不再用頭腦反覆判斷「合不合理」。</li>
-                                <li>◦ 開始聽見高我、相信高我、跟隨高我行動。</li>
-                            </ul>
-                        </div>
-                        <div class="bg-gradient-to-br from-indigo-900 to-purple-900 p-10 rounded-[3rem] shadow-2xl text-white hover:-translate-y-2 transition-transform duration-300 delay-200">
-                            <div class="bg-white/20 w-16 h-16 rounded-full flex items-center justify-center text-purple-200 mb-6">
-                                <i data-lucide="star" class="w-8 h-8"></i>
-                            </div>
-                            <h4 class="text-2xl font-bold text-purple-100 mb-4">🌟 歸位 (Return)</h4>
-                            <ul class="space-y-3 text-indigo-100">
-                                <li>◦ 最終對準「真我」的頻率，活出你原本就是的樣子。</li>
-                                <li>◦ 走回那條真正屬於你的靈魂軌道。</li>
-                            </ul>
-                        </div>
-                    </div>
-                </section>
-                <div class="text-center py-20 px-12 bg-slate-100 rounded-[4rem] border-2 border-slate-200 shadow-inner mt-16">
-                    <p class="max-w-3xl mx-auto leading-loose text-slate-800 text-2xl font-medium">
-                        <span class="text-indigo-600 font-bold block mb-4 text-3xl">結語：</span>
-                        修行不是消滅小我，而是讓<strong class="text-purple-700">真我掌舵</strong>，<strong class="text-blue-700">高我導航</strong>，小我安分退位。<br>
-                        如是，方能自在圓滿。 🙏
-                    </p>
-                </div>
-            </div>
-            <div class="p-12 border-t border-indigo-50 bg-indigo-50/30 text-center rounded-b-[3.5rem]">
-                <button onclick="closeNoteModal2()" class="px-20 py-6 bg-indigo-600 text-white font-extrabold text-xl rounded-full hover:bg-indigo-700 shadow-2xl hover:shadow-indigo-500/20 transition-all transform hover:scale-105">關閉筆記，回歸真我</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================== -->
-    <!-- Modal 3: Part 3 易經學習筆記 (Amber/Stone 琥珀金調) -->
-    <!-- ============================================== -->
-    <div id="noteModal3" class="modal-overlay fixed inset-0 z-[200] hidden flex items-center justify-center p-4 opacity-0">
-        <div class="absolute inset-0 bg-stone-900/90 backdrop-blur-xl" onclick="closeNoteModal3()"></div>
-        <div id="modalContent3" class="modal-content relative bg-[#faf9f6] w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-[3.5rem] shadow-2xl custom-scrollbar border border-amber-100 flex flex-col translate-y-10">
-            <div class="sticky top-0 bg-[#faf9f6]/95 backdrop-blur-md px-8 md:px-12 py-8 flex justify-between items-center border-b border-amber-100 z-10">
-                <div class="flex items-center gap-4">
-                    <div class="bg-amber-100 p-3 rounded-2xl text-amber-700 shadow-sm"><i data-lucide="book-open" class="w-7 h-7"></i></div>
+                <div class="storybook-card bg-white rounded-3xl p-8 border-2 border-amber-100 shadow-sm flex flex-col justify-between">
                     <div>
-                        <span class="block font-bold text-stone-900 text-2xl tracking-wider">易經學習筆記</span>
-                        <span class="block text-amber-600 text-xs uppercase tracking-widest font-bold">The Book of Changes</span>
+                        <div class="bg-amber-100 w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6">🧩</div>
+                        <h3 class="text-xl font-black text-slate-800 mb-2">尋寶解謎任務</h3>
+                        <p class="text-slate-600 text-sm">讀完故事了嗎？快來破解藏在細節裡的謎題！</p>
                     </div>
+                    <a href="https://docs.google.com/forms/d/1go29qHFcovlbLdACtqe-HWNP80UrnE47sF22pgbk96M/viewform?edit_requested=true" target="_blank" class="mt-8 block bg-amber-500 hover:bg-amber-600 text-white text-center font-bold py-4 rounded-xl">進行尋寶解謎</a>
                 </div>
-                <button onclick="closeNoteModal3()" class="text-stone-400 hover:text-amber-600 transition-all bg-white hover:bg-amber-50 hover:rotate-90 p-4 rounded-full shadow-sm border border-stone-100"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
-            
-            <div class="px-8 md:px-20 py-16 text-stone-700 leading-relaxed space-y-20">
-                <div class="text-center space-y-8 border-b border-amber-50 pb-16">
-                    <h2 class="text-3xl md:text-5xl font-extrabold text-stone-900 leading-tight">🚀 【易經學習筆記】<br><span class="text-amber-700">不必死背 64 卦，掌握核心公式萬物皆可算</span></h2>
+        </section>
+
+        <!-- SECTION: Worksheet (隨機挑戰) -->
+        <section id="sec-worksheet" class="hide space-y-12 animate-fade-in">
+            <div class="bg-white rounded-3xl shadow-2xl p-8 lg:p-12 border-t-8 border-emerald-500">
+                <div class="text-center mb-10"><h2 class="text-3xl font-black text-slate-800">📝 豐原小達人：隨機測驗</h2><p class="text-slate-500 mt-2">每次抽題都不同！提交後將為您詳細分析對錯與答案解析。</p><button onclick="initQuiz()" class="mt-4 bg-slate-800 text-white px-6 py-2 rounded-full text-sm font-bold shadow-md hover:bg-slate-700 transition-all">🔄 重新抽題挑戰</button></div>
+                <div id="quiz-area" class="space-y-12"></div>
+                <div class="mt-12 space-y-6"><button id="btn-submit-quiz" onclick="submitQuiz()" class="w-full bg-emerald-600 text-white font-black py-5 rounded-2xl shadow-lg hover:bg-emerald-700 transition text-xl">提交答案並分析對錯</button><div id="quiz-final-score" class="hide p-6 rounded-2xl text-center text-2xl font-black"></div></div>
+            </div>
+        </section>
+
+        <!-- SECTION: Travel (旅遊導覽) -->
+        <section id="sec-travel" class="hide space-y-16 animate-fade-in text-center">
+            <h2 class="text-3xl font-black text-amber-600 tracking-tight">🚲 葫蘆墩踏查路線</h2>
+            <p class="text-slate-600 mt-2 mb-10">學會了知識，出發去親自走走吧！</p>
+            <div class="space-y-10">
+                <h3 class="text-2xl font-black text-emerald-700 border-l-8 border-emerald-600 pl-4 text-left">1. 葫蘆墩一日遊建議</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="travel-card bg-white rounded-3xl shadow-xl p-4 flex flex-col items-center">
+                        <img src="https://lin5406.github.io/lin/society/imp115042603.png" alt="一日遊A" class="rounded-2xl shadow-md cursor-pointer mb-4" onclick="window.open(this.src, '_blank')">
+                        <p class="text-sm font-bold text-slate-500 italic">行程 A：探訪歷史起點</p>
+                    </div>
+                    <div class="travel-card bg-white rounded-3xl shadow-xl p-4 flex flex-col items-center">
+                        <img src="https://lin5406.github.io/lin/society/imp115042603b.png" alt="一日遊B" class="rounded-2xl shadow-md cursor-pointer mb-4" onclick="window.open(this.src, '_blank')">
+                        <p class="text-sm font-bold text-slate-500 italic">行程 B：文化巡禮深度遊</p>
+                    </div>
                 </div>
-                 <section class="space-y-8">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-stone-800 text-amber-400 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">1</span>
-                        <h3 class="text-3xl font-bold text-stone-900">觀念翻轉：易經不是靠「背」的</h3>
+                <h3 class="text-2xl font-black text-amber-600 border-l-8 border-amber-500 pl-4 text-left">2. 葫蘆墩當日吃喝攻略</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="travel-card bg-white rounded-3xl shadow-xl p-4 flex flex-col items-center">
+                        <img src="https://lin5406.github.io/lin/society/imp115042602.png" alt="美食A" class="rounded-2xl shadow-md cursor-pointer mb-4" onclick="window.open(this.src, '_blank')">
+                        <p class="text-sm font-bold text-slate-500 italic">美食 A：在地排隊名店</p>
                     </div>
-                    <p class="text-lg md:text-xl text-stone-600">大多數人學習《易經》的誤區在於認為必須把 64 卦的卦名、爻辭全部背下來，如同背誦古詩或程式碼，這導致許多人半途而廢。</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="bg-red-50 p-10 rounded-[3rem] border border-red-100 shadow-sm relative overflow-hidden group">
-                            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="x-circle" class="w-24 h-24 text-red-500"></i></div>
-                            <p class="font-bold text-red-900 text-2xl mb-4 flex items-center gap-3">❌ 錯誤方法</p>
-                            <p class="text-lg text-red-800 leading-relaxed">死記硬背「乾坎艮震...」，只見樹木不見林。</p>
-                        </div>
-                        <div class="bg-amber-50 p-10 rounded-[3rem] border border-amber-100 shadow-sm relative overflow-hidden group">
-                            <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity"><i data-lucide="check-circle" class="w-24 h-24 text-amber-600"></i></div>
-                            <p class="font-bold text-amber-900 text-2xl mb-4 flex items-center gap-3">✅ 正確心法：理解與推演</p>
-                            <p class="text-lg text-amber-800 leading-relaxed">《易經》不是算命書，而是關於變化的百科全書、決策戰略手冊。它是靠邏輯構建的，只要掌握最底層的「原代碼」，就能自己編程解讀。</p>
-                        </div>
-                    </div>
-                </section>
-                <section class="space-y-8">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-stone-800 text-amber-400 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">2</span>
-                        <h3 class="text-3xl font-bold text-stone-900">底層邏輯：二進制的宇宙密碼 (陰與陽)</h3>
-                    </div>
-                    <div class="bg-stone-50 border-l-[6px] border-stone-400 p-8 rounded-3xl text-lg text-stone-700">
-                        《易經》的基礎極其簡單，就是宇宙最底層的二進制——陰與陽。
-                    </div>
-                    <div class="bg-stone-900 text-stone-50 p-12 rounded-[3.5rem] shadow-2xl space-y-10 relative overflow-hidden">
-                         <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl"></div>
-                         <h4 class="text-2xl font-bold border-b border-stone-700 pb-6 flex items-center gap-3 text-amber-400">太極生兩儀：</h4>
-                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors">
-                                <p class="text-3xl mb-4 font-bold text-white flex items-center gap-4">⚪ 陽 <span class="text-amber-500 text-4xl">——</span></p>
-                                <p class="opacity-90 text-lg leading-relaxed">代表天、光明、男性、積極、運動、剛健。<br><span class="text-stone-400 text-sm">(類似電腦的 1 / 開)</span></p>
-                            </div>
-                            <div class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors">
-                                <p class="text-3xl mb-4 font-bold text-stone-400 flex items-center gap-4">⚫ 陰 <span class="text-stone-500 text-4xl">- -</span></p>
-                                <p class="opacity-90 text-lg leading-relaxed">代表地、黑暗、女性、消極、靜止、柔順。<br><span class="text-stone-400 text-sm">(類似電腦的 0 / 關)</span></p>
-                            </div>
-                         </div>
-                         <div class="pt-8 border-t border-stone-700">
-                            <p class="text-xl font-bold text-amber-200">兩儀生四象 (四季變化)：</p>
-                            <p class="opacity-80 mt-2 text-lg">將陰陽疊加，形成春、夏、秋、冬的消長規律（如太陽、少陰、太陰、少陽）。</p>
-                         </div>
-                    </div>
-                </section>
-                <section class="space-y-8">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-stone-800 text-amber-400 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">3</span>
-                        <h3 class="text-3xl font-bold text-stone-900">核心元素：搞懂這 8 個「宇宙變量」 (八卦)</h3>
-                    </div>
-                    <p class="text-lg">不需要背 64 卦，但必須深刻理解構成萬物的 8 個基本符號 (八卦)。把它們想像成化學元素表或 26 個英文字母。</p>
-                    <div class="overflow-x-auto rounded-[3.5rem] border-2 border-amber-100 shadow-2xl">
-                        <table class="w-full text-left border-collapse bg-white whitespace-nowrap md:whitespace-normal">
-                            <thead class="bg-amber-600 text-white text-lg">
-                                <tr>
-                                    <th class="px-8 py-6 font-bold text-center">八卦</th>
-                                    <th class="px-8 py-6 font-bold text-center text-amber-200 text-2xl">符號</th>
-                                    <th class="px-6 py-6 font-bold">自然</th>
-                                    <th class="px-6 py-6 font-bold">人物</th>
-                                    <th class="px-8 py-6 font-bold">核心性格 (關鍵字)</th>
-                                    <th class="px-8 py-6 font-bold">功能與智慧</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-amber-50 text-base">
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-stone-900 text-xl text-center">乾 (Qián)</td>
-                                    <td class="px-8 py-6 text-amber-600 text-4xl text-center font-bold">☰</td>
-                                    <td class="px-6 py-6 text-stone-700 font-bold">天</td>
-                                    <td class="px-6 py-6 text-stone-600">父親, 君王</td>
-                                    <td class="px-8 py-6 text-amber-900 font-bold">健 (剛健、自強不息)</td>
-                                    <td class="px-8 py-6 text-stone-600">創造、開拓、主動出擊</td>
-                                </tr>
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-stone-900 text-xl text-center">坤 (Kūn)</td>
-                                    <td class="px-8 py-6 text-stone-600 text-4xl text-center font-bold">☷</td>
-                                    <td class="px-6 py-6 text-stone-700 font-bold">地</td>
-                                    <td class="px-6 py-6 text-stone-600">母親</td>
-                                    <td class="px-8 py-6 text-amber-900 font-bold">順 (厚德載物、包容)</td>
-                                    <td class="px-8 py-6 text-stone-600">承載、接納、以柔克剛</td>
-                                </tr>
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-stone-900 text-xl text-center">震 (Zhèn)</td>
-                                    <td class="px-8 py-6 text-amber-600 text-4xl text-center font-bold">☳</td>
-                                    <td class="px-6 py-6 text-stone-700 font-bold">雷</td>
-                                    <td class="px-6 py-6 text-stone-600">長男</td>
-                                    <td class="px-8 py-6 text-amber-900 font-bold">動 (雷厲風行)</td>
-                                    <td class="px-8 py-6 text-stone-600">破局、行動、運動</td>
-                                </tr>
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-stone-900 text-xl text-center">巽 (Xùn)</td>
-                                    <td class="px-8 py-6 text-stone-600 text-4xl text-center font-bold">☴</td>
-                                    <td class="px-6 py-6 text-stone-700 font-bold">風</td>
-                                    <td class="px-6 py-6 text-stone-600">長女</td>
-                                    <td class="px-8 py-6 text-amber-900 font-bold">入 (無孔不入、謙遜)</td>
-                                    <td class="px-8 py-6 text-stone-600">滲透、溝通、順從深入</td>
-                                </tr>
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-stone-900 text-xl text-center">坎 (Kǎn)</td>
-                                    <td class="px-8 py-6 text-stone-600 text-4xl text-center font-bold">☵</td>
-                                    <td class="px-6 py-6 text-stone-700 font-bold">水</td>
-                                    <td class="px-6 py-6 text-stone-600">中男</td>
-                                    <td class="px-8 py-6 text-amber-900 font-bold">陷 (艱難、深沉)</td>
-                                    <td class="px-8 py-6 text-stone-600">智慧、風險、陷阱中求生</td>
-                                </tr>
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-stone-900 text-xl text-center">離 (Lí)</td>
-                                    <td class="px-8 py-6 text-amber-600 text-4xl text-center font-bold">☲</td>
-                                    <td class="px-6 py-6 text-stone-700 font-bold">火</td>
-                                    <td class="px-6 py-6 text-stone-600">中女</td>
-                                    <td class="px-8 py-6 text-amber-900 font-bold">麗 (依附、光明)</td>
-                                    <td class="px-8 py-6 text-stone-600">文明、熱情、向外擴散</td>
-                                </tr>
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-stone-900 text-xl text-center">艮 (Gèn)</td>
-                                    <td class="px-8 py-6 text-stone-600 text-4xl text-center font-bold">☶</td>
-                                    <td class="px-6 py-6 text-stone-700 font-bold">山</td>
-                                    <td class="px-6 py-6 text-stone-600">少男</td>
-                                    <td class="px-8 py-6 text-amber-900 font-bold">止 (停滯、穩重)</td>
-                                    <td class="px-8 py-6 text-stone-600">停止、沈穩、知止不殆</td>
-                                </tr>
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-8 py-6 font-bold text-stone-900 text-xl text-center">兌 (Duì)</td>
-                                    <td class="px-8 py-6 text-amber-600 text-4xl text-center font-bold">☱</td>
-                                    <td class="px-6 py-6 text-stone-700 font-bold">澤</td>
-                                    <td class="px-6 py-6 text-stone-600">少女</td>
-                                    <td class="px-8 py-6 text-amber-900 font-bold">悅 (喜悅、溝通)</td>
-                                    <td class="px-8 py-6 text-stone-600">說話、快樂、社交</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                <section class="space-y-8 pt-6">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-stone-800 text-amber-400 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">4</span>
-                        <h3 class="text-3xl font-bold text-stone-900">🗝️ 萬能核心公式：A + B 的推演法則</h3>
-                    </div>
-                    <p class="text-lg text-stone-700">這就是統領 64 卦的終極公式，記住這個，所有卦象都能推演：</p>
-                    <div class="bg-gradient-to-br from-amber-100 to-amber-50 p-12 rounded-[3.5rem] border-2 border-amber-200 shadow-lg text-center transform hover:scale-[1.01] transition-transform">
-                        <p class="text-3xl md:text-5xl font-extrabold text-amber-900 mb-8 tracking-wide drop-shadow-sm">萬物 (卦) = 上卦 (A) + 下卦 (B)</p>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
-                            <div class="bg-white p-8 rounded-3xl shadow-sm border border-amber-100">
-                                <span class="text-amber-600 font-bold text-xl mb-3 block">⬆️ 上卦 (外部)</span>
-                                <p class="text-stone-700 text-lg">代表外部環境、天時、結果、未來、對方。</p>
-                            </div>
-                            <div class="bg-white p-8 rounded-3xl shadow-sm border border-amber-100">
-                                <span class="text-stone-600 font-bold text-xl mb-3 block">⬇️ 下卦 (內部)</span>
-                                <p class="text-stone-700 text-lg">代表內部條件、地利、原因、初始、自己。</p>
-                            </div>
-                        </div>
-                        <div class="mt-10 bg-amber-900 text-amber-50 p-6 rounded-2xl text-lg font-medium inline-block shadow-md">
-                            💡 <strong>推演邏輯：</strong>觀察「上卦」與「下卦」的性質與關係。它們是互相交流 (吉) 還是互相封閉 (凶)？是相生還是相剋？
-                        </div>
-                    </div>
-                </section>
-                <section class="space-y-12">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-stone-800 text-amber-400 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">5</span>
-                        <h3 class="text-3xl font-bold text-stone-900">💡 實戰推演：不背卦名的解讀示範</h3>
-                    </div>
-                    <p class="text-lg text-stone-700">利用上述公式與八卦屬性，我們可以邏輯推導出卦義，無需死背。</p>
-                    <div class="bg-white border-2 border-stone-200 rounded-[3rem] p-10 shadow-md">
-                        <h4 class="text-2xl font-bold text-stone-900 mb-6 border-b border-stone-100 pb-4 flex items-center gap-3"><span class="bg-stone-100 text-stone-600 p-2 rounded-xl text-sm">案例一</span> 否極泰來 (天地互動)</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div class="bg-stone-50 p-8 rounded-[2rem] border border-stone-200">
-                                <div class="flex justify-between items-center mb-6">
-                                    <span class="text-2xl font-bold text-stone-900">否卦 (Pǐ)</span>
-                                    <span class="text-4xl text-stone-400">〷☰</span>
-                                </div>
-                                <ul class="space-y-4 text-stone-700">
-                                    <li><strong>組合：</strong>上乾(天) + 下坤(地)</li>
-                                    <li><strong>物理現象：</strong>天氣(陽)本能上升 ⬆️，地氣(陰)本能下沉 ⬇️</li>
-                                    <li><strong>推演：</strong>兩者背道而馳，互不交流。</li>
-                                    <li class="bg-red-100 text-red-900 p-4 rounded-xl font-bold">凶 (閉塞)：天地不交，適合收斂，不可強求名利。</li>
-                                </ul>
-                            </div>
-                            <div class="bg-amber-50 p-8 rounded-[2rem] border border-amber-200">
-                                <div class="flex justify-between items-center mb-6">
-                                    <span class="text-2xl font-bold text-amber-900">泰卦 (Tài)</span>
-                                    <span class="text-4xl text-amber-500">☰〷</span>
-                                </div>
-                                <ul class="space-y-4 text-amber-900">
-                                    <li><strong>組合：</strong>上坤(地) + 下乾(天)</li>
-                                    <li><strong>物理現象：</strong>地氣(陰)下沉 ⬇️，天氣(陽)上升 ⬆️</li>
-                                    <li><strong>推演：</strong>兩者在中間相遇、融合。</li>
-                                    <li class="bg-emerald-100 text-emerald-900 p-4 rounded-xl font-bold">吉 (通泰)：天地交而萬物通，溝通順暢，大吉大利。</li>
-                                </ul>
-                                <p class="mt-4 text-sm text-amber-700 italic">啟示：看似位置顛倒 (地在天上) 反而是好事，因為促進了溝通與流動。</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white border-2 border-stone-200 rounded-[3rem] p-10 shadow-md">
-                        <h4 class="text-2xl font-bold text-stone-900 mb-6 border-b border-stone-100 pb-4 flex items-center gap-3"><span class="bg-stone-100 text-stone-600 p-2 rounded-xl text-sm">案例二</span> 水火關係 (既濟 vs 未濟)</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div class="bg-stone-50 p-8 rounded-[2rem] border border-stone-200">
-                                <span class="text-2xl font-bold text-stone-900 block mb-4">既濟卦 <span class="text-lg font-normal text-stone-500">(上坎水 + 下離火)</span></span>
-                                <ul class="space-y-3 text-stone-700">
-                                    <li><strong>現象：</strong>水向下流 ⬇️，火向上燒 ⬆️。水火相交，像煮飯一樣。</li>
-                                    <li class="bg-blue-100 text-blue-900 p-4 rounded-xl font-bold mt-2">完美 (但也意味結束)：事情已成功，但盛極必衰。</li>
-                                </ul>
-                            </div>
-                            <div class="bg-stone-50 p-8 rounded-[2rem] border border-stone-200">
-                                <span class="text-2xl font-bold text-stone-900 block mb-4">未濟卦 <span class="text-lg font-normal text-stone-500">(上離火 + 下坎水)</span></span>
-                                <ul class="space-y-3 text-stone-700">
-                                    <li><strong>現象：</strong>火向上 ⬆️，水向下 ⬇️。兩者不交集，事情沒成。</li>
-                                    <li class="bg-amber-100 text-amber-900 p-4 rounded-xl font-bold mt-2">希望 (新的開始)：雖未成功，但有無限可能與動力。</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white border-2 border-stone-200 rounded-[3rem] p-10 shadow-md">
-                        <h4 class="text-2xl font-bold text-stone-900 mb-6 border-b border-stone-100 pb-4 flex items-center gap-3"><span class="bg-stone-100 text-stone-600 p-2 rounded-xl text-sm">案例三</span> 面對困難 (蹇卦 vs 解卦)</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div class="bg-stone-50 p-8 rounded-[2rem] border border-stone-200">
-                                <span class="text-2xl font-bold text-stone-900 block mb-4">蹇卦 <span class="text-lg font-normal text-stone-500">(水山蹇)</span></span>
-                                <ul class="space-y-3 text-stone-700">
-                                    <li><strong>組合：</strong>上坎(水/險) + 下艮(山/止)</li>
-                                    <li><strong>推演：</strong>前面有險(水)，後面有山(止)擋路。進退兩難。</li>
-                                    <li class="bg-stone-200 text-stone-800 p-4 rounded-xl font-bold mt-2">對策：不要硬碰硬(往山上爬)，應退守平地，求助智者。</li>
-                                </ul>
-                            </div>
-                            <div class="bg-stone-50 p-8 rounded-[2rem] border border-stone-200">
-                                <span class="text-2xl font-bold text-stone-900 block mb-4">解卦 <span class="text-lg font-normal text-stone-500">(雷水解)</span></span>
-                                <ul class="space-y-3 text-stone-700">
-                                    <li><strong>組合：</strong>上震(雷/動) + 下坎(水/險)</li>
-                                    <li><strong>推演：</strong>險在下，上面有行動力(雷)去打破它。</li>
-                                    <li class="bg-emerald-100 text-emerald-900 p-4 rounded-xl font-bold mt-2">結果：春雷響，冰雪融，困難解除。</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-                <section class="space-y-12 pt-8">
-                    <div class="flex items-center gap-4">
-                        <span class="bg-stone-800 text-amber-400 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-lg">6</span>
-                        <h3 class="text-3xl font-bold text-stone-900">🧘 最高心法：易經的三層含義</h3>
-                    </div>
-                    <p class="text-lg text-stone-700">掌握公式後，要回歸《易經》的「易」字，它包含三個層次，也是人生的指導原則：</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div class="bg-white p-10 rounded-[3rem] border-2 border-stone-100 shadow-md text-center hover:-translate-y-2 transition-transform duration-300">
-                            <div class="text-5xl mb-6">🌊</div>
-                            <h4 class="text-2xl font-bold text-stone-900 mb-4">變易</h4>
-                            <p class="text-stone-600">世間萬物沒有永恆不變的，唯一不變的就是「變」。</p>
-                        </div>
-                        <div class="bg-white p-10 rounded-[3rem] border-2 border-stone-100 shadow-md text-center hover:-translate-y-2 transition-transform duration-300 delay-100">
-                            <div class="text-5xl mb-6">🏔️</div>
-                            <h4 class="text-2xl font-bold text-stone-900 mb-4">不易</h4>
-                            <p class="text-stone-600">雖然萬物在變，但「變化的規律」是永恆不變的 (如陰陽消長、四季輪替)。</p>
-                        </div>
-                        <div class="bg-stone-900 text-amber-50 p-10 rounded-[3rem] shadow-xl text-center hover:-translate-y-2 transition-transform duration-300 delay-200 relative overflow-hidden">
-                            <div class="absolute inset-0 bg-gradient-to-t from-amber-600/20 to-transparent"></div>
-                            <div class="text-5xl mb-6 relative z-10">✨</div>
-                            <h4 class="text-2xl font-bold text-amber-400 mb-4 relative z-10">簡易</h4>
-                            <p class="text-stone-300 relative z-10">大道至簡。最高深的道理往往是最簡單的。</p>
-                        </div>
-                    </div>
-                    <div class="bg-amber-100 text-amber-900 p-8 rounded-[2rem] text-center font-bold text-xl shadow-inner">
-                        不要被 64 卦的複雜表象迷惑，回歸到最簡單的陰陽與八卦，就能看透本質。
-                    </div>
-                </section>
-                <div class="bg-gradient-to-br from-stone-900 to-stone-800 p-12 md:p-16 rounded-[4rem] shadow-2xl relative overflow-hidden text-stone-50 mt-16">
-                    <div class="relative z-10">
-                        <h3 class="text-4xl font-bold mb-10 flex items-center gap-4 text-amber-400"><i data-lucide="compass" class="w-10 h-10"></i> 總結：如何應用於生活？</h3>
-                        <p class="text-xl mb-8 font-light">以後遇到抉擇或複雜項目，試著用「核心公式」套用：</p>
-                        <ul class="space-y-6 text-lg">
-                            <li class="flex gap-4 items-start"><i data-lucide="arrow-right" class="text-amber-500 shrink-0 mt-1"></i> <div><strong>分析下卦 (內)：</strong>我的能力、資金、團隊狀態如何？ <span class="text-stone-400 text-base">(是乾的衝勁？還是坤的包容？)</span></div></li>
-                            <li class="flex gap-4 items-start"><i data-lucide="arrow-right" class="text-amber-500 shrink-0 mt-1"></i> <div><strong>分析上卦 (外)：</strong>市場環境、競爭對手、政策如何？ <span class="text-stone-400 text-base">(是坎的險惡？還是離的光明？)</span></div></li>
-                            <li class="flex gap-4 items-start"><i data-lucide="target" class="text-amber-400 shrink-0 mt-1"></i> <div><strong>判斷關係：</strong>內外是「交融」(泰) 還是「背離」(否)？是該「止」(艮) 還是該「動」(震)？</div></li>
-                        </ul>
-                        <p class="mt-12 text-2xl font-bold text-center text-amber-300 border-t border-stone-700 pt-8">
-                            這才是《易經》作為高級戰略手冊的真正用法！
-                        </p>
+                    <div class="travel-card bg-white rounded-3xl shadow-xl p-4 flex flex-col items-center">
+                        <img src="https://lin5406.github.io/lin/society/imp115042602b.png" alt="美食B" class="rounded-2xl shadow-md cursor-pointer mb-4" onclick="window.open(this.src, '_blank')">
+                        <p class="text-sm font-bold text-slate-500 italic">美食 B：廟東夜市攻略</p>
                     </div>
                 </div>
             </div>
-            <div class="p-12 border-t border-amber-100 bg-amber-50/50 text-center rounded-b-[3.5rem]">
-                <button onclick="closeNoteModal3()" class="px-20 py-6 bg-stone-800 text-amber-400 font-extrabold text-xl rounded-full hover:bg-stone-900 shadow-2xl hover:shadow-stone-900/20 transition-all transform hover:scale-105">關閉筆記，大道至簡</button>
-            </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="h-12 w-full"></div>
-
-    <!-- Main Content Card (個人數位導覽) -->
-    <main class="glass-card w-full max-w-5xl rounded-[2.5rem] shadow-2xl p-6 md:p-10 mb-12">
-        <div class="flex items-center gap-4 mb-8 border-b border-purple-100 pb-4">
-            <div class="bg-purple-100 p-3 rounded-2xl text-purple-600">
-                <i data-lucide="layout-grid"></i>
-            </div>
-            <div>
-                <h2 class="text-2xl font-bold text-purple-900">個人數位導覽</h2>
-            </div>
-        </div>
-        <div class="bg-purple-50 border border-purple-100 rounded-2xl p-5 text-purple-800 text-sm md:text-base leading-relaxed">
-            歡迎來到 A Fu 的數位空間，探索創意設計與技術開發的實踐。
-        </div>
-
-        <!-- 新增：英文1200單字 SRS 學習資源 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            <!-- Part 1 -->
-            <a href="https://lin5406.github.io/lin/english/1200.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 1</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    英文1200單字
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">間隔重複法（SRS）學習英文單字</p>
-            </a>
-            <!-- Part 2 -->
-            <a href="https://azt156.notion.site/AI-1999ae758af380dd86c4fdcf3074b911" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 2</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留中...保留中...</p>
-            </a>
-            <!-- Part 3 -->
-            <a href="https://azt156.notion.site/AI-1999ae758af380dd86c4fdcf3074b911" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 3</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留中...保留中...</p>
-            </a>
-            
-            <!-- Part 4 -->
-            <a href="https://adl.edu.tw/mathgame/grade/4" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 4</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    速戰速決：國中小、高中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">從基礎概念到進階技巧，速戰數決涵蓋豐富多樣的數學知識。</p>
-            </a>
-            
-            <!-- Part 5 -->
-            <a href="https://adl.edu.tw/mathgame/grade/4" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 5</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    速戰速決：國中小、高中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">從基礎概念到進階技巧，速戰數決涵蓋豐富多樣的數學知識。</p>
-            </a>
-            
-            <!-- Part 6 -->
-            <a href="https://adl.edu.tw/mathgame/grade/4" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 6</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    速戰速決：國中小、高中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">從基礎概念到進階技巧，速戰數決涵蓋豐富多樣的數學知識。</p>
-            </a>
-            
-            <!-- Part 7 -->
-            <a href="https://azt156.notion.site/AI-1999ae758af380dd86c4fdcf3074b911" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 7</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    國中自然科-生物、理化、地科
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">AI 導入學習及差異化教學的教學資源</p>
-            </a>
-            <!-- Part 8 -->
-            <a href="https://lin5406.github.io/lin/society/index.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 8</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    豐原尋寶記：尋找家鄉的起點
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">解開豐原發展的秘密！</p>
-            </a>
-            <!-- Part 9 -->
-            <a href="https://azt156.notion.site/AI-1999ae758af380dd86c4fdcf3074b911" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 9</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留中...保留中...</p>
-            </a>
-            
-            <!-- Part 10 -->
-            <a href="https://furoku.github.io/bananaX/projects/infographic-evaluation/zh/" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 10</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    BananaLM 300 種風格樣式
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">NotebookLM 資訊圖表和簡報更生動</p>
-            </a>            
-            <!-- Part 11 -->
-            <a href="https://azt156.notion.site/AI-1999ae758af380dd86c4fdcf3074b911" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 11</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留中...保留中...</p>
-            </a>      
-            <!-- Part 12 -->
-            <a href="https://azt156.notion.site/AI-1999ae758af380dd86c4fdcf3074b911" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 12</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    保留中
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">保留中...保留中...</p>
-            </a>
-            <!-- Part 13 -->
-            <a href="https://pedia.cloud.edu.tw/Bookmark/TextWord" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 13</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    生字詞彙表
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">清除搜尋框內容再點擊「搜尋」即可回到生字詞彙表首頁</p>
-            </a>
-            <!-- Part 14 -->
-            <a href="https://pedia.cloud.edu.tw/Bookmark/TextWord" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left">
-                <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 14</p>
-                <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                    成語故事
-                    <i data-lucide="external-link" class="w-4 h-4 opacity-70"></i>
-                </h3>
-                <p class="text-sm opacity-90">國小低、中、高年級成語故事</p>
-            </a>
-        </div>
     </main>
 
-    <!-- 政經研究 Section (全新新增區塊) -->
-    <section class="w-full max-w-5xl bg-[#93C5FD] border-4 border-[#60A5FA] rounded-[2.5rem] p-8 text-center text-[#1E3A8A] shadow-2xl relative overflow-visible ring-4 ring-[#60A5FA]/20 mb-12">
-        <h2 class="text-2xl font-bold mb-2">政經研究</h2>
-        <p class="text-[#1E3A8A]/70 text-sm mb-6 uppercase tracking-widest font-bold">Geopolitical Research</p>
-
-        <!-- 將容器改為 3 欄式網格 (md:grid-cols-3)，讓三顆按鈕完美平分寬度 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- 左側：CrisisMap 按鈕 -->
-            <a href="https://crisismap.vercel.app/zh-TW" target="_blank" rel="noopener noreferrer" class="group part-card bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl text-white shadow-lg text-left border border-slate-700 transition-all duration-300 relative overflow-visible">
-                
-                <!-- 懸浮詳細資訊面板 Tooltip (Hover 時顯示) -->
-                <div class="absolute left-1/2 -translate-x-1/2 bottom-[105%] w-[min(360px,90vw)] opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 ease-out z-[200] pointer-events-none text-left">
-                    <div class="bg-slate-900/95 backdrop-blur-md p-5 rounded-2xl shadow-2xl border border-slate-700 text-white text-sm leading-relaxed">
-                        X上一位網友非常厲害，把伊朗進行空襲的資訊Coding成一個UI。不用付費、不用登入。他在非常短的時間內，做出了一個事件資訊的整合平台，很值得學習。
-                        以下是他整合的資訊內容，僅供參考：
-                        <h1>地圖</h1> • 地圖 API（例如 Mapbox / Leaflet / Google Maps） • 地理座標轉換（Geocoding） • 標點渲染與分級顏色系統
-                        <h1>資料整合</h1>  • 新聞 API 串接（RSS / News API 類型） • 即時快訊資料抓取   • 金融市場 API • 可能的預測市場 API（機率條）
-                        <h1>資料處理邏輯</h1> • 關鍵字抽取（抓地名、事件類型） • 風險分級規則（紅橘黃藍綠） • 事件分類（軍事 / 外交 / 經濟 等）
-                        <h1>時間線系統</h1> • 事件排序 • 時間戳記格式轉換 • 分段時間顯示 UI
-                        <h1>預測顯示模組</h1> • 機率換算（百分比視覺條） • 動態進度條動畫
-                    </div>
-                </div>
-
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 text-blue-400">Platform</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-slate-600 pb-2 flex justify-between items-center group-hover:text-blue-200 transition-colors">
-                        CrisisMap即時地緣政治情報
-                        <i data-lucide="globe" class="w-4 h-4 text-blue-400"></i>
-                    </h3>
-                    <p class="text-sm text-slate-300 opacity-90 leading-relaxed">提供全球地緣政治衝突追蹤、即時熱點監控與深度數據分析。</p>
-                </div>
-            </a>
-
-            <!-- 中間：Polymarket 預測市場卡片 -->
-            <a href="https://polymarket.com/finance" target="_blank" rel="noopener noreferrer" class="group part-card bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl text-white shadow-lg text-left border border-slate-700 transition-all duration-300 relative overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 text-blue-400">Prediction Market</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-slate-600 pb-2 flex justify-between items-center group-hover:text-blue-200 transition-colors">
-                        Polymarket全球最大的預測市場™
-                        <i data-lucide="trending-up" class="w-4 h-4 text-blue-400"></i>
-                    </h3>
-                    <p class="text-sm text-slate-300 opacity-90 leading-relaxed">提供全球金融、政治與時事事件的即時機率預測，洞察市場集體智慧。</p>
-                </div>
-            </a>
-
-            <!-- 右側新增：康波週期 卡片 -->
-            <a href="https://www.notion.so/lin5406/2026-3188706b8b2280858b01e8ab8bc427de?source=copy_link" target="_blank" rel="noopener noreferrer" class="group part-card bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-3xl text-white shadow-lg text-left border border-slate-700 transition-all duration-300 relative overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 text-blue-400">Economic Cycle</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-slate-600 pb-2 flex justify-between items-center group-hover:text-blue-200 transition-colors">
-                        康波週期
-                        <i data-lucide="activity" class="w-4 h-4 text-blue-400"></i>
-                    </h3>
-                    <p class="text-sm text-slate-300 opacity-90 leading-relaxed">掌握宏觀經濟規律，洞悉六十年一遇的財富重分配週期與長波趨勢。</p>
-                </div>
-            </a>
-
-        </div> 
-    </section>
-    <!-- 教學小工具 Section (全新新增，搭配活潑暖橘色調) -->
-    <section class="w-full max-w-5xl bg-[#FED7AA] border-4 border-[#FDBA74] rounded-[2.5rem] p-8 text-center text-[#9A3412] shadow-2xl relative overflow-visible ring-4 ring-[#FDBA74]/20">
-        <h2 class="text-2xl font-bold mb-2">教學小工具</h2>
-        <p class="text-[#9A3412]/70 text-sm mb-6 uppercase tracking-widest font-bold">Teaching Tools & Games</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Part 1: 水果配對大挑戰 -->
-            <a href="https://lin5406.github.io/lin/tools/fruit_english001.html
-            " target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 1</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        水果配對大挑戰
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">趣味互動遊戲，輕鬆學習各種水果的英文名稱與圖形對配。</p>
-                </div>
-            </a>
-            
-            <!-- Part 2: 動物森林王國 -->
-            <a href="https://lin5406.github.io/lin/tools/animal_english001.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 2</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        動物森林王國
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">探索可愛的動物世界，透過遊戲挑戰記憶力與英文單字。</p>
-                </div>
-            </a>
-            
-            <!-- Part 3: 交通大挑戰 -->
-            <a href="https://lin5406.github.io/lin/tools/transportation_en001.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 3</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        交通大挑戰
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">認識各種交通工具，完成英文認知挑戰，啟發學習樂趣。</p>
-                </div>
-            </a>
-            <!-- Part 4: Polypad數學虛擬教具平台 -->
-            <a href="https://polypad.amplify.com" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 4</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        Polypad數學虛擬教具平台
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">旨在透過互動操縱工具讓抽象的數學概念具體化。</p>
-                </div>
-            </a>
-            <!-- Part 5: 中獎抽簽程式 -->
-            <a href="https://lin5406.github.io/ball-lottery/ball.html" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 5</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        中獎抽簽程式
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">中獎抽簽程式：設定號碼或名單。</p>
-                </div>
-            </a>
-            <!-- Part 6: ㄚ亮笑長的出題助手 -->
-            <a href="https://qw.52hal.cc/" target="_blank" rel="noopener noreferrer" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 6 </p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        ㄚ亮笑長的出題助手
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90"> 您教學的好夥伴，快速便利生成多個教學平台的題庫格式</p>
-                </div>
-            </a>
-            <!-- Part 7: 自動配色器 -->
-            <a href="https://coolors.co/ffe74c-ff5964-ffffff-6bf178-35a7ff" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 7</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        自動配色器
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90"> 配色神器-coolors設計師必備的免費調色盤工具指南</p>
-                </div>
-            </a>
-            <!-- Part 8: 英文名字產生器 -->
-            <a href="https://www.ezname.org/wizard.php" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 8</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        英文名字產生器
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90">英文名字產生器、護照英文名字翻譯</p>
-                </div>
-            </a>
-            <!-- Part 9: XXXXX -->
-            <a href="XXXXX" class="part-card gradient-purple p-6 rounded-3xl text-white shadow-lg text-left overflow-visible">
-                <div class="relative z-20">
-                    <p class="text-xs font-bold uppercase tracking-widest mb-1 opacity-80">Part 9</p>
-                    <h3 class="text-xl font-bold mb-3 border-b border-white/30 pb-2 flex justify-between items-center">
-                        XXXXXXXXXXX
-                        <i data-lucide="gamepad-2" class="w-4 h-4 opacity-70"></i>
-                    </h3>
-                    <p class="text-sm opacity-90"> 保留....</p>
-                </div>
-            </a>
-        </div> 
-    </section>
-  <div class="h-12 w-full"></div>
     <!-- Footer -->
-    <footer class="w-full max-w-5xl bg-black/20 backdrop-blur-md rounded-[2.5rem] p-8 text-center text-white shadow-xl border border-white/10">
-        <div class="flex justify-center mb-6">
-            <a href="https://www.youtube.com/watch?v=A1uoA-szybY" target="_blank" class="px-10 py-3 bg-white/20 hover:bg-white/30 transition rounded-full text-sm font-bold shadow-lg border border-white/10">YouTube</a>
-        </div>
-        <p class="text-xs opacity-60">© 2026 A Fu (阿福老師) 版權所有 | 請勿翻版抄襲</p>
+    <footer class="bg-slate-800 text-slate-400 py-12 px-4 mt-auto border-t-8 border-emerald-600 text-center">
+        <p class="text-xl font-black text-white tracking-widest">🗺️ 鄉土教育互動學習網 ｜ 發現豐原之美 (💻 A_fu 老師製作)</p>
+        <p class="text-xs mt-3 opacity-60 leading-relaxed max-w-xl mx-auto italic">本教材整合音樂、視覺、隨機評量與故事閱讀。帶領孩子在起點中看見家鄉的未來。</p>
     </footer>
 
     <script>
-        // 初始化 Lucide 圖示
-        window.addEventListener('load', function() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        });
+        // --- DATA POOL ---
+        const mcqPool = [
+            { q: "豐原的舊地名「葫蘆墩」由來是因為境內早期有？", options: ["很多葫蘆菜園", "三個像葫蘆的土堆", "居民愛吃葫蘆"], correct: 1, explanation: "早期豐原境內有三座小土丘，形狀遠望像葫蘆，所以叫葫蘆墩。" },
+            { q: "哪項水利工程被稱為豐原農業發展命脈，是由張達京開鑿的？", options: ["嘉南大圳", "葫蘆墩圳", "曹公圳"], correct: 1, explanation: "張達京與先民開拓葫蘆墩圳，引水灌溉奠定了豐原稻米繁榮的基礎。" },
+            { q: "豐原最熱鬧的鬧區(廟東)，最初是圍繞哪座廟宇發展出來的？", options: ["慈濟宮", "萬和宮", "武德宮"], correct: 0, explanation: "慈濟宮是豐原的信仰核心，人潮聚集帶動了商業繁榮。" },
+            { q: "日治時期，哪項建設讓豐原成為木材與農產品的轉運中心？", options: ["飛機場", "高速公路", "火車站"], correct: 2, explanation: "鐵路通車讓貨物能快速運輸到全台各地，促進了城市成長。" },
+            { q: "豐原著名的「葫蘆墩米」在早期品質極佳，曾進貢給誰？", options: ["日本天皇", "清朝皇帝", "英國女王"], correct: 0, explanation: "豐原水質好土肥，種出的米極佳，在當時被選為進貢給日皇的貢米。" },
+            { q: "葫蘆墩圳的水源主要是引用哪一條大河？", options: ["濁水溪", "大甲溪", "淡水河"], correct: 1, explanation: "葫蘆墩圳是引用大甲溪的溪水進行農業灌溉。" },
+            { q: "早期豐原能發展農業，最重要的自然優勢是水源與？", options: ["肥沃土地", "天氣寒冷", "人口稀少"], correct: 0, explanation: "肥沃土壤配合完善的水利設施，才讓這片土地豐收。" },
+            { q: "豐原慈濟宮主要供奉的是哪位神明？", options: ["土地公", "媽祖(天上聖母)", "文昌帝君"], correct: 1, explanation: "慈濟宮主祀天上聖母，是當地的守護神信仰中心。" },
+            { q: "火車站對城市起點的意義，在於帶動了？", options: ["交通便利與工商發展", "原始林開發", "海洋漁業發展"], correct: 0, explanation: "火車站帶來了人流與物流，讓豐原邁向現代化的繁忙大都市。" },
+            { q: "這堂課告訴我們，城市的「起點」是由什麼形成的？", options: ["只有運氣", "水源、信仰、交通等因素交織", "隨機產生的"], correct: 1, explanation: "城市是由多種資源與歷史要素共同積累而成的結果。" }
+        ];
 
-        // ================= 通用 Modal 開關邏輯 =================
-        function openModal(modalId, contentId) {
-            const modal = document.getElementById(modalId);
-            const content = document.getElementById(contentId);
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modal.classList.add('opacity-100');
-                content.classList.remove('translate-y-10');
-                content.classList.add('translate-y-0');
-            }, 10);
-            document.body.style.overflow = 'hidden'; 
+        const qaPool = [
+            { q: "為什麼「水源」是豐原歷史發展的第一個關鍵起點？", a: "農業生產需要水灌溉，有了穩定水源才能吸引先民開墾並居住。"},
+            { q: "「慈濟宮」如何幫助豐原鬧區的形成？", a: "廟宇聚集拜拜人潮，有人就有商機需求，周圍逐漸形成市場。"},
+            { q: "火車站對豐原的轉變有什麼重大貢獻？", a: "大幅增加運輸效率，將農產與木材外銷，吸引人口進駐。"},
+            { q: "「貢米」這名稱背後代表豐原具備什麼優點？", a: "反映了當地擁有極佳的水質與肥沃的土壤環境。"},
+            { q: "如果豐原沒有蓋火車站，你覺得現在的生活可能會有什麼不同？", a: "發展速度可能變慢，對外貿易不便，可能維持農村樣貌。"},
+            { q: "「看見、說出來，咱攏不孤單」這句話對你的意義？", a: "代表家鄉的故事需要被傳承，當我們分享時，心會凝聚在一起。"}
+        ];
+
+        let currentMcqs = []; let currentQas = []; let chartInstance = null; let progressFlags = [false, false, false, false];
+        function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+        // --- QUIZ LOGIC ---
+        function initQuiz() {
+            currentMcqs = shuffle([...mcqPool]).slice(0, 5); currentQas = shuffle([...qaPool]).slice(0, 3); renderQuiz();
+            document.getElementById('quiz-final-score').classList.add('hide'); document.getElementById('btn-submit-quiz').classList.remove('hide');
         }
 
-        function closeModal(modalId, contentId) {
-            const modal = document.getElementById(modalId);
-            const content = document.getElementById(contentId);
-            modal.classList.remove('opacity-100');
-            modal.classList.add('opacity-0');
-            content.classList.remove('translate-y-0');
-            content.classList.add('translate-y-10');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-            document.body.style.overflow = 'auto'; 
+        function renderQuiz() {
+            const area = document.getElementById('quiz-area');
+            let html = `<div class="space-y-8 text-left"><h3 class="text-xl font-black text-emerald-700 flex items-center gap-2"><span class="bg-emerald-100 p-1 px-3 rounded-lg">1</span> 基礎選擇測驗</h3>`;
+            currentMcqs.forEach((item, idx) => {
+                html += `<div id="q-block-${idx}" class="p-6 bg-slate-50 rounded-2xl border-2 border-transparent transition-all"><p class="font-bold text-slate-800 mb-4 text-lg">${idx+1}. ${item.q}</p><div class="space-y-2">
+                        ${item.options.map((opt, oidx) => `<label id="label-${idx}-${oidx}" class="option-label flex items-center gap-3 p-3 bg-white rounded-xl cursor-pointer hover:bg-emerald-50 border-2 border-transparent"><input type="radio" name="q${idx}" value="${oidx}"> <span class="text-slate-700 text-sm md:text-base font-bold">${['(A)','(B)','(C)'][oidx]} ${opt}</span></label>`).join('')}
+                    </div><div id="feedback-${idx}" class="hide mt-4"></div></div>`;
+            });
+            html += `</div><hr class="my-10 border-dashed border-gray-200"><div class="space-y-8 text-left"><h3 class="text-xl font-black text-amber-700 flex items-center gap-2"><span class="bg-amber-100 p-1 px-3 rounded-lg">2</span> 問答思考挑戰</h3>`;
+            currentQas.forEach((item, idx) => {
+                html += `<div class="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm"><p class="font-black text-slate-800 mb-4 text-lg">Q${idx+1}: ${item.q}</p><textarea class="w-full border-2 border-slate-50 rounded-2xl p-4 outline-none focus:ring-4 focus:ring-emerald-100 transition text-sm font-bold" rows="2" placeholder="在此輸入想法..."></textarea><button onclick="this.nextElementSibling.classList.toggle('hide')" class="mt-4 text-emerald-600 font-bold hover:underline">💡 觀看解析參考</button><div class="hide explanation-box text-sm text-emerald-800 italic">解析參考：${item.a}</div></div>`;
+            });
+            area.innerHTML = html + `</div>`;
         }
 
-        // ================= 各別 Modal 觸發 =================
-        function openNoteModal() { openModal('noteModal', 'modalContent'); }
-        function closeNoteModal() { closeModal('noteModal', 'modalContent'); }
+        function submitQuiz() {
+            let score = 0; let answered = 0;
+            currentMcqs.forEach((item, idx) => {
+                const checked = document.querySelector(`input[name="q${idx}"]:checked`);
+                const fb = document.getElementById(`feedback-${idx}`);
+                const block = document.getElementById(`q-block-${idx}`);
+                if(checked) {
+                    answered++; const val = parseInt(checked.value); const userLabel = document.getElementById(`label-${idx}-${val}`);
+                    if(val === item.correct) {
+                        score += 20; userLabel.classList.add('correct-choice'); 
+                        fb.innerHTML = `<p class="text-emerald-700 font-bold">✅ 答對了！ ${item.explanation}</p>`;
+                    } else {
+                        userLabel.classList.add('wrong-choice'); 
+                        document.getElementById(`label-${idx}-${item.correct}`).classList.add('correct-choice'); 
+                        fb.innerHTML = `<p class="text-red-600 font-bold">❌ 答錯囉！正確答案是 (${['A','B','C'][item.correct]})</p><p class="text-slate-500 text-sm italic mt-1 font-bold">解析：${item.explanation}</p>`;
+                    }
+                    fb.classList.remove('hide');
+                    block.classList.remove('border-amber-300');
+                } else { block.classList.add('border-amber-300'); }
+            });
+            if(answered < 5) { alert('還有選擇題沒寫完喔！請檢查有標示黃色邊框的題目。'); return; }
+            const final = document.getElementById('quiz-final-score');
+            final.classList.remove('hide');
+            final.textContent = `測驗完成！得分：${score} 分！${score === 100 ? '🎉 你是豐原尋寶大師！' : '👍 很棒的挑戰！可以複習一下各題解析喔！'}`;
+            final.className = `p-6 rounded-2xl text-center text-2xl font-black mt-8 ${score >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
+            document.getElementById('btn-submit-quiz').classList.add('hide');
+            window.scrollTo({ top: final.offsetTop - 150, behavior: 'smooth' });
+        }
 
-        function openNoteModal2() { openModal('noteModal2', 'modalContent2'); }
-        function closeNoteModal2() { closeModal('noteModal2', 'modalContent2'); }
+        // --- IMAGE SAVE REFIXED ---
+        async function saveIPImage() {
+            const url = 'https://lin5406.github.io/lin/society/imp115042601.png'; const btn = document.getElementById('btn-save-ip');
+            const originalText = btn.innerHTML;
+            try {
+                btn.innerText = '⏳ 處理中...';
+                const res = await fetch(url, { mode: 'cors' }); if(!res.ok) throw new Error();
+                const blob = await res.blob(); const bUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = bUrl; a.download = '豐原小隊角色IP.png';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(bUrl);
+                btn.innerHTML = '✅ 下載成功';
+            } catch (e) {
+                alert('安全性限制：若自動下載未開始，請對圖片按「右鍵」或「長按」並選擇「儲存圖片」。'); btn.innerHTML = '❌ 請右鍵另存';
+            } finally { setTimeout(() => btn.innerHTML = originalText, 3000); }
+        }
 
-        function openNoteModal3() { openModal('noteModal3', 'modalContent3'); }
-        function closeNoteModal3() { closeModal('noteModal3', 'modalContent3'); }
-
-        // 監聽 ESC 鍵關閉所有 Modal
-        window.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeNoteModal();
-                closeNoteModal2();
-                closeNoteModal3();
-            }
+        // --- UI & NAV ---
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const target = this.id.replace('nav-', '');
+                document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('bg-white', 'text-emerald-700'); b.classList.add('text-white', 'hover:bg-emerald-500'); });
+                this.classList.remove('text-white', 'hover:bg-emerald-500'); this.classList.add('bg-white', 'text-emerald-700');
+                ['presentation', 'song', 'video', 'worksheet', 'travel', 'storybook'].forEach(s => document.getElementById(`sec-${s}`).classList.add('hide'));
+                document.getElementById(`sec-${target}`).classList.remove('hide');
+                if(target === 'worksheet' && currentMcqs.length === 0) initQuiz();
+                if(target === 'presentation' && progressFlags.every(v => v)) initChart();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
         });
+
+        function revealClue(id) {
+            document.getElementById(`cover-${id}`).classList.add('hide'); document.getElementById(`content-${id}`).classList.remove('hide');
+            document.getElementById(`icon-${id}`).textContent = '✅'; document.getElementById(`icon-${id}`).classList.remove('animate-bounce');
+            progressFlags[id-1] = true; if(progressFlags.every(v => v)) initChart();
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('devChart'); if(!ctx || chartInstance) return;
+            chartInstance = new Chart(ctx, {
+                type: 'pie', data: { labels: ['水利農業 (40%)', '廟宇商業 (30%)', '交通建設 (30%)'], datasets: [{ data:[40, 30, 30], backgroundColor: ['#10b981','#ef4444','#f59e0b'], borderWidth: 4, borderColor: '#ffffff' }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { weight: 'bold', size: 14 } } } } }
+            });
+        }
+
+        document.getElementById('btn-save-ip').addEventListener('click', saveIPImage);
+        window.onload = initQuiz;
     </script>
 </body>
 </html>
