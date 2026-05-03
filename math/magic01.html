@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數學神奇讀心術 - 揭開潛意識的秘密</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: radial-gradient(circle at center, #131424 0%, #05050a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+        }
+
+        /* 水晶球基礎樣式 */
+        .crystal-ball {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle at 35% 35%, 
+                        rgba(255, 255, 255, 0.25) 0%, 
+                        rgba(167, 139, 250, 0.08) 40%, 
+                        rgba(139, 92, 246, 0.03) 70%, 
+                        rgba(255, 255, 255, 0.05) 100%);
+            border-radius: 50%;
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 0 60px rgba(139, 92, 246, 0.15),
+                inset 15px 15px 30px rgba(255, 255, 255, 0.15),
+                inset -10px -10px 25px rgba(139, 92, 246, 0.1),
+                inset 0 0 15px rgba(167, 139, 250, 0.3);
+            cursor: pointer;
+            transition: all 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* 偵測中動畫：1秒放大20% -> 1秒縮小20% */
+        @keyframes detectingScale {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(0.8); }
+        }
+
+        .detecting-active {
+            animation: detectingScale 2s ease-in-out forwards !important;
+        }
+
+        .crystal-ball::before {
+            content: '';
+            position: absolute;
+            top: 10%; left: 25%; width: 35%; height: 20%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.35), rgba(167, 139, 250, 0.1));
+            border-radius: 50%; transform: rotate(-20deg); pointer-events: none;
+        }
+
+        .crystal-ball::after {
+            content: '';
+            position: absolute;
+            bottom: 8%; right: 25%; width: 25%; height: 12%;
+            background: rgba(167, 139, 250, 0.15); filter: blur(8px);
+            border-radius: 50%; pointer-events: none;
+        }
+
+        .symbol-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+        }
+
+        @media (max-width: 1024px) {
+            .symbol-grid { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        .symbol-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .symbol-item:hover { 
+            background: rgba(167, 139, 250, 0.08);
+            transform: scale(1.1);
+        }
+
+        .revealed-symbol {
+            font-size: 6rem;
+            animation: fadeInScalePurple 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            filter: drop-shadow(0 0 25px rgba(167, 139, 250, 0.8));
+            z-index: 10;
+        }
+
+        @keyframes fadeInScalePurple {
+            0% { opacity: 0; transform: scale(0.2); filter: blur(20px); }
+            100% { opacity: 1; transform: scale(1.25); filter: blur(0px); }
+        }
+
+        .floating { animation: floating 5s ease-in-out infinite; }
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        #modalOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 15, 0.92);
+            backdrop-filter: blur(12px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #modalContent {
+            background: #16172b;
+            width: 90%; max-width: 500px; border-radius: 28px; padding: 3rem;
+            border: 1px solid rgba(167, 139, 250, 0.15);
+            transform: translateY(40px);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 50px 120px -20px rgba(0, 0, 0, 0.8);
+        }
+
+        #modalOverlay.active { display: flex; opacity: 1; }
+        #modalOverlay.active #modalContent { transform: translateY(0); }
+
+        .formula-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(167, 139, 250, 0.1);
+            border-radius: 20px; padding: 2rem;
+            text-align: center; font-size: 2.2rem; margin: 2rem 0;
+            font-family: 'Times New Roman', serif; font-style: italic;
+            color: #a78bfa; text-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.2); border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
+        
+        <div class="lg:w-1/3 flex flex-col gap-6">
+            <header>
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">🔮</span>
+                    <h1 class="text-3xl font-bold tracking-wider text-purple-100">數學讀心術</h1>
+                </div>
+                <p class="text-purple-300/50 text-sm italic">透過數字的共振，讀取你的意識...</p>
+            </header>
+
+            <div class="glass-panel p-6 space-y-5">
+                <div class="flex gap-4 items-start">
+                    <span class="bg-purple-500/20 text-purple-300 w-8 h-8 flex items-center justify-center rounded-lg font-bold shrink-0 text-xs border border-purple-500/30">01</span>
+                    <p class="text-slate-300 text-sm leading-relaxed text-balance">內心想好一個 <span class="text-purple-400 font-bold">兩位數</span>。</p>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <span class="bg-purple-500/20 text-purple-300 w-8 h-8 flex items-center justify-center rounded-lg font-bold shrink-0 text-xs border border-purple-500/30">02</span>
+                    <p class="text-slate-300 text-sm leading-relaxed text-balance">將十位數與個位數相加。</p>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <span class="bg-purple-500/20 text-purple-300 w-8 h-8 flex items-center justify-center rounded-lg font-bold shrink-0 text-xs border border-purple-500/30">03</span>
+                    <p class="text-slate-300 text-sm leading-relaxed text-balance">用原本的數減去這個和。</p>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <span class="bg-purple-500/20 text-purple-300 w-8 h-8 flex items-center justify-center rounded-lg font-bold shrink-0 text-xs border border-purple-500/30">04</span>
+                    <p class="text-slate-300 text-sm leading-relaxed text-balance">找到結果對應的符號並 <span class="text-purple-400 font-bold">凝視水晶球</span>。</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center justify-center py-6">
+                <!-- 點擊觸發偵測動畫 -->
+                <div id="crystalBall" class="crystal-ball floating" onclick="revealMind()">
+                    <div id="ballContent" class="text-purple-300/10 text-8xl font-thin">?</div>
+                </div>
+                <p id="ballHint" class="mt-8 text-purple-400/40 text-[11px] tracking-[0.3em] uppercase">正在感應腦波波段...</p>
+                
+                <div class="mt-10 flex flex-col w-full gap-4">
+                    <button onclick="resetGame()" class="w-full bg-slate-100 text-slate-900 py-4 rounded-2xl font-bold hover:shadow-[0_0_30px_rgba(167,139,250,0.4)] transition-all flex items-center justify-center gap-3">
+                        <span>🔄</span> 重啟感應
+                    </button>
+                    <button onclick="toggleModal(true)" class="w-full border border-purple-500/20 text-purple-400/60 py-3 rounded-2xl hover:bg-purple-500/5 transition-all text-[10px] tracking-[0.2em]">
+                        揭開謎底
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:w-2/3 glass-panel p-8">
+            <div id="symbolContainer" class="symbol-grid"></div>
+        </div>
+    </div>
+
+    <div id="modalOverlay" onclick="toggleModal(false)">
+        <div id="modalContent" onclick="event.stopPropagation()">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-2xl">🔮</span>
+                <h2 class="text-2xl font-bold text-purple-100">讀心術的真相</h2>
+            </div>
+            <hr class="border-purple-500/20 mb-8">
+            <div class="space-y-5 text-slate-400 text-sm">
+                <p>其實，這是一個迷人的數學規律！</p>
+                <p>任何兩位數可以寫成 <span class="italic text-purple-400">10x + y</span>。</p>
+                <p>當你減去位數之和 <span class="italic text-purple-400">(x + y)</span>：</p>
+                <div class="formula-box">(10x + y) − (x + y) = 9x</div>
+                <p class="text-slate-300">這代表計算結果 <span class="text-purple-300 font-bold underline underline-offset-8">永遠是 9 的倍數</span>。</p>
+            </div>
+            <button onclick="toggleModal(false)" class="w-full mt-10 bg-purple-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-purple-500 transition-all shadow-xl">我明白了！</button>
+        </div>
+    </div>
+
+    <script>
+        const symbols = ['🔮', '✨', '💜', '🌙', '🌌', '💎', '🧿', '🧬', '🛸', '🎭', '🎼', '🎨', '🧩', '🎈', '🐚', '⚡️', '🌟', '🦄', '🐲', '🧊', '🪐', '🕰️', '🕯️', '🔑', '🔓', '🏹', '🛰️', '🌋', '🌊', '🌪️'];
+        let targetSymbol = '';
+        let isAnimating = false; // 防止重複點擊的旗標
+
+        function initTable() {
+            const container = document.getElementById('symbolContainer');
+            container.innerHTML = '';
+            targetSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+            for (let i = 0; i <= 99; i++) {
+                let symbol = (i > 0 && i < 99 && i % 9 === 0) ? targetSymbol : symbols[Math.floor(Math.random() * symbols.length)];
+                if (i % 9 !== 0 && symbol === targetSymbol) symbol = symbols[(symbols.indexOf(targetSymbol) + 1) % symbols.length];
+                const item = document.createElement('div');
+                item.className = 'symbol-item';
+                item.innerHTML = `<span class="text-[9px] text-purple-500/40 font-mono mb-1">${i.toString().padStart(2, '0')}</span><span class="text-2xl opacity-70">${symbol}</span>`;
+                container.appendChild(item);
+            }
+        }
+
+        function revealMind() {
+            const ballContent = document.getElementById('ballContent');
+            const ballHint = document.getElementById('ballHint');
+            const ball = document.getElementById('crystalBall');
+
+            // 如果已經揭曉或正在播放動畫，則不處理
+            if (ballContent.innerText !== '?' || isAnimating) return;
+
+            isAnimating = true; // 鎖定狀態
+            
+            // 步驟 1: 啟動偵測文字與動畫
+            ball.classList.remove('floating'); // 暫停原本的微飄動畫
+            ball.classList.add('detecting-active');
+            ballHint.innerText = "<腦波波段偵測中>";
+            ballHint.classList.add('text-purple-400', 'font-bold');
+
+            // 步驟 2: 兩秒後 (1s 放大 + 1s 縮小) 揭曉答案
+            setTimeout(() => {
+                ball.classList.remove('detecting-active');
+                ball.classList.add('floating');
+                
+                ballHint.innerText = "潛意識偵測完成..";
+                ballContent.innerHTML = `<span class="revealed-symbol">${targetSymbol}</span>`;
+                
+                ball.style.boxShadow = "0 0 120px rgba(139, 92, 246, 0.6), inset 0 0 50px rgba(167, 139, 250, 0.4)";
+                ball.style.background = "radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.4) 0%, rgba(167, 139, 250, 0.2) 60%)";
+                
+                isAnimating = false; // 解除鎖定
+            }, 2000);
+        }
+
+        function resetGame() {
+            if (isAnimating) return;
+            const ballContent = document.getElementById('ballContent');
+            ballContent.innerHTML = '<div class="text-purple-300/10 text-8xl font-thin">?</div>';
+            const hint = document.getElementById('ballHint');
+            hint.innerText = "正在感應腦波波段...";
+            hint.classList.remove('text-purple-400', 'font-bold');
+            const ball = document.getElementById('crystalBall');
+            ball.style.boxShadow = "";
+            ball.style.background = "";
+            initTable();
+        }
+
+        function toggleModal(show) {
+            const overlay = document.getElementById('modalOverlay');
+            if (show) { overlay.style.display = 'flex'; overlay.offsetHeight; overlay.classList.add('active'); }
+            else { overlay.classList.remove('active'); setTimeout(() => { if (!overlay.classList.contains('active')) overlay.style.display = 'none'; }, 500); }
+        }
+
+        window.onload = initTable;
+    </script>
+</body>
+</html>
