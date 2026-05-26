@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>繽紛像素彩繪工坊 - 線上著色與塗鴉系統</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 像素風格字體與平滑滾動 */
+        @import url('https://fonts.googleapis.com/css2?family=Chariot+Deluxe&family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* 暗黑模式樣式 */
+        .dark-mode {
+            background-color: #111827;
+            color: #f9fafb;
+        }
+
+        /* 網格格子的漸變與過渡 */
+        .pixel-cell {
+            transition: background-color 0.15s ease, transform 0.1s ease;
+            image-rendering: pixelated;
+        }
+
+        /* 防止拖曳時選取文字 */
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 自訂滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col no-select transition-colors duration-300">
+
+    <!-- 頂部導覽列 -->
+    <header class="bg-white dark:bg-gray-800 shadow-md py-4 px-6 flex flex-wrap items-center justify-between z-10 transition-colors duration-300">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-pink-500 to-indigo-500 p-2.5 rounded-xl shadow-lg transform rotate-3">
+                <!-- 像素調色盤 SVG 圖示 -->
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-black bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
+                    繽紛像素彩繪工坊
+                </h1>
+                <p class="text-xs text-gray-500 dark:text-gray-400">創意像素塗鴉 & 數字著色奇幻空間</p>
+            </div>
+        </div>
+
+        <!-- 模式與工具列 -->
+        <div class="flex items-center space-x-2 md:space-x-4 mt-3 sm:mt-0">
+            <!-- 模式切換器 -->
+            <div class="bg-gray-100 dark:bg-gray-700 p-1 rounded-xl flex space-x-1 shadow-inner">
+                <button id="btn-mode-number" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 bg-white dark:bg-gray-600 text-indigo-600 dark:text-white shadow-sm" onclick="switchMode('number')">
+                    🎨 數字著色
+                </button>
+                <button id="btn-mode-free" class="px-4 py-1.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 transition-all duration-200 hover:text-indigo-500" onclick="switchMode('free')">
+                    ✏️ 自由塗鴉
+                </button>
+            </div>
+
+            <!-- 功能按鈕群 -->
+            <button id="btn-theme" class="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all shadow-sm" title="切換深淺模式">
+                🌙
+            </button>
+            <button id="btn-sound" class="p-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all shadow-sm" title="靜音/開音效">
+                🔊
+            </button>
+        </div>
+    </header>
+
+    <!-- 主要內容區 -->
+    <main class="flex-1 flex flex-col lg:flex-row p-4 md:p-6 gap-6 overflow-hidden max-w-[1600px] mx-auto w-full">
+        
+        <!-- 左側面板：模板與工具控制 -->
+        <section class="w-full lg:w-80 flex flex-col gap-4 shrink-0 overflow-y-auto pr-1">
+            
+            <!-- 區塊一：關卡選擇（僅在數字模式顯示） -->
+            <div id="panel-templates" class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-all">
+                <h2 class="text-base font-bold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+                    <span class="text-pink-500">🏆</span> 選擇彩繪挑戰
+                </h2>
+                <div class="grid grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1" id="template-list">
+                    <!-- 模板按鈕會由 JS 動態生成 -->
+                </div>
+            </div>
+
+            <!-- 區塊二：自由塗鴉設定（僅在自由模式顯示） -->
+            <div id="panel-free-settings" class="hidden bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 transition-all">
+                <h2 class="text-base font-bold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+                    <span class="text-purple-500">⚙️</span> 畫布大小設定
+                </h2>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <button class="btn-grid-size py-2 px-1 text-xs font-bold rounded-xl border border-indigo-200 text-indigo-600 hover:bg-indigo-50 bg-indigo-50/50" data-size="16">16 x 16</button>
+                    <button class="btn-grid-size py-2 px-1 text-xs font-bold rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50" data-size="24">24 x 24</button>
+                    <button class="btn-grid-size py-2 px-1 text-xs font-bold rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50" data-size="32">32 x 32</button>
+                </div>
+                <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                    <span class="text-xs text-gray-500">工具模式：</span>
+                    <div class="flex gap-1" id="tool-selector">
+                        <button id="tool-pencil" class="p-2 rounded-lg bg-indigo-100 text-indigo-600 font-bold text-sm" title="畫筆">✏️ 畫筆</button>
+                        <button id="tool-bucket" class="p-2 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm hover:bg-indigo-50" title="油漆桶">🪣 填色</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 區塊三：控制設定與開關 -->
+            <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h2 class="text-base font-bold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+                    <span class="text-indigo-500">🛠️</span> 工具與輔助設定
+                </h2>
+                <div class="space-y-3">
+                    <!-- 防呆模式 (僅數字著色模式有用) -->
+                    <div id="toggle-safeguard-container" class="flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">防呆著色鎖</span>
+                            <span class="text-xxs text-gray-400">開啟時填錯顏色不留痕跡</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="chk-safeguard" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
+                        </label>
+                    </div>
+
+                    <!-- 數字高亮提示 (僅數字著色模式有用) -->
+                    <div id="toggle-highlight-container" class="flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">高亮當前數字</span>
+                            <span class="text-xxs text-gray-400">醒目顯示選定色號的網格</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="chk-highlight" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                        </label>
+                    </div>
+
+                    <!-- 顯示格線開關 -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">顯示像素格線</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="chk-grid-lines" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 輔助操控與管理 -->
+                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-2">
+                    <button id="btn-show-hint" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 px-4 rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-1.5">
+                        💡 自動找出下個位置
+                    </button>
+                    <button id="btn-reset-canvas" class="w-full bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-bold py-2 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5">
+                        🔄 清空目前畫布進度
+                    </button>
+                </div>
+            </div>
+
+            <!-- 自由模式特殊：生成著色關卡功能 -->
+            <div id="panel-convert-game" class="hidden bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-indigo-950/40 dark:to-pink-950/40 p-5 rounded-2xl shadow-sm border border-indigo-100 dark:border-indigo-900">
+                <h2 class="text-base font-black text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
+                    ✨ 夢幻功能：自製著色關卡
+                </h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                    親手畫出獨一無二的作品後，點擊下方即可將此創作「轉換成數字填色遊戲」！
+                </p>
+                <button id="btn-convert" class="w-full bg-gradient-to-r from-pink-500 to-indigo-600 text-white font-bold py-2.5 px-4 rounded-xl text-sm hover:opacity-90 active:scale-95 transition-all shadow-md flex items-center justify-center gap-2">
+                    🎯 轉換為數字著色關卡！
+                </button>
+            </div>
+        </section>
+
+        <!-- 中間：主畫布區域 -->
+        <section class="flex-1 flex flex-col items-center justify-center bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 relative min-h-[420px] lg:min-h-[500px]">
+            
+            <!-- 資訊看板與進度 -->
+            <div class="w-full max-w-[500px] flex items-center justify-between mb-4">
+                <div class="flex flex-col">
+                    <span id="canvas-title" class="text-lg font-black text-gray-800 dark:text-gray-100">愛心圖案</span>
+                    <span id="mode-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-400 w-max mt-0.5">數字模式</span>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-500">填色完成度</div>
+                    <div id="progress-percent" class="text-2xl font-black text-indigo-600 dark:text-indigo-400">0%</div>
+                </div>
+            </div>
+
+            <!-- 進度條 -->
+            <div class="w-full max-w-[500px] bg-gray-100 dark:bg-gray-700 h-2 rounded-full overflow-hidden mb-6">
+                <div id="progress-bar" class="bg-gradient-to-r from-pink-500 to-indigo-500 h-full w-[0%] transition-all duration-300"></div>
+            </div>
+
+            <!-- 實際著色畫布容器 (維持完美正方形) -->
+            <div class="relative w-full max-w-[420px] aspect-square bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-inner border border-gray-200 dark:border-gray-700 p-2 flex items-center justify-center overflow-hidden">
+                <div id="pixel-grid-container" class="w-full h-full grid gap-0 overflow-hidden" style="grid-template-columns: repeat(16, minmax(0, 1fr));">
+                    <!-- 像素格子由 JS 動態生成 -->
+                </div>
+
+                <!-- 滿分/通關粒子遮罩層 -->
+                <canvas id="confetti-canvas" class="absolute inset-0 pointer-events-none z-20"></canvas>
+                
+                <!-- 遮罩：關卡完成大字 -->
+                <div id="win-overlay" class="absolute inset-0 bg-black/60 backdrop-blur-sm z-10 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500">
+                    <div class="transform scale-50 transition-all duration-500 text-center" id="win-content">
+                        <span class="text-5xl">🎉</span>
+                        <h3 class="text-3xl font-black text-white mt-3">恭喜完美通關！</h3>
+                        <p class="text-sm text-pink-300 mt-2">快去挑戰其他精美的圖案吧！</p>
+                        <button class="mt-6 bg-pink-500 hover:bg-pink-600 text-white font-bold py-2.5 px-6 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95" onclick="closeWinOverlay()">
+                            繼續挑戰
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 狀態統計欄 -->
+            <div id="score-stats" class="w-full max-w-[500px] flex justify-around mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <div class="text-center">
+                    <span class="text-xs text-gray-500">完美得分</span>
+                    <div id="stat-score" class="text-lg font-black text-green-500">0</div>
+                </div>
+                <div id="mistake-stat-container" class="text-center">
+                    <span class="text-xs text-gray-500">失誤次數</span>
+                    <div id="stat-mistakes" class="text-lg font-black text-red-500">0</div>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs text-gray-500">剩餘像素</span>
+                    <div id="stat-remaining" class="text-lg font-black text-gray-600 dark:text-gray-300">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 右側面板：調色盤 -->
+        <section class="w-full lg:w-48 bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col shrink-0">
+            <h2 class="text-base font-bold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+                <span id="palette-emoji">🎨</span> <span id="palette-title">填色色票</span>
+            </h2>
+            
+            <!-- 顏色調色盤 -->
+            <div id="palette-container" class="flex flex-row lg:flex-col gap-2 flex-wrap items-center overflow-y-auto lg:max-h-[360px] pr-1">
+                <!-- 由 JS 動態生成 -->
+            </div>
+
+            <!-- 自由著色下的調色盤功能 -->
+            <div id="free-color-tools" class="hidden mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">橡皮擦：</span>
+                    <button id="btn-eraser" class="p-2 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm hover:bg-pink-100 hover:text-pink-600" title="橡皮擦工具">
+                        🧽 橡皮擦
+                    </button>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-500">自選色彩：</span>
+                    <input type="color" id="custom-color-picker" class="w-10 h-10 rounded-lg cursor-pointer border-0 p-0 overflow-hidden bg-transparent" value="#4F46E5">
+                </div>
+            </div>
+
+            <!-- 作品匯出按鈕 -->
+            <div class="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button id="btn-export-png" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-1.5">
+                    💾 儲存/下載精美畫作 (PNG)
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 底部版權 -->
+    <footer class="py-4 text-center text-xs text-gray-400 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 transition-colors duration-300 mt-auto">
+        繽紛像素彩繪工坊 © 2026 - 優雅體驗與美感大升級版
+    </footer>
+
+    <!-- 自訂提示訊息 Toast 容器 (代替傳統 blocked alert/confirm) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JavaScript 邏輯部分 -->
+    <script>
+        // --- 核心變數設定 ---
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'pixel-paint-studio';
+        let currentMode = 'number'; // 'number' (數字著色模式) 或 'free' (自由塗鴉模式)
+        let activeSize = 16;       // 當前畫布大小
+        let isMuted = false;       // 是否靜音
+        let isDarkMode = false;    // 是否為暗黑模式
+        let activeColorIndex = 1;  // 當前數字著色選定的色號
+        let activeFreeColor = '#EF4444'; // 當前自由著色模式選定的色彩HEX
+        let isDrawing = false;     // 拖曳上色標記
+        let activeTool = 'pencil'; // 自由著色下的工具：'pencil' 或 'bucket' (油漆桶)
+
+        // 統計計數器
+        let score = 0;
+        let mistakes = 0;
+
+        // 自訂非阻塞式提示訊息 (代替被沙盒阻擋的 alert/confirm)
+        function showCustomAlert(msg) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = "bg-gray-800 dark:bg-gray-700 text-white px-4 py-3 rounded-xl shadow-lg transition-all duration-300 transform translate-y-10 opacity-0 text-xs font-bold flex items-center gap-2 border border-gray-700 pointer-events-auto max-w-sm";
+            toast.innerHTML = `<span>✨</span> <span>${msg}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 50);
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3500);
+        }
+
+        // 內建關卡模板 (16x16)
+        const builtInTemplates = [
+            {
+                id: 'heart',
+                name: '可愛像素愛心',
+                size: 16,
+                // 色票定義：0號必定為空白(透明)
+                palette: [null, "#FBCFE8", "#B91C1C", "#EF4444", "#FFFFFF"],
+                colorNames: ["透明", "粉紅背景", "深紅外框", "鮮紅主體", "白色高光"],
+                grid: [
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,2,2,2,0,0,0,0,0,2,2,2,0,0,0,
+                    0,2,3,3,3,2,2,0,2,2,3,3,3,2,0,0,
+                    2,3,4,4,3,3,3,2,3,3,3,3,3,3,2,0,
+                    2,3,4,3,3,3,3,3,3,3,3,3,3,3,2,0,
+                    2,3,3,3,3,3,3,3,3,3,3,3,3,3,2,0,
+                    2,3,3,3,3,3,3,3,3,3,3,3,3,3,2,0,
+                    0,2,3,3,3,3,3,3,3,3,3,3,3,2,0,0,
+                    0,0,2,3,3,3,3,3,3,3,3,3,2,0,0,0,
+                    0,0,0,2,3,3,3,3,3,3,3,2,0,0,0,0,
+                    0,0,0,0,2,3,3,3,3,3,2,0,0,0,0,0,
+                    0,0,0,0,0,2,3,3,3,2,0,0,0,0,0,0,
+                    0,0,0,0,0,0,2,3,2,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                ]
+            },
+            {
+                id: 'mushroom',
+                name: '經典紅白香菇',
+                size: 16,
+                palette: [null, "#EF4444", "#FFFFFF", "#FDE68A", "#1F2937"],
+                colorNames: ["空白", "紅色菇傘", "白色斑點", "香菇臉頰", "黑色眼睛"],
+                grid: [
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,
+                    0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,
+                    0,0,1,1,1,2,2,1,1,2,2,1,1,1,0,0,
+                    0,1,1,1,2,2,2,2,1,2,2,2,2,1,1,0,
+                    0,1,1,2,2,2,2,2,1,2,2,2,2,2,1,0,
+                    0,1,1,1,2,2,2,2,1,2,2,2,2,1,1,0,
+                    0,1,1,1,1,2,2,1,1,1,2,2,1,1,1,0,
+                    0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
+                    0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+                    0,0,0,0,3,3,3,3,3,3,3,3,0,0,0,0,
+                    0,0,0,0,3,4,3,3,3,3,4,3,0,0,0,0,
+                    0,0,0,0,3,4,3,3,3,3,4,3,0,0,0,0,
+                    0,0,0,0,3,3,3,3,3,3,3,3,0,0,0,0,
+                    0,0,0,0,0,3,3,3,3,3,3,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                ]
+            },
+            {
+                id: 'duck',
+                name: '超萌黃色小鴨',
+                size: 16,
+                palette: [null, "#FBBF24", "#F97316", "#111827", "#FFFFFF"],
+                colorNames: ["透明", "黃色身體", "橘色鴨嘴", "黑色眼睛", "白色反光"],
+                grid: [
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,
+                    0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,
+                    0,0,0,0,1,3,1,1,1,1,1,0,0,0,0,0,
+                    0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,
+                    0,0,2,2,2,1,1,1,1,1,0,0,0,0,0,0,
+                    0,2,2,2,2,2,1,1,1,0,0,0,0,0,0,
+                    0,0,2,2,2,1,1,1,1,1,1,1,1,0,0,0,
+                    0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,
+                    0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,
+                    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
+                    0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
+                    0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,
+                    0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,
+                    0,0,0,0,0,2,2,2,2,2,2,2,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                ]
+            },
+            {
+                id: 'pokeball',
+                name: '神奇精靈球',
+                size: 16,
+                palette: [null, "#EF4444", "#FFFFFF", "#111827"],
+                colorNames: ["透明", "紅色上層", "白色下層", "黑色線條"],
+                grid: [
+                    0,0,0,0,0,3,3,3,3,3,3,0,0,0,0,0,
+                    0,0,0,3,3,1,1,1,1,1,1,3,3,0,0,0,
+                    0,0,3,1,1,1,1,1,1,1,1,1,1,3,0,0,
+                    0,3,1,1,1,1,1,1,1,1,1,1,1,1,3,0,
+                    0,3,1,1,1,1,1,1,1,1,1,1,1,1,3,0,
+                    3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,
+                    3,1,1,1,1,1,3,3,3,3,1,1,1,1,1,3,
+                    3,3,3,3,3,3,3,2,2,3,3,3,3,3,3,3,
+                    3,2,2,2,2,2,3,2,2,3,2,2,2,2,2,3,
+                    3,2,2,2,2,2,2,3,3,2,2,2,2,2,2,3,
+                    0,3,2,2,2,2,2,2,2,2,2,2,2,2,3,0,
+                    0,3,2,2,2,2,2,2,2,2,2,2,2,2,3,0,
+                    0,0,3,2,2,2,2,2,2,2,2,2,2,3,0,0,
+                    0,0,0,3,3,2,2,2,2,2,2,3,3,0,0,0,
+                    0,0,0,0,0,3,3,3,3,3,3,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                ]
+            },
+            {
+                id: 'dino',
+                name: '探險小恐龍',
+                size: 16,
+                palette: [null, "#10B981", "#34D399", "#FBBF24", "#111827", "#FFFFFF"],
+                colorNames: ["透明", "深綠皮膚", "淺綠腹部", "亮黃背鰭", "黑色瞳孔", "亮點"],
+                grid: [
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+                    0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,
+                    0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,
+                    0,0,0,0,1,4,1,1,1,1,1,1,0,0,0,0,
+                    0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,
+                    0,0,0,0,1,1,1,1,3,3,3,0,0,0,0,0,
+                    0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,
+                    0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,
+                    0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,
+                    0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
+                    0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
+                    0,1,1,0,1,1,1,1,1,1,1,0,1,1,0,0,
+                    0,1,0,0,1,1,1,0,1,1,1,0,0,1,0,0,
+                    0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,
+                    0,0,0,1,1,0,0,0,0,1,1,0,0,0,0,0,
+                    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+                ]
+            }
+        ];
+
+        // 玩家動態自製關卡與進度
+        let customTemplates = [];
+        let activeTemplate = builtInTemplates[0];
+        
+        // 保存各關卡的進度狀態 (用於數字填色)
+        // 格式: { templateId: [0, 0, 1, 0, ...] } 1表示該位置已上色正確，0表示未上色
+        let paintingProgress = {};
+
+        // 自由模式下的畫布狀態 (2D 矩陣、存色值，預設白色背景)
+        let freeCanvasState = [];
+
+        // --- Web Audio 復古音效生成器 ---
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (isMuted) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    // 清脆短暫的升音 (答對)
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now); // D5
+                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.08); // A5
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'error') {
+                    // 答錯嗡嗡聲
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(130, now); // C3
+                    osc.frequency.linearRampToValueAtTime(90, now + 0.15);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                    osc.start(now);
+                    osc.stop(now + 0.18);
+                } else if (type === 'click') {
+                    // 切換/按鈕點擊
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(350, now);
+                    gain.gain.setValueAtTime(0.04, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'victory') {
+                    // 耀眼的 8-bit 通關琶音
+                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // C大調琶音
+                    notes.forEach((freq, idx) => {
+                        const noteOsc = audioCtx.createOscillator();
+                        const noteGain = audioCtx.createGain();
+                        noteOsc.connect(noteGain);
+                        noteGain.connect(audioCtx.destination);
+                        
+                        noteOsc.type = 'triangle';
+                        noteOsc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        
+                        noteGain.gain.setValueAtTime(0.06, now + idx * 0.08);
+                        noteGain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+                        
+                        noteOsc.start(now + idx * 0.08);
+                        noteOsc.stop(now + idx * 0.08 + 0.25);
+                    });
+                }
+            } catch (e) {
+                console.warn('音效生成失敗:', e);
+            }
+        }
+
+        // --- 核心邏輯初始化 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            initApp();
+            registerEvents();
+        });
+
+        // 初始化整個介面與關卡列表
+        function initApp() {
+            // 生成關卡選擇按鈕
+            renderTemplateList();
+            // 初始化當前模式與畫布
+            switchMode(currentMode);
+            // 同步音效與亮色設定
+            syncUIButtons();
+        }
+
+        // 載入本地存檔
+        function loadFromLocalStorage() {
+            // 讀取進度
+            const savedProgress = localStorage.getItem(`${appId}-progress`);
+            if (savedProgress) {
+                paintingProgress = JSON.parse(savedProgress);
+            }
+            // 讀取玩家自創模板
+            const savedCustom = localStorage.getItem(`${appId}-custom-templates`);
+            if (savedCustom) {
+                customTemplates = JSON.parse(savedCustom);
+            }
+            // 讀取設定
+            isMuted = localStorage.getItem(`${appId}-muted`) === 'true';
+            isDarkMode = localStorage.getItem(`${appId}-dark-mode`) === 'true';
+            
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        // 儲存進度至本地
+        function saveToLocalStorage() {
+            localStorage.setItem(`${appId}-progress`, JSON.stringify(paintingProgress));
+            localStorage.setItem(`${appId}-custom-templates`, JSON.stringify(customTemplates));
+            localStorage.setItem(`${appId}-muted`, isMuted);
+            localStorage.setItem(`${appId}-dark-mode`, isDarkMode);
+        }
+
+        // 生成模板清單
+        function renderTemplateList() {
+            const listContainer = document.getElementById('template-list');
+            listContainer.innerHTML = '';
+
+            // 先放內建關卡
+            builtInTemplates.forEach(t => {
+                const btn = createTemplateButton(t, false);
+                listContainer.appendChild(btn);
+            });
+
+            // 再放自創關卡
+            customTemplates.forEach(t => {
+                const btn = createTemplateButton(t, true);
+                listContainer.appendChild(btn);
+            });
+        }
+
+        // 產生單個關卡選取按鈕
+        function createTemplateButton(t, isCustom = false) {
+            const btn = document.createElement('button');
+            const isActive = activeTemplate.id === t.id;
+            
+            // 計算此關卡進度
+            const totalPaintable = t.grid.filter(v => v !== 0).length;
+            const progressArr = paintingProgress[t.id] || Array(t.grid.length).fill(0);
+            const coloredCount = progressArr.reduce((acc, curr, idx) => {
+                return (t.grid[idx] !== 0 && curr === 1) ? acc + 1 : acc;
+            }, 0);
+            
+            const pct = totalPaintable > 0 ? Math.round((coloredCount / totalPaintable) * 100) : 0;
+            const completed = pct === 100;
+
+            btn.className = `p-2.5 rounded-xl border text-left transition-all relative flex flex-col justify-between group overflow-hidden ${
+                isActive 
+                ? 'bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-indigo-950/40 dark:to-pink-950/40 border-indigo-500 shadow-md scale-[1.02]' 
+                : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm'
+            }`;
+            
+            btn.onclick = () => {
+                playSound('click');
+                selectTemplate(t);
+            };
+
+            // 按鈕內部結構
+            btn.innerHTML = `
+                <div class="flex flex-col">
+                    <span class="text-xs font-black truncate text-gray-800 dark:text-gray-100 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : ''}">
+                        ${t.name}
+                    </span>
+                    <span class="text-xxs text-gray-400 mt-0.5 flex items-center gap-1">
+                        規格: ${t.size}x${t.size} ${isCustom ? '• 🪄自製' : ''}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between mt-2 pt-1 border-t border-gray-100 dark:border-gray-700/50">
+                    <span class="text-xxs font-bold ${completed ? 'text-emerald-500' : 'text-indigo-500'}">
+                        ${completed ? '✅ 完工' : `🎨 ${pct}%`}
+                    </span>
+                </div>
+            `;
+
+            return btn;
+        }
+
+        // 選擇某個關卡
+        function selectTemplate(t) {
+            activeTemplate = t;
+            activeSize = t.size;
+            renderTemplateList(); // 重新整理清單選中狀態
+            switchMode('number'); // 自動切換回數字著色模式
+        }
+
+        // 切換著色模式 (Number: 數字著色, Free: 自由塗鴉)
+        function switchMode(mode) {
+            currentMode = mode;
+            const btnNum = document.getElementById('btn-mode-number');
+            const btnFree = document.getElementById('btn-mode-free');
+            const panelTemplates = document.getElementById('panel-templates');
+            const panelFreeSettings = document.getElementById('panel-free-settings');
+            const panelConvert = document.getElementById('panel-convert-game');
+            const canvasTitle = document.getElementById('canvas-title');
+            const modeBadge = document.getElementById('mode-badge');
+            const toggleSafeguard = document.getElementById('toggle-safeguard-container');
+            const toggleHighlight = document.getElementById('toggle-highlight-container');
+            const freeColorTools = document.getElementById('free-color-tools');
+            const paletteTitle = document.getElementById('palette-title');
+            const paletteEmoji = document.getElementById('palette-emoji');
+            const hintBtn = document.getElementById('btn-show-hint');
+            const scoreStats = document.getElementById('score-stats');
+
+            if (mode === 'number') {
+                // UI選取切換
+                btnNum.className = "px-4 py-1.5 rounded-lg text-sm font-bold bg-white dark:bg-gray-600 text-indigo-600 dark:text-white shadow-sm";
+                btnFree.className = "px-4 py-1.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-indigo-500";
+                
+                // 控制面板顯示
+                panelTemplates.classList.remove('hidden');
+                panelFreeSettings.classList.add('hidden');
+                panelConvert.classList.add('hidden');
+                toggleSafeguard.classList.remove('hidden');
+                toggleHighlight.classList.remove('hidden');
+                freeColorTools.classList.add('hidden');
+                hintBtn.classList.remove('hidden');
+                scoreStats.classList.remove('hidden');
+
+                // 標題與標籤
+                canvasTitle.textContent = activeTemplate.name;
+                modeBadge.textContent = "數字填色模式";
+                modeBadge.className = "text-xs font-semibold px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-400 w-max mt-0.5";
+                paletteTitle.textContent = "著色數字對照";
+                paletteEmoji.textContent = "🔢";
+
+                // 重設並渲染數字畫布
+                buildNumberGrid();
+            } else {
+                // 自由著色模式
+                btnFree.className = "px-4 py-1.5 rounded-lg text-sm font-bold bg-white dark:bg-gray-600 text-indigo-600 dark:text-white shadow-sm";
+                btnNum.className = "px-4 py-1.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:text-indigo-500";
+
+                panelTemplates.classList.add('hidden');
+                panelFreeSettings.classList.remove('hidden');
+                panelConvert.classList.remove('hidden');
+                toggleSafeguard.classList.add('hidden');
+                toggleHighlight.classList.add('hidden');
+                freeColorTools.classList.remove('hidden');
+                hintBtn.classList.add('hidden');
+                scoreStats.classList.add('hidden'); // 自由模式不統計計分
+
+                canvasTitle.textContent = "自由像素小畫布";
+                modeBadge.textContent = "自由塗鴉模式";
+                modeBadge.className = "text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/40 dark:text-purple-400 w-max mt-0.5";
+                paletteTitle.textContent = "自由著色盤";
+                paletteEmoji.textContent = "🎨";
+
+                // 初始化自由著色矩陣狀態
+                initFreeGridState();
+                buildFreeGrid();
+            }
+            closeWinOverlay();
+        }
+
+        // 同步上方工具欄開關狀態的按鈕
+        function syncUIButtons() {
+            const btnSound = document.getElementById('btn-sound');
+            const btnTheme = document.getElementById('btn-theme');
+            
+            btnSound.innerHTML = isMuted ? '🔇' : '🔊';
+            btnTheme.innerHTML = isDarkMode ? '☀️' : '🌙';
+        }
+
+        // --- 數字模式核心畫布邏輯 ---
+
+        // 建置著色模式網格
+        function buildNumberGrid() {
+            const gridContainer = document.getElementById('pixel-grid-container');
+            gridContainer.innerHTML = '';
+            
+            const size = activeTemplate.size;
+            gridContainer.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
+
+            // 取得或初始化當前進度陣列
+            if (!paintingProgress[activeTemplate.id]) {
+                paintingProgress[activeTemplate.id] = Array(activeTemplate.grid.length).fill(0);
+            }
+            const progress = paintingProgress[activeTemplate.id];
+
+            // 重置與計算得分、剩餘
+            score = 0;
+            mistakes = 0;
+            let remaining = 0;
+
+            activeTemplate.grid.forEach((targetColorNum, idx) => {
+                const cell = document.createElement('div');
+                cell.className = "pixel-cell border-b border-r border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center relative cursor-crosshair select-none text-xxs font-black";
+                cell.dataset.index = idx;
+                cell.dataset.colorNum = targetColorNum;
+
+                // 若為 0 代表透明（無須著色）
+                if (targetColorNum === 0) {
+                    cell.style.backgroundColor = 'transparent';
+                    cell.innerText = '';
+                } else {
+                    remaining++;
+                    // 若進度指示已著色正確
+                    if (progress[idx] === 1) {
+                        cell.style.backgroundColor = activeTemplate.palette[targetColorNum];
+                        cell.innerText = '';
+                        cell.style.color = 'transparent';
+                        score++;
+                        remaining--;
+                    } else {
+                        // 尚未著色，顯示數字
+                        cell.style.backgroundColor = isDarkMode ? '#1f2937' : '#f9fafb';
+                        cell.innerText = targetColorNum;
+                        cell.style.color = '#9ca3af'; // 灰色數字
+                    }
+                }
+
+                // 滑鼠點擊與滑過拖曳著色事件
+                cell.onmousedown = (e) => {
+                    e.preventDefault();
+                    isDrawing = true;
+                    handleNumberCellDraw(cell);
+                };
+
+                cell.onmouseenter = () => {
+                    if (isDrawing) {
+                        handleNumberCellDraw(cell);
+                    }
+                };
+
+                gridContainer.appendChild(cell);
+            });
+
+            // 更新統計看板與高亮輔助線
+            updateStats(remaining);
+            refreshPalette();
+            applyHighlightAssist();
+            checkGridLinesToggle();
+        }
+
+        // 處理數字模式的格子著色點擊
+        function handleNumberCellDraw(cell) {
+            const idx = parseInt(cell.dataset.index);
+            const targetColorNum = parseInt(cell.dataset.colorNum);
+            
+            // 如果這格是透明的，或是早已經畫好的，直接略過
+            if (targetColorNum === 0 || paintingProgress[activeTemplate.id][idx] === 1) return;
+
+            const isSafeguardOn = document.getElementById('chk-safeguard').checked;
+
+            // 判斷玩家當前選取的色號是否與格子的目標色號一致
+            if (activeColorIndex === targetColorNum) {
+                // 上色成功！
+                paintingProgress[activeTemplate.id][idx] = 1;
+                cell.style.backgroundColor = activeTemplate.palette[targetColorNum];
+                cell.innerText = '';
+                cell.style.color = 'transparent';
+                
+                // 動態縮放一下表現點擊感
+                cell.classList.add('scale-90');
+                setTimeout(() => cell.classList.remove('scale-90'), 100);
+
+                playSound('correct');
+                
+                // 重新計算進度
+                saveToLocalStorage();
+                recalculateProgressAndStats();
+            } else {
+                // 點錯顏色
+                playSound('error');
+                
+                // 如果沒有開防呆鎖，我們在格子標記一下錯色，但保留其數字供修改
+                if (!isSafeguardOn) {
+                    mistakes++;
+                    document.getElementById('stat-mistakes').textContent = mistakes;
+                    cell.style.backgroundColor = '#fee2e2'; // 紅色警示背景
+                    cell.style.color = '#ef4444'; // 紅色數字
+                    
+                    // 抖動特效
+                    cell.classList.add('animate-bounce');
+                    setTimeout(() => cell.classList.remove('animate-bounce'), 400);
+                } else {
+                    // 若有開防呆，僅畫面一閃紅色提示，不污染格子
+                    cell.style.backgroundColor = '#fee2e2';
+                    setTimeout(() => {
+                        if (paintingProgress[activeTemplate.id][idx] === 0) {
+                            cell.style.backgroundColor = isDarkMode ? '#1f2937' : '#f9fafb';
+                        }
+                    }, 200);
+                }
+            }
+        }
+
+        // 重新計算進度條、統計數字
+        function recalculateProgressAndStats() {
+            const t = activeTemplate;
+            const progress = paintingProgress[t.id];
+            
+            let totalPaintable = 0;
+            let coloredCount = 0;
+
+            t.grid.forEach((targetNum, idx) => {
+                if (targetNum !== 0) {
+                    totalPaintable++;
+                    if (progress[idx] === 1) {
+                        coloredCount++;
+                    }
+                }
+            });
+
+            const remaining = totalPaintable - coloredCount;
+            score = coloredCount;
+
+            updateStats(remaining);
+
+            // 當 100% 完成
+            if (remaining === 0) {
+                triggerVictory();
+            }
+        }
+
+        // 更新統計看板
+        function updateStats(remaining) {
+            const totalPaintable = activeTemplate.grid.filter(v => v !== 0).length;
+            const pct = totalPaintable > 0 ? Math.round((score / totalPaintable) * 100) : 0;
+
+            document.getElementById('progress-percent').textContent = `${pct}%`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+            
+            document.getElementById('stat-score').textContent = score;
+            document.getElementById('stat-mistakes').textContent = mistakes;
+            document.getElementById('stat-remaining').textContent = remaining;
+        }
+
+        // 生成數字調色盤
+        function refreshPalette() {
+            const container = document.getElementById('palette-container');
+            container.innerHTML = '';
+
+            const t = activeTemplate;
+            
+            // 從1號開始（0號是透明）
+            for (let i = 1; i < t.palette.length; i++) {
+                const colorHex = t.palette[i];
+                const colorName = t.colorNames ? t.colorNames[i] : `顏色 ${i}`;
+                
+                // 計算此顏色剩餘未塗的格子數
+                let colorRemaining = 0;
+                t.grid.forEach((num, idx) => {
+                    if (num === i && paintingProgress[t.id][idx] === 0) {
+                        colorRemaining++;
+                    }
+                });
+
+                const swatch = document.createElement('button');
+                const isSelected = activeColorIndex === i;
+                
+                swatch.className = `flex items-center gap-2 px-3 py-2 rounded-xl transition-all border text-left cursor-pointer w-full max-w-[120px] lg:max-w-none ${
+                    isSelected 
+                    ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 ring-2 ring-indigo-500/20 scale-105 shadow-sm' 
+                    : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                }`;
+
+                // 顏色小圓點
+                const dot = document.createElement('div');
+                dot.className = "w-5 h-5 rounded-full border border-black/10 flex items-center justify-center shrink-0 relative";
+                dot.style.backgroundColor = colorHex;
+                
+                // 若此顏色已完全畫完，在圓點上顯示打勾符號
+                if (colorRemaining === 0) {
+                    dot.innerHTML = `<span class="text-xxs text-white font-bold drop-shadow-md">✓</span>`;
+                }
+
+                // 文字說明
+                const info = document.createElement('div');
+                info.className = "flex flex-col min-w-0";
+                info.innerHTML = `
+                    <span class="text-xs font-black truncate text-gray-700 dark:text-gray-200">${colorName}</span>
+                    <span class="text-[10px] font-bold text-gray-400 mt-0.5">號碼 ${i} (${colorRemaining}格)</span>
+                `;
+
+                swatch.appendChild(dot);
+                swatch.appendChild(info);
+
+                swatch.onclick = () => {
+                    playSound('click');
+                    activeColorIndex = i;
+                    refreshPalette();
+                    applyHighlightAssist();
+                };
+
+                container.appendChild(swatch);
+            }
+        }
+
+        // 數字高亮輔助線
+        function applyHighlightAssist() {
+            const isHighlightOn = document.getElementById('chk-highlight').checked;
+            const cells = document.querySelectorAll('.pixel-cell');
+
+            cells.forEach(cell => {
+                const targetColorNum = parseInt(cell.dataset.colorNum);
+                const idx = parseInt(cell.dataset.index);
+                const isPainted = paintingProgress[activeTemplate.id]?.[idx] === 1;
+
+                if (currentMode === 'number' && isHighlightOn && !isPainted && targetColorNum === activeColorIndex) {
+                    // 將當前色號對應、未上色的格子邊框標亮
+                    cell.style.border = '2px solid #6366f1';
+                    cell.style.boxShadow = 'inset 0 0 4px rgba(99,102,241,0.2)';
+                } else {
+                    cell.style.border = '';
+                    cell.style.boxShadow = '';
+                }
+            });
+        }
+
+        // 自動提示下一個相同色號的格子位置
+        function triggerShowHint() {
+            if (currentMode !== 'number') return;
+            const t = activeTemplate;
+            const progress = paintingProgress[t.id];
+
+            // 尋找當前選取色號中尚未著色的格子
+            let targetIdx = -1;
+            for (let idx = 0; idx < t.grid.length; idx++) {
+                if (t.grid[idx] === activeColorIndex && progress[idx] === 0) {
+                    targetIdx = idx;
+                    break;
+                }
+            }
+
+            // 如果沒找到，就尋找任何尚未著色的格子
+            if (targetIdx === -1) {
+                for (let idx = 0; idx < t.grid.length; idx++) {
+                    if (t.grid[idx] !== 0 && progress[idx] === 0) {
+                        targetIdx = idx;
+                        break;
+                    }
+                }
+            }
+
+            if (targetIdx !== -1) {
+                const cells = document.querySelectorAll('.pixel-cell');
+                const cell = cells[targetIdx];
+                if (cell) {
+                    // 給予三次亮黃色閃爍動畫提示
+                    cell.style.backgroundColor = '#fef08a';
+                    cell.style.transform = 'scale(1.2)';
+                    
+                    playSound('click');
+                    
+                    setTimeout(() => {
+                        cell.style.transform = '';
+                        cell.style.backgroundColor = isDarkMode ? '#1f2937' : '#f9fafb';
+                        
+                        setTimeout(() => {
+                            cell.style.transform = 'scale(1.2)';
+                            cell.style.backgroundColor = '#fef08a';
+                            setTimeout(() => {
+                                cell.style.transform = '';
+                                cell.style.backgroundColor = isDarkMode ? '#1f2937' : '#f9fafb';
+                            }, 250);
+                        }, 200);
+                    }, 250);
+                }
+            }
+        }
+
+
+        // --- 自由塗鴉模式核心邏輯 ---
+
+        // 初始化自由畫布狀態矩陣
+        function initFreeGridState() {
+            const totalCells = activeSize * activeSize;
+            freeCanvasState = Array(totalCells).fill('#FFFFFF'); // 預設白底
+        }
+
+        // 建置自由塗鴉畫布
+        function buildFreeGrid() {
+            const gridContainer = document.getElementById('pixel-grid-container');
+            gridContainer.innerHTML = '';
+            
+            gridContainer.style.gridTemplateColumns = `repeat(${activeSize}, minmax(0, 1fr))`;
+
+            freeCanvasState.forEach((color, idx) => {
+                const cell = document.createElement('div');
+                cell.className = "pixel-cell border-b border-r border-gray-200/50 dark:border-gray-700/50 relative cursor-crosshair select-none";
+                cell.style.backgroundColor = color;
+                cell.dataset.index = idx;
+
+                // 滑鼠上色操作
+                cell.onmousedown = (e) => {
+                    e.preventDefault();
+                    isDrawing = true;
+                    handleFreeCellDraw(cell);
+                };
+
+                cell.onmouseenter = () => {
+                    if (isDrawing) {
+                        handleFreeCellDraw(cell);
+                    }
+                };
+
+                gridContainer.appendChild(cell);
+            });
+
+            // 更新進度與統計
+            updateFreeProgress();
+            renderFreePalette();
+            checkGridLinesToggle();
+        }
+
+        // 處理自由模式格子著色與油漆桶填滿
+        function handleFreeCellDraw(cell) {
+            const idx = parseInt(cell.dataset.index);
+            
+            if (activeTool === 'pencil') {
+                // 普通鉛筆著色
+                freeCanvasState[idx] = activeFreeColor;
+                cell.style.backgroundColor = activeFreeColor;
+                playSound('correct');
+                updateFreeProgress();
+            } else if (activeTool === 'bucket') {
+                // 油漆桶填滿著色 (Flood Fill)
+                const startColor = freeCanvasState[idx];
+                if (startColor === activeFreeColor) return; // 顏色相同無需填滿
+
+                floodFill(idx, startColor, activeFreeColor);
+                buildFreeGrid(); // 重新建置整個網格畫面
+                playSound('victory');
+            }
+        }
+
+        // 經典油漆桶填色演算法 (DFS/BFS)
+        function floodFill(startIdx, targetColor, replacementColor) {
+            const size = activeSize;
+            const visited = new Set();
+            const queue = [startIdx];
+
+            // 輔助將索引轉為 X, Y 座標
+            const getCoord = (idx) => [idx % size, Math.floor(idx / size)];
+            const getIndex = (x, y) => y * size + x;
+
+            while (queue.length > 0) {
+                const currIdx = queue.shift();
+                if (visited.has(currIdx)) continue;
+                visited.add(currIdx);
+
+                if (freeCanvasState[currIdx] === targetColor) {
+                    freeCanvasState[currIdx] = replacementColor;
+
+                    const [x, y] = getCoord(currIdx);
+
+                    // 檢查上下左右相連鄰居
+                    const neighbors = [];
+                    if (x > 0) neighbors.push(getIndex(x - 1, y));
+                    if (x < size - 1) neighbors.push(getIndex(x + 1, y));
+                    if (y > 0) neighbors.push(getIndex(x, y - 1));
+                    if (y < size - 1) neighbors.push(getIndex(x, y + 1));
+
+                    neighbors.forEach(nIdx => {
+                        if (freeCanvasState[nIdx] === targetColor && !visited.has(nIdx)) {
+                            queue.push(nIdx);
+                        }
+                    });
+                }
+            }
+        }
+
+        // 自由模式進度列更新
+        function updateFreeProgress() {
+            // 計算畫了多少非白色像素
+            const paintedCount = freeCanvasState.filter(c => c !== '#FFFFFF' && c !== 'transparent').length;
+            const total = freeCanvasState.length;
+            const pct = Math.round((paintedCount / total) * 100);
+
+            document.getElementById('progress-percent').textContent = `${pct}%`;
+            document.getElementById('progress-bar').style.width = `${pct}%`;
+        }
+
+        // 自由模式調色盤渲染
+        function renderFreePalette() {
+            const container = document.getElementById('palette-container');
+            container.innerHTML = '';
+
+            const presetColors = [
+                '#EF4444', '#F97316', '#FBBF24', '#10B981', '#3B82F6', 
+                '#6366F1', '#8B5CF6', '#EC4899', '#78350F', '#111827', '#FFFFFF'
+            ];
+
+            presetColors.forEach(colorHex => {
+                const swatch = document.createElement('button');
+                const isSelected = activeFreeColor === colorHex;
+                
+                swatch.className = `w-11 h-11 rounded-xl transition-all border shrink-0 relative ${
+                    isSelected 
+                    ? 'border-indigo-600 ring-4 ring-indigo-500/30 scale-110 shadow-md' 
+                    : 'border-gray-200 dark:border-gray-700 hover:scale-105'
+                }`;
+                swatch.style.backgroundColor = colorHex;
+
+                swatch.onclick = () => {
+                    playSound('click');
+                    activeFreeColor = colorHex;
+                    document.getElementById('custom-color-picker').value = colorHex;
+                    renderFreePalette();
+                };
+
+                container.appendChild(swatch);
+            });
+        }
+
+
+        // --- 自製關卡核心：神級轉換功能 ---
+
+        function convertFreeArtToNumberLevel() {
+            // 找出畫作中使用的所有色彩 (去除白色或透明)
+            const uniqueColors = [];
+            freeCanvasState.forEach(color => {
+                if (color !== '#FFFFFF' && color !== 'transparent' && !uniqueColors.includes(color)) {
+                    uniqueColors.push(color);
+                }
+            });
+
+            if (uniqueColors.length === 0) {
+                showCustomAlert('請先在畫布上畫些精彩色彩再轉換喔！');
+                return;
+            }
+
+            if (uniqueColors.length > 15) {
+                showCustomAlert('使用的顏色稍微有點過多（建議不超過15個顏色），以便維持最好的著色對照體驗！');
+                return;
+            }
+
+            // 組裝新關卡範本
+            // 0: 空白、1... 對應 uniqueColors
+            const newLevelPalette = [null, ...uniqueColors];
+            const newLevelGrid = freeCanvasState.map(color => {
+                if (color === '#FFFFFF' || color === 'transparent') {
+                    return 0;
+                }
+                return uniqueColors.indexOf(color) + 1;
+            });
+
+            const levelId = 'custom-' + Date.now();
+            const levelName = `自製作品 ${customTemplates.length + 1} 號`;
+
+            const newTemplate = {
+                id: levelId,
+                name: levelName,
+                size: activeSize,
+                palette: newLevelPalette,
+                colorNames: [null, ...uniqueColors.map((c, i) => `自製色彩 ${i + 1}`)],
+                grid: newLevelGrid
+            };
+
+            // 儲存至自製關卡陣列
+            customTemplates.push(newTemplate);
+            saveToLocalStorage();
+
+            // 重新載入列表、設定新關卡並切換至著色模式
+            renderTemplateList();
+            activeTemplate = newTemplate;
+            activeSize = newTemplate.size;
+            
+            playSound('victory');
+            switchMode('number');
+
+            // 提示玩家
+            setTimeout(() => {
+                showCustomAlert(`✨ 關卡建立成功！已轉換為「${levelName}」關卡，開始挑戰吧！`);
+            }, 300);
+        }
+
+
+        // --- 通關大獎特效 Confetti ---
+
+        let animationFrameId = null;
+
+        function triggerVictory() {
+            playSound('victory');
+            
+            // 顯示勝利大覆蓋層與特效
+            const winOverlay = document.getElementById('win-overlay');
+            const winContent = document.getElementById('win-content');
+            winOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            winOverlay.classList.add('opacity-100');
+            winContent.classList.remove('scale-50');
+            winContent.classList.add('scale-100');
+
+            // 開啟全螢幕彩紙
+            runConfetti();
+        }
+
+        function closeWinOverlay() {
+            const winOverlay = document.getElementById('win-overlay');
+            const winContent = document.getElementById('win-content');
+            winOverlay.classList.add('opacity-0', 'pointer-events-none');
+            winOverlay.classList.remove('opacity-100');
+            winContent.classList.add('scale-50');
+            winContent.classList.remove('scale-100');
+            
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                const canvas = document.getElementById('confetti-canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function runConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            
+            const colors = ['#EF4444', '#3B82F6', '#FBBF24', '#10B981', '#EC4899', '#8B5CF6'];
+            const particles = [];
+            
+            // 從底部向上發射
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height + 10,
+                    vx: (Math.random() - 0.5) * 16,
+                    vy: -Math.random() * 12 - 6,
+                    size: Math.random() * 8 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    rotationSpeed: (Math.random() - 0.5) * 8
+                });
+            }
+            
+            function update() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.22; // 模擬重力
+                    p.vx *= 0.98; // 摩擦力
+                    p.rotation += p.rotationSpeed;
+                    
+                    if (p.y < canvas.height + 20) {
+                        alive = true;
+                    }
+                    
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                });
+                
+                if (alive) {
+                    animationFrameId = requestAnimationFrame(update);
+                }
+            }
+            
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            update();
+        }
+
+        // --- 畫布格線管理 ---
+
+        function checkGridLinesToggle() {
+            const showLines = document.getElementById('chk-grid-lines').checked;
+            const cells = document.querySelectorAll('.pixel-cell');
+            cells.forEach(cell => {
+                if (showLines) {
+                    cell.classList.add('border-b', 'border-r');
+                } else {
+                    cell.classList.remove('border-b', 'border-r');
+                }
+            });
+        }
+
+
+        // --- 高清導出 PNG 圖片 ---
+
+        function exportCanvasAsPNG() {
+            const scale = 32; // 將每個像素渲染放大32倍，產出超清晰畫質
+            const canvasSize = activeSize * scale;
+
+            const offCanvas = document.createElement('canvas');
+            offCanvas.width = canvasSize;
+            offCanvas.height = canvasSize;
+            const ctx = offCanvas.getContext('2d');
+
+            // 停用平滑，保持完美的清爽像素感
+            ctx.imageSmoothingEnabled = false;
+
+            if (currentMode === 'number') {
+                const t = activeTemplate;
+                const progress = paintingProgress[t.id] || [];
+                
+                t.grid.forEach((colorNum, idx) => {
+                    const col = idx % activeSize;
+                    const row = Math.floor(idx / activeSize);
+                    
+                    if (colorNum !== 0 && progress[idx] === 1) {
+                        ctx.fillStyle = t.palette[colorNum];
+                        ctx.fillRect(col * scale, row * scale, scale, scale);
+                    } else {
+                        // 未著色部分填為底色
+                        ctx.fillStyle = isDarkMode ? '#1f2937' : '#ffffff';
+                        ctx.fillRect(col * scale, row * scale, scale, scale);
+                    }
+                });
+            } else {
+                // 自由模式直接寫入色彩矩陣
+                freeCanvasState.forEach((color, idx) => {
+                    const col = idx % activeSize;
+                    const row = Math.floor(idx / activeSize);
+                    ctx.fillStyle = color || '#FFFFFF';
+                    ctx.fillRect(col * scale, row * scale, scale, scale);
+                });
+            }
+
+            // 觸發下載檔案
+            try {
+                const url = offCanvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.download = `${currentMode === 'number' ? activeTemplate.name : '我的像素創作'}_成品.png`;
+                a.href = url;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                playSound('victory');
+            } catch (e) {
+                console.error('匯出失敗:', e);
+            }
+        }
+
+        // --- 全域事件註冊管理 ---
+
+        function registerEvents() {
+            // 滑鼠放開全域判定，停止上色
+            window.onmouseup = () => {
+                isDrawing = false;
+            };
+
+            // 支援行動端觸控拖曳著色 (全螢幕觸發防滑動預設)
+            const gridContainer = document.getElementById('pixel-grid-container');
+            
+            gridContainer.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                handleTouchMoveOrStart(e);
+            }, { passive: false });
+
+            gridContainer.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (isDrawing) {
+                    handleTouchMoveOrStart(e);
+                }
+            }, { passive: false });
+
+            gridContainer.addEventListener('touchend', () => {
+                isDrawing = false;
+            });
+
+            function handleTouchMoveOrStart(e) {
+                if (e.touches.length === 0) return;
+                const touch = e.touches[0];
+                const element = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (element && element.classList.contains('pixel-cell')) {
+                    if (currentMode === 'number') {
+                        handleNumberCellDraw(element);
+                    } else {
+                        handleFreeCellDraw(element);
+                    }
+                }
+            }
+
+            // 防呆與高亮提示開關監聽
+            document.getElementById('chk-highlight').onchange = applyHighlightAssist;
+            document.getElementById('chk-grid-lines').onchange = checkGridLinesToggle;
+
+            // 清空目前的進度 (移除 confirm 改為直接重設加提示)
+            document.getElementById('btn-reset-canvas').onclick = () => {
+                if (currentMode === 'number') {
+                    paintingProgress[activeTemplate.id] = Array(activeTemplate.grid.length).fill(0);
+                    saveToLocalStorage();
+                    buildNumberGrid();
+                } else {
+                    initFreeGridState();
+                    buildFreeGrid();
+                }
+                playSound('error');
+                showCustomAlert('🔄 已成功清空目前畫布進度！');
+            };
+
+            // 自動提示下個格子位置
+            document.getElementById('btn-show-hint').onclick = triggerShowHint;
+
+            // 切換靜音
+            document.getElementById('btn-sound').onclick = () => {
+                isMuted = !isMuted;
+                saveToLocalStorage();
+                syncUIButtons();
+                playSound('click');
+            };
+
+            // 切換暗黑與亮色模式
+            document.getElementById('btn-theme').onclick = () => {
+                isDarkMode = !isDarkMode;
+                if (isDarkMode) {
+                    document.body.classList.add('dark-mode');
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    document.documentElement.classList.remove('dark');
+                }
+                saveToLocalStorage();
+                syncUIButtons();
+                playSound('click');
+                
+                // 重新刷新網格顏色
+                if (currentMode === 'number') {
+                    buildNumberGrid();
+                } else {
+                    buildFreeGrid();
+                }
+            };
+
+            // 自由著色模式下：設定畫布規格切換 (移除 confirm 改為直接切換加提示)
+            const sizeBtns = document.querySelectorAll('.btn-grid-size');
+            sizeBtns.forEach(btn => {
+                btn.onclick = () => {
+                    const newSize = parseInt(btn.dataset.size);
+                    if (newSize === activeSize) return;
+                    
+                    playSound('click');
+                    activeSize = newSize;
+                    
+                    sizeBtns.forEach(b => {
+                        b.className = "btn-grid-size py-2 px-1 text-xs font-bold rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50";
+                    });
+                    btn.className = "btn-grid-size py-2 px-1 text-xs font-bold rounded-xl border border-indigo-200 text-indigo-600 hover:bg-indigo-50 bg-indigo-50/50";
+                    
+                    initFreeGridState();
+                    buildFreeGrid();
+                    showCustomAlert(`📐 已切換至 ${newSize}x${newSize} 新畫布！`);
+                };
+            });
+
+            // 自由模式：切換工具 (畫筆 vs 油漆桶填色)
+            const toolPencil = document.getElementById('tool-pencil');
+            const toolBucket = document.getElementById('tool-bucket');
+
+            toolPencil.onclick = () => {
+                playSound('click');
+                activeTool = 'pencil';
+                toolPencil.className = "p-2 rounded-lg bg-indigo-100 text-indigo-600 font-bold text-sm";
+                toolBucket.className = "p-2 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm hover:bg-indigo-50";
+            };
+
+            toolBucket.onclick = () => {
+                playSound('click');
+                activeTool = 'bucket';
+                toolBucket.className = "p-2 rounded-lg bg-indigo-100 text-indigo-600 font-bold text-sm";
+                toolPencil.className = "p-2 rounded-lg bg-gray-100 text-gray-600 font-bold text-sm hover:bg-indigo-50";
+            };
+
+            // 自由模式：橡皮擦點擊
+            document.getElementById('btn-eraser').onclick = () => {
+                playSound('click');
+                activeFreeColor = '#FFFFFF';
+                renderFreePalette();
+            };
+
+            // 自由模式：光譜調色盤
+            document.getElementById('custom-color-picker').oninput = (e) => {
+                activeFreeColor = e.target.value;
+                // 取消亮框
+                renderFreePalette();
+            };
+
+            // 一鍵將作品轉換為遊戲
+            document.getElementById('btn-convert').onclick = () => {
+                convertFreeArtToNumberLevel();
+            };
+
+            // 作品下載
+            document.getElementById('btn-export-png').onclick = () => {
+                exportCanvasAsPNG();
+            };
+        }
+    </script>
+</body>
+</html>
