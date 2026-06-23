@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>玄機籤閣 · 每日求籤 · 易經抽卦 · 擲筊請示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+    :root{
+        --ink:#14100c;          /* 檀木黑 */
+        --ink-2:#1d1812;        /* 較淺木 */
+        --ink-3:#272018;
+        --cinnabar:#b8362a;     /* 硃砂朱漆 */
+        --cinnabar-deep:#7d2018;
+        --gold:#c8a45c;         /* 廟宇貼金 */
+        --gold-bright:#e3c781;
+        --paper:#ece0c4;        /* 宣紙米白 */
+        --paper-line:#cdbd97;
+        --jade:#6f9e7a;         /* 銅綠 */
+        --text-dim:#a99a7e;
+        --shadow:rgba(0,0,0,.6);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;}
+    body{
+        font-family:'Noto Sans TC',sans-serif;
+        color:var(--paper);
+        background:
+            radial-gradient(120% 80% at 50% -10%, #2a2017 0%, var(--ink) 55%, #0c0907 100%);
+        min-height:100vh;
+        overflow-x:hidden;
+        position:relative;
+    }
+    /* 細微宣紙雜紋 */
+    body::before{
+        content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
+        background-image:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 3px);
+    }
+    .wrap{max-width:680px;margin:0 auto;padding:18px 16px 60px;position:relative;z-index:1;}
+
+    /* ===== 頂部：匾額與今日氣象 ===== */
+    .plaque{
+        text-align:center;position:relative;
+        padding:22px 16px 18px;
+        background:
+            linear-gradient(180deg,#241a12,#1a130d);
+        border:2px solid var(--gold);
+        border-radius:6px;
+        box-shadow:0 8px 28px var(--shadow), inset 0 0 24px rgba(200,164,92,.12);
+    }
+    .plaque::before,.plaque::after{
+        content:"";position:absolute;width:14px;height:14px;border:2px solid var(--gold);
+    }
+    .plaque::before{top:6px;left:6px;border-right:none;border-bottom:none;}
+    .plaque::after{bottom:6px;right:6px;border-left:none;border-top:none;}
+    .lantern{
+        position:absolute;top:14px;font-size:26px;filter:drop-shadow(0 0 8px rgba(184,54,42,.8));
+        animation:sway 4s ease-in-out infinite;
+    }
+    .lantern.l{left:14px;} .lantern.r{right:14px;animation-delay:-2s;}
+    @keyframes sway{0%,100%{transform:rotate(-6deg);}50%{transform:rotate(6deg);}}
+    .plaque h1{
+        font-family:'Ma Shan Zheng',cursive;
+        font-size:2.5rem;line-height:1;color:var(--gold-bright);
+        letter-spacing:.12em;
+        text-shadow:0 2px 0 #5a3d18, 0 0 18px rgba(227,199,129,.35);
+    }
+    .plaque .sub{margin-top:8px;font-size:.78rem;color:var(--text-dim);letter-spacing:.3em;}
+
+    .almanac{
+        margin-top:12px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;
+        font-size:.74rem;
+    }
+    .almanac .chip{
+        background:rgba(236,224,196,.06);
+        border:1px solid rgba(200,164,92,.35);
+        border-radius:20px;padding:5px 12px;color:var(--paper);
+        display:flex;align-items:center;gap:5px;
+    }
+    .almanac .chip b{color:var(--gold-bright);font-weight:700;}
+    .almanac .chip .em{color:var(--jade);}
+
+    /* ===== 分頁 ===== */
+    .tabs{display:flex;gap:8px;margin:18px 0 16px;}
+    .tab{
+        flex:1;text-align:center;padding:12px 4px;cursor:pointer;
+        background:linear-gradient(180deg,var(--ink-3),var(--ink-2));
+        border:1px solid rgba(200,164,92,.3);
+        border-radius:6px;color:var(--text-dim);
+        font-family:'Noto Serif TC',serif;font-weight:700;font-size:1rem;
+        letter-spacing:.15em;transition:.25s;position:relative;
+    }
+    .tab .ic{display:block;font-size:1.4rem;margin-bottom:2px;}
+    .tab.active{
+        color:#1a130d;
+        background:linear-gradient(180deg,var(--gold-bright),var(--gold));
+        border-color:var(--gold-bright);
+        box-shadow:0 4px 14px rgba(200,164,92,.35);
+    }
+    .panel{display:none;animation:fade .4s ease;}
+    .panel.active{display:block;}
+    @keyframes fade{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+    /* ===== 共用：儀式台 ===== */
+    .altar{
+        background:linear-gradient(180deg,#1c150e,#120d08);
+        border:1px solid rgba(200,164,92,.28);
+        border-radius:10px;padding:20px 18px;
+        box-shadow:0 10px 30px var(--shadow), inset 0 0 30px rgba(0,0,0,.5);
+    }
+    .ask-row{display:flex;gap:8px;margin-bottom:16px;}
+    .ask-row input{
+        flex:1;background:rgba(0,0,0,.35);border:1px solid rgba(200,164,92,.3);
+        border-radius:6px;color:var(--paper);padding:11px 14px;font-size:.95rem;
+        font-family:'Noto Sans TC';
+    }
+    .ask-row input::placeholder{color:#7a6e58;}
+    .ask-row input:focus{outline:none;border-color:var(--gold);}
+
+    /* ===== 籤筒圓柱（求籤 / 抽卦共用） ===== */
+    .cylinder-stage{
+        display:flex;justify-content:center;align-items:center;
+        padding:10px 0 4px;perspective:900px;
+    }
+    .cylinder{
+        width:200px;height:300px;border-radius:14px;position:relative;overflow:hidden;
+        background:
+            radial-gradient(130% 60% at 50% 50%, #34281a 0%, #1a130b 55%, #0a0705 100%);
+        border:3px solid var(--cinnabar-deep);
+        box-shadow:
+            inset 0 14px 26px rgba(0,0,0,.95),
+            inset 0 -14px 26px rgba(0,0,0,.95),
+            0 0 24px rgba(184,54,42,.25);
+        perspective:800px;perspective-origin:50% 50%;
+    }
+    .cylinder::before,.cylinder::after{
+        content:"";position:absolute;left:0;right:0;height:90px;z-index:5;pointer-events:none;
+    }
+    .cylinder::before{top:0;background:linear-gradient(180deg,rgba(10,7,5,.95),transparent);}
+    .cylinder::after{bottom:0;background:linear-gradient(0deg,rgba(10,7,5,.95),transparent);}
+    .window-line{
+        position:absolute;left:6px;right:6px;top:100px;height:100px;z-index:4;pointer-events:none;
+        border-top:1px solid rgba(200,164,92,.4);border-bottom:1px solid rgba(200,164,92,.4);
+        background:linear-gradient(180deg,transparent,rgba(200,164,92,.06),transparent);
+    }
+    .strip{position:absolute;left:0;right:0;top:0;transform:translateY(0);transform-style:preserve-3d;}
+    .cell{
+        height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        backface-visibility:hidden;
+    }
+    /* 籤號樣式 */
+    .cell .qnum{
+        font-family:'Noto Serif TC',serif;font-weight:900;font-size:42px;color:var(--gold-bright);
+        text-shadow:0 0 14px rgba(227,199,129,.4);line-height:1;
+    }
+    .cell .qlbl{font-size:13px;color:var(--text-dim);margin-top:4px;letter-spacing:.2em;}
+    /* 卦象樣式 */
+    .cell .hexglyph{font-size:64px;color:var(--gold-bright);line-height:1;text-shadow:0 0 16px rgba(227,199,129,.4);}
+    .cell .hexname{font-family:'Noto Serif TC';font-size:15px;color:var(--paper);margin-top:2px;}
+
+    .pull-row{display:flex;justify-content:center;margin-top:18px;}
+    .ritual-btn{
+        font-family:'Noto Serif TC',serif;font-weight:700;letter-spacing:.18em;
+        font-size:1.15rem;color:#1a130d;cursor:pointer;border:none;
+        padding:14px 40px;border-radius:50px;
+        background:linear-gradient(180deg,var(--gold-bright),var(--gold) 60%,#a9863f);
+        box-shadow:0 6px 18px rgba(200,164,92,.4), inset 0 1px 0 rgba(255,255,255,.4);
+        transition:.15s;
+    }
+    .ritual-btn:active{transform:translateY(2px);box-shadow:0 3px 10px rgba(200,164,92,.35);}
+    .ritual-btn:disabled{opacity:.45;cursor:not-allowed;}
+    .ritual-btn.cinnabar{
+        background:linear-gradient(180deg,#d8584b,var(--cinnabar) 60%,var(--cinnabar-deep));
+        color:#fff3ee;box-shadow:0 6px 18px rgba(184,54,42,.45), inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .shaking{animation:shake .12s linear infinite;}
+    @keyframes shake{0%{transform:translate(0)}25%{transform:translate(-3px,1px)}50%{transform:translate(2px,-2px)}75%{transform:translate(-2px,-1px)}100%{transform:translate(2px,2px)}}
+
+    /* ===== 宣紙結果（籤詩 / 卦解） ===== */
+    .scroll{
+        margin-top:20px;border-radius:8px;overflow:hidden;
+        max-height:0;opacity:0;transition:max-height .7s ease,opacity .5s ease;
+    }
+    .scroll.open{max-height:900px;opacity:1;}
+    .paper{
+        background:
+            linear-gradient(180deg,#efe4c9,#e4d6b4);
+        color:#2a2013;padding:22px 22px 24px;position:relative;
+        border:1px solid var(--paper-line);
+        box-shadow:inset 0 0 40px rgba(140,110,60,.25);
+    }
+    .paper::before,.paper::after{
+        content:"";position:absolute;left:0;right:0;height:10px;
+        background:repeating-linear-gradient(90deg,var(--cinnabar) 0 8px,transparent 8px 16px);opacity:.5;
+    }
+    .paper::before{top:0;} .paper::after{bottom:0;}
+    .paper .head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid #c0a86f;padding-bottom:8px;margin-bottom:12px;}
+    .paper .head .no{font-family:'Ma Shan Zheng';font-size:1.6rem;color:var(--cinnabar-deep);}
+    .paper .luck{font-family:'Noto Serif TC';font-weight:900;font-size:1.3rem;padding:2px 12px;border-radius:4px;}
+    .luck.l5{color:#7d2018;background:rgba(184,54,42,.14);}   /* 上上 */
+    .luck.l4{color:#9a5a16;background:rgba(200,140,40,.14);}  /* 上吉 */
+    .luck.l3{color:#3f6b46;background:rgba(111,158,122,.18);} /* 中吉 */
+    .luck.l2{color:#5a5240;background:rgba(120,108,80,.16);}  /* 中平 */
+    .luck.l1{color:#444;background:rgba(60,60,60,.12);}       /* 下下 */
+    .poem{font-family:'Noto Serif TC',serif;font-size:1.18rem;line-height:2;text-align:center;color:#241a0f;margin:6px 0 14px;font-weight:500;}
+    .poem div{letter-spacing:.08em;}
+    .interp{font-size:.92rem;line-height:1.85;border-top:1px dashed #bfa970;padding-top:12px;}
+    .interp .row{display:flex;gap:8px;margin:3px 0;}
+    .interp .row b{color:var(--cinnabar-deep);min-width:3.4em;font-weight:700;}
+    .hex-detail{display:flex;gap:16px;align-items:center;margin-bottom:8px;}
+    .hex-detail .big{font-size:72px;color:var(--cinnabar-deep);line-height:1;}
+    .hex-detail .meta .nm{font-family:'Ma Shan Zheng';font-size:1.8rem;color:#241a0f;}
+    .hex-detail .meta .tg{font-size:.85rem;color:#6a5a3a;margin-top:2px;}
+
+    /* ===== 擲筊 ===== */
+    .jiao-stage{display:flex;justify-content:center;gap:34px;padding:24px 0 10px;min-height:150px;align-items:center;}
+    .jiao{
+        width:92px;height:124px;position:relative;transform-style:preserve-3d;
+        transition:transform .1s;
+    }
+    .jiao .face{
+        position:absolute;inset:0;border-radius:50px 50px 46px 46px/64px 64px 30px 30px;
+        backface-visibility:hidden;display:flex;align-items:center;justify-content:center;
+        font-size:.8rem;font-weight:700;letter-spacing:.1em;
+    }
+    /* 凸面（陽，紅漆背面） */
+    .jiao .convex{
+        background:radial-gradient(60% 50% at 50% 35%, #d8584b, var(--cinnabar) 60%, var(--cinnabar-deep));
+        box-shadow:inset 0 6px 12px rgba(255,255,255,.25), inset 0 -10px 18px rgba(0,0,0,.4), 0 8px 16px rgba(0,0,0,.5);
+        color:#ffeae5;
+    }
+    /* 平面（陰，木紋底） */
+    .jiao .flat{
+        background:linear-gradient(160deg,#7a5a32,#4d3a20);
+        box-shadow:inset 0 2px 4px rgba(255,220,160,.25), inset 0 -6px 14px rgba(0,0,0,.5), 0 8px 16px rgba(0,0,0,.5);
+        color:#e8d2a8;transform:rotateY(180deg);
+    }
+    .jiao.flip-flat{transform:rotateY(180deg);}
+    .jiao.tossing{animation:toss .5s ease;}
+    @keyframes toss{0%{transform:translateY(0) rotateY(0)}30%{transform:translateY(-70px) rotateY(540deg)}60%{transform:translateY(-30px) rotateY(900deg)}100%{transform:translateY(0) rotateY(1080deg)}}
+
+    .jiao-result{
+        text-align:center;margin-top:6px;min-height:78px;
+    }
+    .jiao-result .verdict{font-family:'Ma Shan Zheng';font-size:2.4rem;line-height:1.1;}
+    .verdict.sheng{color:var(--gold-bright);text-shadow:0 0 18px rgba(227,199,129,.5);}
+    .verdict.xiao{color:var(--jade);}
+    .verdict.yin{color:#b8362a;}
+    .jiao-result .say{font-size:.9rem;color:var(--text-dim);margin-top:2px;}
+    .tally{display:flex;justify-content:center;gap:18px;margin-top:14px;font-size:.8rem;color:var(--text-dim);}
+    .tally b{color:var(--gold-bright);font-size:1.1rem;}
+
+    /* ===== 歷史 / 設定 ===== */
+    .footer-tools{display:flex;gap:8px;margin-top:18px;}
+    .ftool{
+        flex:1;text-align:center;padding:10px;border-radius:6px;cursor:pointer;font-size:.82rem;
+        background:rgba(236,224,196,.05);border:1px solid rgba(200,164,92,.25);color:var(--text-dim);
+        transition:.2s;
+    }
+    .ftool:active{background:rgba(200,164,92,.15);color:var(--paper);}
+    .hint{text-align:center;color:#6f6450;font-size:.78rem;margin-top:14px;line-height:1.7;}
+
+    .history-box{margin-top:14px;display:none;}
+    .history-box.show{display:block;}
+    .hrec{
+        background:rgba(0,0,0,.25);border:1px solid rgba(200,164,92,.2);border-radius:6px;
+        padding:9px 12px;margin-bottom:7px;font-size:.82rem;display:flex;justify-content:space-between;gap:10px;
+    }
+    .hrec .t{color:#7a6e58;font-size:.72rem;}
+    .hrec .v{color:var(--paper);}
+
+    /* 設定面板 */
+    .settings{margin-top:14px;display:none;background:rgba(0,0,0,.25);border:1px solid rgba(200,164,92,.25);border-radius:8px;padding:14px 16px;}
+    .settings.show{display:block;}
+    .settings h3{font-family:'Noto Serif TC';font-size:.95rem;color:var(--gold-bright);margin-bottom:10px;letter-spacing:.1em;}
+    .srow{display:flex;align-items:center;gap:10px;margin:9px 0;font-size:.85rem;}
+    .srow label{flex:1;color:var(--text-dim);}
+    .srow input[type=range]{flex:1.4;accent-color:var(--cinnabar);}
+    .srow .val{width:42px;text-align:right;color:var(--gold-bright);font-weight:700;}
+    .toggle{width:46px;height:26px;border-radius:20px;background:#3a2f20;position:relative;cursor:pointer;transition:.2s;border:1px solid rgba(200,164,92,.3);}
+    .toggle.on{background:var(--cinnabar);}
+    .toggle::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:var(--paper);top:2px;left:2px;transition:.2s;}
+    .toggle.on::after{left:23px;}
+
+    @media (max-width:430px){
+        .plaque h1{font-size:2rem;}
+        .cylinder{width:170px;height:270px;}
+        .window-line{top:90px;}
+        .tab{font-size:.9rem;}
+        .tab .ic{font-size:1.2rem;}
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+    <!-- 匾額 + 今日黃曆 -->
+    <div class="plaque">
+        <span class="lantern l">🏮</span><span class="lantern r">🏮</span>
+        <h1>玄機籤閣</h1>
+        <div class="sub">求 籤 · 抽 卦 · 擲 筊</div>
+        <div class="almanac" id="almanac"></div>
+    </div>
+
+    <!-- 分頁 -->
+    <div class="tabs">
+        <div class="tab active" data-tab="qian"><span class="ic">🎋</span>每日求籤</div>
+        <div class="tab" data-tab="gua"><span class="ic">☯</span>易經抽卦</div>
+        <div class="tab" data-tab="jiao"><span class="ic">🥮</span>擲筊請示</div>
+    </div>
+
+    <!-- 求籤 -->
+    <div class="panel active" id="panel-qian">
+        <div class="altar">
+            <div class="ask-row">
+                <input id="qianAsk" type="text" placeholder="心中默念所求之事（可留空）…">
+            </div>
+            <div class="cylinder-stage">
+                <div class="cylinder"><div class="strip" id="qianStrip"></div><div class="window-line"></div></div>
+            </div>
+            <div class="pull-row">
+                <button class="ritual-btn cinnabar" id="qianBtn">搖 籤</button>
+            </div>
+            <div class="scroll" id="qianScroll"></div>
+            <div class="footer-tools">
+                <div class="ftool" data-hist="qian">📜 求籤紀錄</div>
+            </div>
+            <div class="history-box" id="qianHist"></div>
+            <div class="hint">每日一籤 · 同日再求得同一籤，靜心方準</div>
+        </div>
+    </div>
+
+    <!-- 抽卦 -->
+    <div class="panel" id="panel-gua">
+        <div class="altar">
+            <div class="ask-row">
+                <input id="guaAsk" type="text" placeholder="凝神靜念，問一卦…（可留空）">
+            </div>
+            <div class="cylinder-stage">
+                <div class="cylinder"><div class="strip" id="guaStrip"></div><div class="window-line"></div></div>
+            </div>
+            <div class="pull-row">
+                <button class="ritual-btn" id="guaBtn">起 卦</button>
+            </div>
+            <div class="scroll" id="guaScroll"></div>
+            <div class="footer-tools">
+                <div class="ftool" data-hist="gua">📜 卦象紀錄</div>
+            </div>
+            <div class="history-box" id="guaHist"></div>
+            <div class="hint">六十四卦 · 王弼通行本序 · 取象明理，吉凶在人</div>
+        </div>
+    </div>
+
+    <!-- 擲筊 -->
+    <div class="panel" id="panel-jiao">
+        <div class="altar">
+            <div class="ask-row">
+                <input id="jiaoAsk" type="text" placeholder="向神明請示之事…（可留空）">
+            </div>
+            <div class="jiao-stage">
+                <div class="jiao" id="jiaoA"><div class="face convex">凸</div><div class="face flat">平</div></div>
+                <div class="jiao" id="jiaoB"><div class="face convex">凸</div><div class="face flat">平</div></div>
+            </div>
+            <div class="jiao-result" id="jiaoResult">
+                <div class="verdict" style="color:var(--text-dim);font-size:1.2rem;">擲下問神</div>
+                <div class="say">一平一凸為聖筊 · 雙平笑筊 · 雙凸陰筊</div>
+            </div>
+            <div class="pull-row">
+                <button class="ritual-btn cinnabar" id="jiaoBtn">擲 筊</button>
+            </div>
+            <div class="tally">
+                <span>聖筊 <b id="tSheng">0</b></span>
+                <span>笑筊 <b id="tXiao">0</b></span>
+                <span>陰筊 <b id="tYin">0</b></span>
+            </div>
+            <div class="footer-tools">
+                <div class="ftool" id="jiaoReset">↺ 重新請示</div>
+                <div class="ftool" id="openSettings">⚙ 筊機設定</div>
+            </div>
+            <div class="settings" id="jiaoSettings">
+                <h3>聖筊機率調校</h3>
+                <div class="srow"><label>聖筊 偏好</label><input type="range" id="wSheng" min="20" max="70" value="50"><span class="val" id="vSheng">50</span></div>
+                <div class="srow"><label>笑筊 比例</label><input type="range" id="wXiao" min="10" max="40" value="25"><span class="val" id="vXiao">25</span></div>
+                <div class="srow"><label>陰筊 比例</label><input type="range" id="wYin" min="10" max="40" value="25"><span class="val" id="vYin">25</span></div>
+                <div class="srow" style="margin-top:4px;"><label>磬／木魚音效</label><div class="toggle on" id="soundToggle"></div></div>
+                <div class="hint" style="margin-top:6px;text-align:left;">理論各 ½／¼／¼。民俗筊杯因重心，聖筊略多；上方可依心意調整。</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+/* ===== 運勢籤（自編古風，吉凶 lvl 1~5：5上上 4上吉 3中吉 2中平 1下下） ===== */
+const QIAN_DATA = [
+  {no:1, lvl:5, poem:['雲開月出照當空','萬里無雲處處通','久困塵霾今盡掃','一輪明鏡映晴峰'],
+   i:{運勢:'撥雲見日，諸事漸入佳境。',事業:'貴人提攜，把握時機可成。',姻緣:'良緣將至，誠心相待。',財運:'財源漸通，不宜貪求。',健康:'神清氣爽，注意作息。'}},
+  {no:2, lvl:4, poem:['春風拂柳綠初匀','花發枝頭次第新','耐得寒霜方有信','一分耕種一分春'],
+   i:{運勢:'循序漸進，先苦後甘。',事業:'根基穩固，宜守不宜急。',姻緣:'日久生情，水到渠成。',財運:'積少成多，務實為上。',健康:'平和安穩，無大礙。'}},
+  {no:3, lvl:3, poem:['行船遇水有風波','穩把舟舵莫蹉跎','過得灘頭天地闊','前程依舊好山河'],
+   i:{運勢:'小有阻礙，謹慎可過。',事業:'遇難莫慌，沉著應對。',姻緣:'磨合之中，互信為要。',財運:'進退有度，守成為宜。',健康:'勿過勞累，調養為先。'}},
+  {no:4, lvl:5, poem:['金榜題名喜訊傳','十年寒窗志已圓','龍門一躍非僥倖','他日扶搖上九天'],
+   i:{運勢:'功成名就，喜事臨門。',事業:'升遷有望，盡展所長。',姻緣:'喜上加喜，可議婚嫁。',財運:'正財豐盈，量入為出。',健康:'精力充沛。'}},
+  {no:5, lvl:2, poem:['濃雲半掩月朦朧','欲問前程路未通','且待天時人事合','莫教輕舉誤行蹤'],
+   i:{運勢:'時機未到，宜靜待。',事業:'按兵不動，蓄勢以待。',姻緣:'尚需觀察，不必強求。',財運:'守財為上，勿作投機。',健康:'留意小恙，及早調理。'}},
+  {no:6, lvl:4, poem:['古井泉清自在流','汲來甘冽解煩憂','源頭活水無窮盡','取用有時福自留'],
+   i:{運勢:'根本豐厚，平穩有福。',事業:'蓄力深耕，終有所獲。',姻緣:'細水長流，情誼綿長。',財運:'細水長流，知足常樂。',健康:'宜多飲水，調養脾胃。'}},
+  {no:7, lvl:1, poem:['風急浪高路欲迷','孤舟夜泊雨淒淒','且收帆纜權安歇','莫向深淵冒險馳'],
+   i:{運勢:'運勢低迷，宜退守。',事業:'暫緩計畫，避免冒進。',姻緣:'多有口角，退一步寬。',財運:'守緊荷包，慎防破耗。',健康:'務必休養，勿逞強。'}},
+  {no:8, lvl:3, poem:['庭前喜鵲報新晴','舊事將圓近有成','只在心誠無雜念','些微小阻不須驚'],
+   i:{運勢:'平中帶吉，誠則靈。',事業:'事有轉機，持之以恆。',姻緣:'誤會將解，坦誠以對。',財運:'平順小得，循正而行。',健康:'無大礙，安心將養。'}},
+  {no:9, lvl:5, poem:['花開富貴滿堂紅','喜氣盈門福祿崇','積善之家慶有餘','子孫昌盛樂融融'],
+   i:{運勢:'福澤深厚，闔家歡喜。',事業:'廣結善緣，大有作為。',姻緣:'佳偶天成，琴瑟和鳴。',財運:'財丁兩旺，廣施福報。',健康:'康健有壽。'}},
+  {no:10, lvl:2, poem:['登山欲覓白雲深','路轉峰迴費苦尋','若得指南方向定','何愁不見舊知音'],
+   i:{運勢:'方向未明，宜請教。',事業:'多方求問，可得指引。',姻緣:'緣分未顯，順其自然。',財運:'計畫先行，勿盲投入。',健康:'循醫囑而行。'}},
+  {no:11, lvl:4, poem:['寒梅傲雪一枝開','歷盡冰霜骨格佳','莫道清貧無富貴','他年香透滿庭階'],
+   i:{運勢:'守正待時，終必揚眉。',事業:'堅持本心，苦盡甘來。',姻緣:'真情可貴，勿慕浮華。',財運:'清白生財，後福無窮。',健康:'耐寒保暖，體健心安。'}},
+  {no:12, lvl:3, poem:['雙燕銜泥築舊樑','家門和睦事興昌','但能彼此存忠厚','歲歲年年穀滿倉'],
+   i:{運勢:'家和事興，宜守和氣。',事業:'同心協力，合作得利。',姻緣:'相敬如賓，白首偕老。',財運:'勤儉持家，倉廩漸豐。',健康:'起居有常。'}},
+  {no:13, lvl:1, poem:['枯木逢秋葉漸零','西風一夜冷愁聽','且將舊念都拋卻','靜守寒窗待曙星'],
+   i:{運勢:'逢低谷，靜守待轉。',事業:'暫無進展，韜光養晦。',姻緣:'緣淺莫強，隨緣放下。',財運:'謹守勿耗，安度寒冬。',健康:'防寒養氣，切勿憂思。'}},
+  {no:14, lvl:5, poem:['日麗風和正及時','東君著意賜花枝','一生最得春光好','莫負韶華莫遲疑'],
+   i:{運勢:'天時地利，大吉之兆。',事業:'機不可失，奮力而為。',姻緣:'良時佳偶，速締良緣。',財運:'財喜盈門，正當其時。',健康:'生機勃勃。'}},
+  {no:15, lvl:3, poem:['江上漁翁穩釣磯','不爭朝夕自無違','收竿得失皆平淡','一笠煙波是我衣'],
+   i:{運勢:'隨遇而安，自有清福。',事業:'不爭而得，順勢而行。',姻緣:'淡然相處，細水情深。',財運:'知足是富，不貪即得。',健康:'心寬體泰。'}},
+  {no:16, lvl:4, poem:['明珠出土光難掩','久蘊終須遇識家','莫嘆無人知此寶','時來自有貴人誇'],
+   i:{運勢:'才華終顯，靜候良機。',事業:'伯樂將至，毛遂自薦。',姻緣:'真心終遇知己。',財運:'潛力可期，厚積薄發。',健康:'調氣養神，蓄力以待。'}},
+  {no:17, lvl:2, poem:['溪橋小立暮雲低','欲過還疑路又歧','且問樵夫何處去','回頭莫向險中馳'],
+   i:{運勢:'歧路徬徨，慎擇而行。',事業:'三思後定，勿輕承諾。',姻緣:'宜冷靜觀，莫急下定。',財運:'避險為上，穩中求進。',健康:'防範未然。'}},
+  {no:18, lvl:5, poem:['鯉躍龍門化作龍','風雲際會喜重重','從今一展凌雲志','直上青霄第一峰'],
+   i:{運勢:'時來運轉，扶搖直上。',事業:'大展鴻圖，名利雙收。',姻緣:'喜結良緣，眾人稱羨。',財運:'橫財正財皆旺。',健康:'氣血兩旺。'}},
+  {no:19, lvl:3, poem:['秋月清輝照短籬','黃花開遍正當時','人生晚景多滋味','莫嘆流年鬢已絲'],
+   i:{運勢:'晚運漸佳，老來得福。',事業:'厚積有成，水到渠成。',姻緣:'真情歷久彌堅。',財運:'積累豐厚，安享其成。',健康:'頤養天年，怡然自得。'}},
+  {no:20, lvl:1, poem:['烏雲蔽日路難分','風雨瀟瀟客斷魂','且把愁懷權放下','靜觀天意候清晨'],
+   i:{運勢:'阻滯重重，忍耐為先。',事業:'諸事不順，暫且收手。',姻緣:'波折難免，以柔克剛。',財運:'破財之兆，謹守為要。',健康:'務必靜養，莫憂莫慮。'}},
+  {no:21, lvl:4, poem:['清風朗月入虛堂','一片冰心納四方','處世若能存厚道','自然福祿日加長'],
+   i:{運勢:'心正得福，厚道致祥。',事業:'以德服人，路愈走愈寬。',姻緣:'以誠相待，情深意長。',財運:'正道生財，福澤綿延。',健康:'心安神泰。'}},
+  {no:22, lvl:3, poem:['雨後青山分外明','溪流帶笑石間鳴','凡塵舊事都拋盡','一念清涼萬慮平'],
+   i:{運勢:'雨過天青，心境漸開。',事業:'撥亂反正，重整旗鼓。',姻緣:'前嫌盡釋，重修舊好。',財運:'轉危為安，漸有起色。',健康:'病去身輕。'}},
+  {no:23, lvl:2, poem:['雙手扶犁汗滿襟','耕雲種月待秋深','若無一夏勤勞力','焉得田家滿地金'],
+   i:{運勢:'唯勤是岸，付出方收。',事業:'埋頭苦幹，莫問收穫。',姻緣:'用心經營，方得長久。',財運:'勤能補拙，務實積累。',健康:'勞逸結合。'}},
+  {no:24, lvl:5, poem:['紫氣東來瑞滿門','三陽開泰歲華新','一年好景君須記','總在花前月下尋'],
+   i:{運勢:'紫氣盈門，萬象更新。',事業:'開年大吉，諸謀皆順。',姻緣:'良緣天定，喜事連連。',財運:'財喜雙全，廣納福源。',健康:'康泰無虞。'}}
+];
+
+/* ===== 六十四卦（王弼通行本／King Wen 序）。glyph 由 0x4DC0+idx 生成 ===== */
+const GUA_NAMES = ['乾','坤','屯','蒙','需','訟','師','比','小畜','履','泰','否','同人','大有','謙','豫','隨','蠱','臨','觀','噬嗑','賁','剝','復','無妄','大畜','頤','大過','坎','離','咸','恆','遯','大壯','晉','明夷','家人','睽','蹇','解','損','益','夬','姤','萃','升','困','井','革','鼎','震','艮','漸','歸妹','豐','旅','巽','兌','渙','節','中孚','小過','既濟','未濟'];
+const GUA_PAIR = ['乾為天','坤為地','水雷屯','山水蒙','水天需','天水訟','地水師','水地比','風天小畜','天澤履','地天泰','天地否','天火同人','火天大有','地山謙','雷地豫','澤雷隨','山風蠱','地澤臨','風地觀','火雷噬嗑','山火賁','山地剝','地雷復','天雷無妄','山天大畜','山雷頤','澤風大過','坎為水','離為火','澤山咸','雷風恆','天山遯','雷天大壯','火地晉','地火明夷','風火家人','火澤睽','水山蹇','雷水解','山澤損','風雷益','澤天夬','天風姤','澤地萃','地風升','澤水困','水風井','澤火革','火風鼎','震為雷','艮為山','風山漸','雷澤歸妹','雷火豐','火山旅','巽為風','兌為澤','風水渙','水澤節','風澤中孚','雷山小過','水火既濟','火水未濟'];
+const GUA_TEXT = [
+'元亨利貞，剛健中正。大吉，宜積極進取，自強不息。',
+'厚德載物，柔順承天。利守不利攻，包容則安。',
+'初生之難，雲雷屯也。創業維艱，宜建侯立基。',
+'蒙昧待啟，山下出泉。宜虛心求教，啟蒙開智。',
+'雲上於天，需待時也。靜待時機，飲食宴樂以養。',
+'天水違行，爭訟之象。宜和解退讓，爭則不利。',
+'地中有水，師眾之卦。出師有名則吉，宜得人心。',
+'水地相親，比輔之象。親賢結盟，眾志成城。',
+'風行天上，小有蓄積。力量未足，宜小不宜大。',
+'履虎尾而不咥，謹慎前行。守禮慎行則無咎。',
+'天地交泰，上下相通。大吉之卦，諸事亨通。',
+'天地不交，閉塞之象。守正待變，否極泰來。',
+'天火同人，與人協同。同心同德，利涉大川。',
+'火在天上，大有之卦。盛大豐有，宜順天休命。',
+'地中有山，謙退之德。謙謙君子，吉無不利。',
+'雷出地奮，豫樂之象。順時而動，喜悅有備。',
+'澤中有雷，隨順之卦。隨時應變，擇善而從。',
+'山下有風，蠱壞待治。整飭弊端，撥亂反正。',
+'地澤臨，居高臨下。陽長之時，宜把握督導。',
+'風行地上，觀仰之象。觀察省思，以德服人。',
+'火雷噬嗑，咬合斷制。除去障礙，明罰敕法。',
+'山下有火，賁飾之象。文質彬彬，宜守本真。',
+'山附於地，剝落之卦。陰盛剝陽，宜止勿動。',
+'雷在地中，一陽來復。否極泰來，生機重現。',
+'天下雷行，無妄之災。守正不妄，循理而安。',
+'山天大畜，剛健篤實。厚積大蓄，利涉大川。',
+'山雷頤，養正之卦。慎言節食，自求口實。',
+'澤滅木，大過之象。負荷過重，宜權變持中。',
+'重險習坎，水洊至也。處險守信，行有尚功。',
+'明兩作離，附麗光明。柔麗中正，畜牝牛吉。',
+'山上有澤，咸感之卦。兩情相感，以虛受人。',
+'雷風恆，恆久之道。守常持恆，利有攸往。',
+'天下有山，遯隱之象。見幾而退，遠害全身。',
+'雷在天上，大壯之卦。剛盛宜守正，壯勿輕用。',
+'火地晉，明出地上。柔進上行，前程光明。',
+'明入地中，明夷之象。韜光養晦，守正避禍。',
+'風自火出，家人之卦。正家之道，內外有序。',
+'火澤睽，乖異之象。求同存異，小事可成。',
+'山上有水，蹇難之卦。見險能止，反身修德。',
+'雷雨作解，難舒之象。解除困厄，宜速不宜遲。',
+'山下有澤，損下益上。損之有孚，懲忿窒欲。',
+'風雷益，損上益下。增益進取，利有攸往。',
+'澤上於天，夬決之象。剛決柔也，宜決而和。',
+'天下有風，姤遇之卦。陰柔復遇，慎防小人。',
+'澤上於地，萃聚之象。聚合人心，亨通有慶。',
+'地中生木，升進之卦。柔順積小，順勢上升。',
+'澤無水，困窮之象。處困守正，言不見信亦安。',
+'木上有水，井養之卦。井養不窮，往來井井。',
+'澤中有火，革變之象。順天應人，變革有時。',
+'木上有火，鼎新之卦。鼎取新象，元吉亨通。',
+'洊雷震動，恐懼修省。震驚百里，臨危不亂。',
+'兼山為艮，止靜之卦。時止則止，動靜不失時。',
+'山上有木，漸進之象。循序漸進，女歸吉利。',
+'澤上有雷，歸妹之卦。動須守正，妄動有咎。',
+'雷電皆至，豐大之象。日中則昃，盛極宜守。',
+'山上有火，旅行之卦。羈旅謹慎，柔順得吉。',
+'隨風為巽，順入之象。柔順申命，利有攸往。',
+'麗澤為兌，和悅之卦。朋友講習，悅而守正。',
+'風行水上，渙散之象。渙散聚人，王假有廟。',
+'澤上有水，節制之卦。節以制度，甘節則吉。',
+'風澤中孚，誠信之象。中心誠信，豚魚亦吉。',
+'雷在山上，小過之卦。宜小事不宜大，謙抑為上。',
+'水火既濟，事已成也。功成守成，慎防初吉終亂。',
+'火水未濟，事未竟也。慎終如始，繼之則亨。'
+];
+
+</script>
+<script>
+/* ============ 儲存 ============ */
+const LS = 'xuanji_v1';
+let store = (() => { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; } })();
+function save() { try { localStorage.setItem(LS, JSON.stringify(store)); } catch (e) {} }
+store.qHist = store.qHist || [];
+store.gHist = store.gHist || [];
+store.jiaoW = store.jiaoW || { sheng: 50, xiao: 25, yin: 25 };
+if (store.soundOn === undefined) store.soundOn = true;
+
+/* ============ 黃曆 ============ */
+const TG = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const DZ = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ZODIAC = ['鼠','牛','虎','兔','龍','蛇','馬','羊','猴','雞','狗','豬'];
+const ZODIAC_EMO = ['🐭','🐮','🐯','🐰','🐲','🐍','🐴','🐑','🐵','🐔','🐶','🐷'];
+const TERMS = [[1,5,'小寒'],[1,20,'大寒'],[2,4,'立春'],[2,19,'雨水'],[3,5,'驚蟄'],[3,20,'春分'],[4,4,'清明'],[4,20,'穀雨'],[5,5,'立夏'],[5,21,'小滿'],[6,5,'芒種'],[6,21,'夏至'],[7,7,'小暑'],[7,22,'大暑'],[8,7,'立秋'],[8,23,'處暑'],[9,7,'白露'],[9,23,'秋分'],[10,8,'寒露'],[10,23,'霜降'],[11,7,'立冬'],[11,22,'小雪'],[12,7,'大雪'],[12,22,'冬至']];
+const WEEK = ['日','一','二','三','四','五','六'];
+
+function ganzhiYear(date) {
+    let y = date.getFullYear();
+    const m = date.getMonth() + 1, d = date.getDate();
+    if (m < 2 || (m === 2 && d < 4)) y -= 1; // 立春換年
+    const gi = ((y - 4) % 10 + 10) % 10;
+    const zi = ((y - 4) % 12 + 12) % 12;
+    return { gan: TG[gi], zhi: DZ[zi], zodiac: ZODIAC[zi], emo: ZODIAC_EMO[zi] };
+}
+function currentTerm(date) {
+    const y = date.getFullYear(); let best = null;
+    for (const [m, d, n] of TERMS) { if (new Date(y, m - 1, d) <= date) best = n; }
+    return best || '冬至';
+}
+function renderAlmanac() {
+    const now = new Date();
+    const gz = ganzhiYear(now);
+    const term = currentTerm(now);
+    const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+    document.getElementById('almanac').innerHTML = `
+        <span class="chip">📅 <b>${dateStr}</b> 週${WEEK[now.getDay()]}</span>
+        <span class="chip">🎐 <b>${gz.gan}${gz.zhi}</b>年 ${gz.emo}<span class="em">${gz.zodiac}</span></span>
+        <span class="chip">🌿 節氣 <b>${term}</b></span>`;
+}
+
+/* ============ 音效（磬 / 木魚 / 竹籤 / 擲筊）============ */
+let audioCtx = null;
+function initAudio() {
+    if (!audioCtx) { const A = window.AudioContext || window.webkitAudioContext; audioCtx = new A(); }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+// 磬：清亮金屬，多泛音長衰減
+function qing(big) {
+    if (!store.soundOn) return; initAudio();
+    const now = audioCtx.currentTime;
+    const base = big ? 880 : 660;
+    const partials = [[1, 1], [2.01, 0.5], [3.0, 0.32], [4.18, 0.2], [5.43, 0.12]];
+    const out = audioCtx.createGain();
+    out.gain.setValueAtTime(big ? 0.32 : 0.24, now);
+    out.gain.exponentialRampToValueAtTime(0.0001, now + (big ? 2.4 : 1.8));
+    out.connect(audioCtx.destination);
+    partials.forEach(([mult, amp]) => {
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = 'sine'; o.frequency.setValueAtTime(base * mult, now);
+        g.gain.setValueAtTime(amp, now);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + (1.4 + Math.random() * 0.8));
+        o.connect(g); g.connect(out); o.start(now); o.stop(now + 2.6);
+    });
+}
+// 木魚：短促帶通脈衝 + 低頻木質
+function muyu() {
+    if (!store.soundOn) return; initAudio();
+    const now = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); const f = audioCtx.createBiquadFilter();
+    o.type = 'square'; o.frequency.setValueAtTime(420, now); o.frequency.exponentialRampToValueAtTime(180, now + 0.08);
+    f.type = 'bandpass'; f.frequency.value = 800; f.Q.value = 4;
+    g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.22, now + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+    o.connect(f); f.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now + 0.18);
+}
+// 竹籤沙沙（搖籤期間）
+let bambooNodes = null;
+function bambooShake(durSec) {
+    if (!store.soundOn) { return; } initAudio();
+    stopBamboo();
+    const now = audioCtx.currentTime;
+    const len = Math.ceil(audioCtx.sampleRate * Math.min(durSec, 3));
+    const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * 0.6;
+    const src = audioCtx.createBufferSource(); src.buffer = buf;
+    const bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2400; bp.Q.value = 1.2;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(0.05, now + 0.15);
+    // 起伏模擬搖動
+    for (let t = 0.2; t < durSec; t += 0.16) {
+        g.gain.linearRampToValueAtTime(0.02, now + t);
+        g.gain.linearRampToValueAtTime(0.06, now + t + 0.08);
+    }
+    g.gain.linearRampToValueAtTime(0.0001, now + durSec);
+    src.connect(bp); bp.connect(g); g.connect(audioCtx.destination);
+    src.start(now); src.stop(now + durSec + 0.05);
+    bambooNodes = { src };
+}
+function stopBamboo() { if (bambooNodes) { try { bambooNodes.src.stop(); } catch (e) {} bambooNodes = null; } }
+// 擲筊落地：兩記木質撞擊
+function clack() {
+    if (!store.soundOn) return; initAudio();
+    [0, 0.09].forEach(off => {
+        const now = audioCtx.currentTime + off;
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = 'triangle'; o.frequency.setValueAtTime(260 - off * 200, now); o.frequency.exponentialRampToValueAtTime(90, now + 0.06);
+        g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.2, now + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+        o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now + 0.14);
+    });
+}
+// 陰筊鈍響
+function yinThud() {
+    if (!store.soundOn) return; initAudio();
+    const now = audioCtx.currentTime;
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(120, now); o.frequency.exponentialRampToValueAtTime(55, now + 0.3);
+    g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+    o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now + 0.55);
+}
+
+/* ============ 圓柱滾動 ============ */
+function applyCurve(strip) {
+    let T = 0; try { T = new DOMMatrixReadOnly(getComputedStyle(strip).transform).m42; } catch (e) {}
+    const kids = strip.children; if (!kids.length) return;
+    const H = kids[0].offsetHeight; const center = H * 1.5;
+    for (let k = 0; k < kids.length; k++) {
+        const c = k * H + H / 2 + T; const d = (c - center) / center;
+        if (Math.abs(d) > 2.3) { kids[k].style.transform = 'translateZ(-160px)'; continue; }
+        const rot = Math.max(-82, Math.min(82, d * 52));
+        const tz = -Math.abs(d) * 55; const sc = Math.max(0.5, 1 - Math.abs(d) * 0.14);
+        kids[k].style.transform = `rotateX(${rot}deg) translateZ(${tz}px) scale(${sc})`;
+    }
+}
+function spinCylinder(strip, pool, finalItem, renderFn, onDone) {
+    const count = 24;
+    const items = [];
+    for (let k = 0; k < count; k++) items.push(pool[Math.floor(Math.random() * pool.length)]);
+    items[count - 2] = finalItem; // 停在中央視窗
+    strip.innerHTML = items.map(it => `<div class="cell">${renderFn(it)}</div>`).join('');
+    const H = strip.children[0] ? strip.children[0].offsetHeight : 100;
+    const target = -(count - 3) * H;
+    strip.style.transition = 'none';
+    strip.style.transform = 'translateY(0)';
+    void strip.offsetWidth;
+    const dur = 2.6;
+    let running = true;
+    const loop = () => { if (!running) return; applyCurve(strip); requestAnimationFrame(loop); };
+    loop();
+    requestAnimationFrame(() => {
+        strip.style.transition = `transform ${dur}s cubic-bezier(0.15,0.8,0.3,1)`;
+        strip.style.transform = `translateY(${target}px)`;
+    });
+    bambooShake(dur * 0.82);
+    setTimeout(() => {
+        running = false; applyCurve(strip); stopBamboo();
+        qing(); // 出籤／出卦 一聲磬
+        onDone && onDone();
+    }, dur * 1000 + 120);
+}
+
+/* ============ 求籤 ============ */
+const qianPool = QIAN_DATA;
+let qianBusy = false;
+function todayKey() { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+function dailyQianIndex() {
+    const d = new Date();
+    const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+    // mulberry32 雜湊：相鄰日期也充分打散，避免連號
+    let t = (seed + 0x6D2B79F5) >>> 0;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    const rnd = ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    return Math.floor(rnd * qianPool.length);
+}
+function renderQianCell(q) { return `<div class="qnum">${q.no}</div><div class="qlbl">第 ${q.no} 籤</div>`; }
+const LUCK_TXT = { 5:'上上籤', 4:'上吉籤', 3:'中吉籤', 2:'中平籤', 1:'下下籤' };
+function drawQian() {
+    if (qianBusy) return; qianBusy = true;
+    document.getElementById('qianScroll').classList.remove('open');
+    const btn = document.getElementById('qianBtn'); btn.disabled = true; btn.textContent = '搖 籤 …';
+    document.querySelector('#panel-qian .cylinder').classList.add('shaking');
+    muyu();
+    const idx = dailyQianIndex();           // 每日固定一籤
+    const q = qianPool[idx];
+    const strip = document.getElementById('qianStrip');
+    spinCylinder(strip, qianPool, q, renderQianCell, () => {
+        document.querySelector('#panel-qian .cylinder').classList.remove('shaking');
+        showQianResult(q);
+        recordQian(q);
+        btn.disabled = false; btn.textContent = '搖 籤'; qianBusy = false;
+    });
+}
+function showQianResult(q) {
+    const ask = document.getElementById('qianAsk').value.trim();
+    const el = document.getElementById('qianScroll');
+    el.innerHTML = `<div class="paper">
+        <div class="head"><span class="no">第 ${q.no} 籤</span><span class="luck l${q.lvl}">${LUCK_TXT[q.lvl]}</span></div>
+        ${ask ? `<div style="text-align:center;color:#6a5a3a;font-size:.82rem;margin-bottom:6px;">所求：${escapeHtml(ask)}</div>` : ''}
+        <div class="poem">${q.poem.map(s => `<div>${s}</div>`).join('')}</div>
+        <div class="interp">
+            <div class="row"><b>運勢</b><span>${q.i.運勢}</span></div>
+            <div class="row"><b>事業</b><span>${q.i.事業}</span></div>
+            <div class="row"><b>姻緣</b><span>${q.i.姻緣}</span></div>
+            <div class="row"><b>財運</b><span>${q.i.財運}</span></div>
+            <div class="row"><b>健康</b><span>${q.i.健康}</span></div>
+        </div></div>`;
+    requestAnimationFrame(() => el.classList.add('open'));
+}
+function recordQian(q) {
+    store.qHist.unshift({ t: nowStr(), v: `第${q.no}籤 · ${LUCK_TXT[q.lvl]}` });
+    store.qHist = store.qHist.slice(0, 12); save(); renderHist('qian');
+}
+
+/* ============ 抽卦 ============ */
+let guaBusy = false;
+const guaPool = GUA_NAMES.map((_, i) => i);
+function guaGlyph(i) { return String.fromCodePoint(0x4DC0 + i); }
+function renderGuaCell(i) { return `<div class="hexglyph">${guaGlyph(i)}</div><div class="hexname">${GUA_NAMES[i]}</div>`; }
+function drawGua() {
+    if (guaBusy) return; guaBusy = true;
+    document.getElementById('guaScroll').classList.remove('open');
+    const btn = document.getElementById('guaBtn'); btn.disabled = true; btn.textContent = '起 卦 …';
+    document.querySelector('#panel-gua .cylinder').classList.add('shaking');
+    muyu();
+    const idx = Math.floor(Math.random() * 64);
+    const strip = document.getElementById('guaStrip');
+    spinCylinder(strip, guaPool, idx, renderGuaCell, () => {
+        document.querySelector('#panel-gua .cylinder').classList.remove('shaking');
+        showGuaResult(idx);
+        recordGua(idx);
+        btn.disabled = false; btn.textContent = '起 卦'; guaBusy = false;
+    });
+}
+function showGuaResult(i) {
+    const ask = document.getElementById('guaAsk').value.trim();
+    const el = document.getElementById('guaScroll');
+    el.innerHTML = `<div class="paper">
+        <div class="hex-detail">
+            <div class="big">${guaGlyph(i)}</div>
+            <div class="meta"><div class="nm">${GUA_NAMES[i]}</div><div class="tg">${GUA_PAIR[i]} · 第 ${i+1} 卦</div></div>
+        </div>
+        ${ask ? `<div style="color:#6a5a3a;font-size:.82rem;margin:2px 0 8px;">所問：${escapeHtml(ask)}</div>` : ''}
+        <div class="interp" style="border-top:1px dashed #bfa970;padding-top:12px;">
+            <div class="row"><b>卦象</b><span>${GUA_TEXT[i]}</span></div>
+        </div></div>`;
+    requestAnimationFrame(() => el.classList.add('open'));
+}
+function recordGua(i) {
+    store.gHist.unshift({ t: nowStr(), v: `${GUA_NAMES[i]}卦（${GUA_PAIR[i]}）` });
+    store.gHist = store.gHist.slice(0, 12); save(); renderHist('gua');
+}
+
+/* ============ 擲筊 ============ */
+let jiaoBusy = false;
+let tally = { sheng: 0, xiao: 0, yin: 0 };
+function tossJiao() {
+    if (jiaoBusy) return; jiaoBusy = true;
+    const btn = document.getElementById('jiaoBtn'); btn.disabled = true;
+    const a = document.getElementById('jiaoA'), b = document.getElementById('jiaoB');
+    a.classList.remove('flip-flat'); b.classList.remove('flip-flat');
+    a.classList.add('tossing'); b.classList.add('tossing');
+    clack();
+    // 加權決定結果
+    const w = store.jiaoW; const total = w.sheng + w.xiao + w.yin;
+    let r = Math.random() * total; let kind;
+    if (r < w.sheng) kind = 'sheng'; else if (r < w.sheng + w.xiao) kind = 'xiao'; else kind = 'yin';
+    setTimeout(() => {
+        a.classList.remove('tossing'); b.classList.remove('tossing');
+        // 設定筊面
+        if (kind === 'sheng') { // 一平一凸
+            if (Math.random() < 0.5) a.classList.add('flip-flat'); else b.classList.add('flip-flat');
+        } else if (kind === 'xiao') { a.classList.add('flip-flat'); b.classList.add('flip-flat'); } // 雙平
+        // yin：雙凸，皆不翻
+        clack();
+        showJiao(kind);
+        jiaoBusy = false; btn.disabled = false;
+    }, 520);
+}
+function showJiao(kind) {
+    const map = {
+        sheng: { cls: 'sheng', name: '聖 筊', say: '一平一凸 · 神明應允，可行' },
+        xiao: { cls: 'xiao', name: '笑 筊', say: '雙平朝上 · 神明含笑，再思量' },
+        yin: { cls: 'yin', name: '陰 筊', say: '雙凸朝上 · 時機未允，且緩行' }
+    };
+    const m = map[kind];
+    const ask = document.getElementById('jiaoAsk').value.trim();
+    document.getElementById('jiaoResult').innerHTML =
+        `<div class="verdict ${m.cls}">${m.name}</div><div class="say">${ask ? '「' + escapeHtml(ask) + '」 — ' : ''}${m.say}</div>`;
+    tally[kind]++;
+    document.getElementById('tSheng').textContent = tally.sheng;
+    document.getElementById('tXiao').textContent = tally.xiao;
+    document.getElementById('tYin').textContent = tally.yin;
+    if (kind === 'sheng') qing(true); else if (kind === 'xiao') muyu(); else yinThud();
+}
+
+/* ============ 歷史 / 設定 / 工具 ============ */
+function nowStr() { const d = new Date(); return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
+function escapeHtml(s) { return s.replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+function renderHist(which) {
+    const box = document.getElementById(which === 'qian' ? 'qianHist' : 'guaHist');
+    const list = which === 'qian' ? store.qHist : store.gHist;
+    box.innerHTML = list.length ? list.map(r => `<div class="hrec"><span class="v">${r.v}</span><span class="t">${r.t}</span></div>`).join('')
+        : `<div class="hrec"><span class="t">尚無紀錄</span></div>`;
+}
+
+function bindUI() {
+    // 分頁
+    document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+        muyu();
+    }));
+    document.getElementById('qianBtn').addEventListener('click', drawQian);
+    document.getElementById('guaBtn').addEventListener('click', drawGua);
+    document.getElementById('jiaoBtn').addEventListener('click', tossJiao);
+    document.getElementById('jiaoReset').addEventListener('click', () => {
+        tally = { sheng: 0, xiao: 0, yin: 0 };
+        document.getElementById('tSheng').textContent = '0';
+        document.getElementById('tXiao').textContent = '0';
+        document.getElementById('tYin').textContent = '0';
+        document.getElementById('jiaoResult').innerHTML = '<div class="verdict" style="color:var(--text-dim);font-size:1.2rem;">擲下問神</div><div class="say">一平一凸為聖筊 · 雙平笑筊 · 雙凸陰筊</div>';
+        document.getElementById('jiaoA').classList.remove('flip-flat');
+        document.getElementById('jiaoB').classList.remove('flip-flat');
+    });
+    // 歷史展開
+    document.querySelectorAll('[data-hist]').forEach(b => b.addEventListener('click', () => {
+        const id = b.dataset.hist === 'qian' ? 'qianHist' : 'guaHist';
+        document.getElementById(id).classList.toggle('show');
+    }));
+    // 設定
+    document.getElementById('openSettings').addEventListener('click', () =>
+        document.getElementById('jiaoSettings').classList.toggle('show'));
+    const bindRange = (id, key, valId) => {
+        const el = document.getElementById(id);
+        el.value = store.jiaoW[key];
+        document.getElementById(valId).textContent = store.jiaoW[key];
+        el.addEventListener('input', () => {
+            store.jiaoW[key] = parseInt(el.value);
+            document.getElementById(valId).textContent = el.value; save();
+        });
+    };
+    bindRange('wSheng', 'sheng', 'vSheng');
+    bindRange('wXiao', 'xiao', 'vXiao');
+    bindRange('wYin', 'yin', 'vYin');
+    const st = document.getElementById('soundToggle');
+    st.classList.toggle('on', store.soundOn);
+    st.addEventListener('click', () => { store.soundOn = !store.soundOn; st.classList.toggle('on', store.soundOn); save(); if (store.soundOn) muyu(); });
+    // 首次互動解鎖音訊
+    document.addEventListener('pointerdown', function unlock() { initAudio(); document.removeEventListener('pointerdown', unlock); }, { once: true });
+}
+
+/* ============ 啟動 ============ */
+function init() {
+    renderAlmanac();
+    renderHist('qian'); renderHist('gua');
+    bindUI();
+}
+init();
+
+</script>
+</body>
+</html>
