@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>九九乘法佔地大作戰 - 益智數學桌遊</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: radial-gradient(circle at center, #f0fdf4 0%, #dcfce7 100%);
+        }
+        .font-fredoka {
+            font-family: 'Fredoka One', cursive, 'Noto Sans TC', sans-serif;
+        }
+        .grid-cell {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .grid-cell:hover {
+            transform: scale(1.05);
+        }
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 0 0px rgba(234, 179, 8, 0.7); }
+            50% { box-shadow: 0 0 0 10px rgba(234, 179, 8, 0); }
+        }
+        .pulse-valid {
+            animation: pulse-gold 1.5s infinite;
+        }
+        /* 訂製流暢的翻牌與得分特效 */
+        .claimed-p1 {
+            background: linear-gradient(135deg, #fecdd3 0%, #fda4af 100%);
+            border-color: #f43f5e;
+            transform: rotateY(360deg);
+        }
+        .claimed-p2 {
+            background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
+            border-color: #0284c7;
+            transform: rotateY(360deg);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-2 md:p-6 text-slate-800">
+
+    <div class="w-full max-w-6xl bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl border-4 border-emerald-500/20 p-4 md:p-6 my-auto flex flex-col gap-6">
+        
+        <!-- 頂部標題與工具列 -->
+        <header class="flex flex-col sm:flex-row justify-between items-center border-b-2 border-emerald-100 pb-4 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-500 text-white p-3 rounded-2xl shadow-lg shadow-emerald-200 animate-bounce">
+                    <i class="fa-solid fa-calculator text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-black text-emerald-700 tracking-wider">九九乘法佔地大作戰</h1>
+                    <p class="text-xs md:text-sm text-emerald-600 font-medium">九九乘法 × 策略攻防 × 領地爭奪</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="openRulesModal()" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-xl transition duration-200 flex items-center gap-2 text-sm shadow">
+                    <i class="fa-solid fa-book-open"></i> 遊戲規則
+                </button>
+                <button onclick="toggleMathTable()" class="px-4 py-2 bg-sky-100 hover:bg-sky-200 text-sky-800 font-bold rounded-xl transition duration-200 flex items-center gap-2 text-sm shadow">
+                    <i class="fa-solid fa-table"></i> 乘法表助手
+                </button>
+            </div>
+        </header>
+
+        <div id="lobby-screen" class="grid grid-cols-1 lg:grid-cols-2 gap-8 py-4">
+            <!-- 左側：角色與隊伍設定 -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold text-slate-700 border-l-4 border-emerald-500 pl-3 flex items-center gap-2">
+                    <i class="fa-solid fa-user-gear text-emerald-500"></i> 玩家陣營設定
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- 玩家 1 設定 -->
+                    <div class="bg-rose-50/50 p-4 rounded-2xl border-2 border-rose-100 space-y-3">
+                        <div class="flex items-center gap-2 font-bold text-rose-700">
+                            <span class="w-3 h-3 rounded-full bg-rose-500"></span> 玩家一（紅隊）
+                        </div>
+                        <input type="text" id="p1-name" value="小小乘法王" class="w-full px-3 py-2 rounded-xl border-2 border-rose-200 focus:outline-none focus:border-rose-400 font-bold text-rose-800">
+                        <div class="flex gap-2 justify-between">
+                            <span class="text-xs text-rose-600 self-center">選擇頭像:</span>
+                            <div class="flex gap-1" id="p1-avatar-selectors">
+                                <button onclick="selectAvatar(1, '🦖')" class="p-1 text-2xl bg-white rounded-lg border-2 border-rose-400" id="av-1-🦖">🦖</button>
+                                <button onclick="selectAvatar(1, '🦁')" class="p-1 text-2xl bg-white rounded-lg border-2 border-transparent" id="av-1-🦁">🦁</button>
+                                <button onclick="selectAvatar(1, '🦄')" class="p-1 text-2xl bg-white rounded-lg border-2 border-transparent" id="av-1-🦄">🦄</button>
+                                <button onclick="selectAvatar(1, '🦊')" class="p-1 text-2xl bg-white rounded-lg border-2 border-transparent" id="av-1-🦊">🦊</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 玩家 2 / AI 設定 -->
+                    <div class="bg-sky-50/50 p-4 rounded-2xl border-2 border-sky-100 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 font-bold text-sky-700">
+                                <span class="w-3 h-3 rounded-full bg-sky-500"></span> 玩家二 / 對手
+                            </div>
+                            <select id="opponent-type" onchange="toggleOpponentType()" class="text-xs px-2 py-1 rounded bg-white border border-sky-300 font-bold text-sky-800 focus:outline-none">
+                                <option value="ai">電腦 AI 挑戰</option>
+                                <option value="player">雙人同屏對戰</option>
+                            </select>
+                        </div>
+                        <input type="text" id="p2-name" value="超算AI大師" class="w-full px-3 py-2 rounded-xl border-2 border-sky-200 focus:outline-none focus:border-sky-400 font-bold text-sky-800">
+                        
+                        <!-- AI 難度選擇 -->
+                        <div id="ai-difficulty-container" class="flex items-center justify-between gap-2">
+                            <span class="text-xs text-sky-600 font-bold">AI 難度:</span>
+                            <div class="flex rounded-lg bg-sky-100 p-1">
+                                <button onclick="setAiDiff('easy')" id="diff-easy" class="px-2 py-1 text-xs font-bold rounded bg-white text-sky-800 shadow-sm">新手</button>
+                                <button onclick="setAiDiff('medium')" id="diff-medium" class="px-2 py-1 text-xs font-bold rounded text-sky-600">進階</button>
+                                <button onclick="setAiDiff('hard')" id="diff-hard" class="px-2 py-1 text-xs font-bold rounded text-sky-600">大師</button>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 justify-between">
+                            <span class="text-xs text-sky-600 self-center">選擇頭像:</span>
+                            <div class="flex gap-1" id="p2-avatar-selectors">
+                                <button onclick="selectAvatar(2, '🤖')" class="p-1 text-2xl bg-white rounded-lg border-2 border-sky-400" id="av-2-🤖">🤖</button>
+                                <button onclick="selectAvatar(2, '🐙')" class="p-1 text-2xl bg-white rounded-lg border-2 border-transparent" id="av-2-🐙">🐙</button>
+                                <button onclick="selectAvatar(2, '🐼')" class="p-1 text-2xl bg-white rounded-lg border-2 border-transparent" id="av-2-🐼">🐼</button>
+                                <button onclick="selectAvatar(2, '🧙')" class="p-1 text-2xl bg-white rounded-lg border-2 border-transparent" id="av-2-🧙">🧙</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：遊戲規則與參數設定 -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-bold text-slate-700 border-l-4 border-emerald-500 pl-3 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-emerald-500"></i> 戰場環境設定
+                </h2>
+
+                <div class="bg-emerald-50/50 p-5 rounded-3xl border-2 border-emerald-100 space-y-4">
+                    <!-- 棋盤大小 -->
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-emerald-800 flex items-center gap-2">
+                            <i class="fa-solid fa-border-all"></i> 棋盤規格
+                        </span>
+                        <div class="flex gap-2">
+                            <button onclick="setBoardSize(6)" id="size-6" class="px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md">6 × 6 (快速)</button>
+                            <button onclick="setBoardSize(8)" id="size-8" class="px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700">8 × 8 (標準)</button>
+                        </div>
+                    </div>
+
+                    <!-- 操縱模式 -->
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-emerald-800 flex items-center gap-2">
+                                <i class="fa-solid fa-gamepad"></i> 乘數操縱方式
+                            </span>
+                            <p class="text-xs text-emerald-600">決定如何選擇被乘數與乘數</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="setControlMode('free')" id="mode-free" class="px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md">自由選數</button>
+                            <button onclick="setControlMode('slider')" id="mode-slider" class="px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700">經典滑軌</button>
+                        </div>
+                    </div>
+
+                    <!-- 獲勝條件 -->
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-bold text-emerald-800 flex items-center gap-2">
+                                <i class="fa-solid fa-trophy"></i> 獲勝條件設定
+                            </span>
+                            <p class="text-xs text-emerald-600">選擇佔地爭奪的判定模式</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="setWinCondition('most')" id="win-most" class="px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md">佔地最多</button>
+                            <button onclick="setWinCondition('connect')" id="win-connect" class="px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700">五子連線</button>
+                        </div>
+                    </div>
+
+                    <!-- 搶地規則 (反客為主) -->
+                    <div class="flex justify-between items-center pt-2 border-t border-emerald-100">
+                        <div>
+                            <span class="font-bold text-emerald-800 flex items-center gap-2">
+                                <i class="fa-solid fa-swords text-rose-500"></i> 反客為主 (奪地模式)
+                            </span>
+                            <p class="text-xs text-emerald-600">允許用新算式奪取對手已佔領的格子</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="takeover-toggle" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-xl rounded-2xl shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-1 flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-circle-play text-2xl"></i> 開始乘法大戰！
+                </button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 py-2">
+            
+            <!-- 左側/上方：玩家資訊、算式看板 -->
+            <div class="lg:col-span-4 flex flex-col gap-4">
+                
+                <!-- 計分看板 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- 紅隊卡片 -->
+                    <div id="card-p1" class="bg-rose-50 p-4 rounded-2xl border-2 border-rose-400 flex flex-col items-center justify-center text-center relative overflow-hidden transition duration-300 shadow-md">
+                        <div class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold">P1</div>
+                        <div class="text-4xl mb-1" id="avatar-display-p1">🦖</div>
+                        <div class="font-bold text-rose-800 text-sm truncate w-full" id="name-display-p1">小小乘法王</div>
+                        <div class="text-3xl font-black text-rose-600 mt-1 font-fredoka" id="score-p1">0</div>
+                        <div class="text-xs text-rose-500 font-semibold">佔領格數</div>
+                    </div>
+                    <!-- 藍隊卡片 -->
+                    <div id="card-p2" class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-200 flex flex-col items-center justify-center text-center relative overflow-hidden transition duration-300 shadow-md">
+                        <div class="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-sky-500 text-white text-[10px] font-bold" id="badge-p2">P2</div>
+                        <div class="text-4xl mb-1" id="avatar-display-p2">🤖</div>
+                        <div class="font-bold text-sky-800 text-sm truncate w-full" id="name-display-p2">超算AI大師</div>
+                        <div class="text-3xl font-black text-sky-600 mt-1 font-fredoka" id="score-p2">0</div>
+                        <div class="text-xs text-sky-500 font-semibold">佔領格數</div>
+                    </div>
+                </div>
+
+                <!-- 戰略看板 & 目前公式 -->
+                <div class="bg-amber-50 p-4 rounded-3xl border-2 border-amber-200 flex flex-col items-center justify-center text-center gap-3 relative shadow">
+                    <div class="text-xs font-bold text-amber-800 bg-amber-100 px-3 py-1 rounded-full">當前算式與答案</div>
+                    
+                    <div class="flex items-center gap-3 font-fredoka py-2">
+                        <span id="formula-factor1" class="text-3xl md:text-4xl font-black text-slate-700 bg-white border-2 border-slate-300 px-4 py-2 rounded-2xl shadow-inner shadow-slate-100 min-w-[3.5rem] inline-block">?</span>
+                        <span class="text-2xl font-bold text-amber-500">×</span>
+                        <span id="formula-factor2" class="text-3xl md:text-4xl font-black text-slate-700 bg-white border-2 border-slate-300 px-4 py-2 rounded-2xl shadow-inner shadow-slate-100 min-w-[3.5rem] inline-block">?</span>
+                        <span class="text-2xl font-bold text-amber-500">=</span>
+                        <span id="formula-product" class="text-4xl md:text-5xl font-black text-emerald-600 bg-emerald-50 border-2 border-emerald-300 px-5 py-2 rounded-2xl shadow-inner min-w-[4.5rem] inline-block">?</span>
+                    </div>
+
+                    <!-- 操作指南提示 -->
+                    <div id="instruction-tip" class="text-xs md:text-sm font-bold text-amber-900 bg-white/70 rounded-xl p-3 border border-amber-100 w-full">
+                        請選擇左側的數字！
+                    </div>
+                </div>
+
+                <!-- 回合/重置控制台 -->
+                <div class="flex gap-2">
+                    <button onclick="surrenderGame()" class="flex-1 py-3 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold rounded-2xl transition duration-200 text-sm flex items-center justify-center gap-2 border border-rose-200 shadow">
+                        <i class="fa-solid fa-flag"></i> 認輸
+                    </button>
+                    <button onclick="resetGameToLobby()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl transition duration-200 text-sm flex items-center justify-center gap-2 border border-slate-200 shadow">
+                        <i class="fa-solid fa-rotate-left"></i> 回到大廳
+                    </button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                <!-- 遊戲大棋盤 -->
+                <div class="bg-slate-50 p-3 md:p-5 rounded-3xl border-4 border-slate-200 shadow-inner flex items-center justify-center">
+                    <div id="board-grid" class="grid gap-2 w-full max-w-[500px] aspect-square">
+                        <!-- 棋盤格將由 JS 動態生成 -->
+                    </div>
+                </div>
+
+                <!-- 數字操縱控制區 -->
+                <div class="bg-emerald-50 p-4 rounded-3xl border-2 border-emerald-200 space-y-3 shadow">
+                    <!-- 自由選數面板 -->
+                    <div id="free-mode-controls" class="space-y-3">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 選擇被乘數：
+                            </span>
+                            <div class="grid grid-cols-9 gap-1" id="factor1-row">
+                                <!-- 由 JS 動態生成 1-9 的按鈕 -->
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> 選擇乘數：
+                            </span>
+                            <div class="grid grid-cols-9 gap-1" id="factor2-row">
+                                <!-- 由 JS 動態生成 1-9 的按鈕 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 經典雙滑軌面板 -->
+                    <div id="slider-mode-controls" class="hidden space-y-3">
+                        <div class="flex justify-between items-center text-xs font-bold text-emerald-800 mb-1">
+                            <span class="flex items-center gap-1">
+                                <i class="fa-solid fa-arrows-left-right"></i> 經典滑軌模式（每回合僅能移動其中一個標記）
+                            </span>
+                        </div>
+                        <div class="bg-white/90 p-3 rounded-2xl border border-emerald-100 relative">
+                            <!-- 滑軌刻度 1-9 -->
+                            <div class="grid grid-cols-9 gap-1 mb-2 relative" id="slider-scale-row">
+                                <!-- 由 JS 動態生成 -->
+                            </div>
+                            <!-- 滑軌提示資訊 -->
+                            <p class="text-[11px] text-emerald-600 text-center font-semibold" id="slider-hint">
+                                點選上方任意數字來移動其中一個滑軌
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center text-xs text-slate-400 border-t border-slate-100 pt-4 font-semibold">
+            © 2026 九九乘法佔地大作戰. 專為提升心算與策略能力設計的互動數位教材。
+        </footer>
+    </div>
+
+    
+    <!-- 1. 九九乘法對照表 (側邊可折疊面板) -->
+    <div id="math-table-drawer" class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl border-l-4 border-sky-400 z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 bg-gradient-to-r from-sky-400 to-indigo-500 text-white flex justify-between items-center shadow-md">
+            <h3 class="text-lg font-black flex items-center gap-2">
+                <i class="fa-solid fa-table"></i> 九九乘法對照助手
+            </h3>
+            <button onclick="toggleMathTable()" class="text-white hover:text-slate-100 text-xl font-bold p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1 bg-sky-50/50 space-y-4">
+            <p class="text-xs text-slate-500 font-bold leading-relaxed">
+                提示：這是一個九九乘法表。點擊表格內任意一格，遊戲會貼心為你高亮顯示棋盤上對應乘積的位置喔！
+            </p>
+            <div class="overflow-x-auto rounded-2xl border-2 border-sky-100 bg-white p-2 shadow-inner">
+                <table class="w-full text-center text-xs font-semibold">
+                    <thead>
+                        <tr class="bg-sky-100 text-sky-800">
+                            <th class="p-1 border border-sky-200">×</th>
+                            <script>
+                                for(let i=1; i<=9; i++) {
+                                    document.write(`<th class="p-1 border border-sky-200">${i}</th>`);
+                                }
+                            </script>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <script>
+                            for(let i=1; i<=9; i++) {
+                                document.write(`<tr>`);
+                                document.write(`<td class="p-1 border border-sky-200 bg-sky-100 text-sky-800 font-bold">${i}</td>`);
+                                for(let j=1; j<=9; j++) {
+                                    const product = i * j;
+                                    document.write(`
+                                        <td onclick="highlightProductFromHelper(${product})" 
+                                            class="p-1 border border-sky-200 hover:bg-amber-100 cursor-pointer text-slate-700 transition duration-150">
+                                            ${product}
+                                        </td>
+                                    `);
+                                }
+                                document.write(`</tr>`);
+                            }
+                        </script>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800">
+                <h4 class="font-bold mb-1"><i class="fa-solid fa-lightbulb"></i> 小技巧</h4>
+                在棋盤中，某些乘積（例如 12, 18, 24）會出現多次，因為它們有複數種因數組合。在地盤爭奪戰中，這些格子是兵家必爭之地！
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 遊戲規則彈出窗 -->
+    <div id="rules-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border-4 border-amber-300 relative max-h-[90vh] overflow-y-auto space-y-4">
+            <button onclick="closeRulesModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl">
+                <i class="fa-solid fa-circle-xmark"></i>
+            </button>
+            <h3 class="text-2xl font-black text-amber-700 flex items-center gap-2">
+                <i class="fa-solid fa-chess"></i> 怎麼玩「九九乘法佔地大作戰」？
+            </h3>
+            
+            <div class="space-y-3 text-sm text-slate-600 leading-relaxed font-semibold">
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-100">
+                    <h4 class="font-black text-amber-800 mb-1">🎮 遊戲基本核心</h4>
+                    輪到你的回合時，決定「被乘數 × 乘數」並算出乘積。點選棋盤上對應數字的格子，將其轉變為你的專屬領地！
+                </div>
+
+                <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                    <h4 class="font-black text-emerald-800 mb-1">🕹️ 兩種模式，兩種樂趣</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><span class="text-emerald-700">自由選數：</span>可以自由變更兩個數字進行乘法（例如：5 × 6 = 30）。</li>
+                        <li><span class="text-emerald-700">經典滑軌：</span>下方有兩個滑軌指向數字。玩家每回合<span class="underline">「只能移動其中一個滑軌」</span>，乘積由這兩個滑軌當前位置決定。具有極高布局策略！</li>
+                    </ul>
+                </div>
+
+                <div class="bg-rose-50 p-3 rounded-xl border border-rose-100">
+                    <h4 class="font-black text-rose-800 mb-1">⚔️ 奪地規則（反客為主）</h4>
+                    如果開啟此規則，當對手已經佔領某格（如 24），你仍可用不同的算式組合（如 3×8 挑戰原本的 4×6）或甚至是相同算式計算並點擊它，「反客為主」將其搶過來變成你的領地！
+                </div>
+
+                <div class="bg-sky-50 p-3 rounded-xl border border-sky-100">
+                    <h4 class="font-black text-sky-800 mb-1">🏆 獲勝方式</h4>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><span class="text-sky-700">佔地最多者勝：</span>當棋盤填滿，或雙方無法再進行任何有效操作時，佔領最多格子者勝。</li>
+                        <li><span class="text-sky-700">五子連線者勝：</span>率先在橫向、縱向或對角線上，將 5 個自己的領地連成一條線（不中斷）者立即獲勝。</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button onclick="closeRulesModal()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-lg shadow-amber-200">
+                我懂了，準備開戰！
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. 遊戲結算彈出窗 -->
+    <div id="result-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl border-4 border-emerald-400 text-center relative space-y-6">
+            <div id="confetti-canvas-container" class="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl">
+                <canvas id="confetti-canvas" class="w-full h-full"></canvas>
+            </div>
+
+            <div class="text-6xl" id="winner-emojis">🏆🎉</div>
+            <h3 class="text-3xl font-black text-emerald-700" id="winner-title">分出勝負了！</h3>
+            <p class="text-slate-500 font-bold" id="winner-description">玩家一成功以 15 格贏得了本場戰鬥！</p>
+            
+            <div class="bg-slate-50 p-4 rounded-2xl border-2 border-slate-100 flex justify-around items-center">
+                <div>
+                    <div class="text-3xl" id="end-avatar-p1">🦖</div>
+                    <div class="text-xs font-bold text-slate-500 mt-1" id="end-name-p1">小小乘法王</div>
+                    <div class="text-2xl font-black text-rose-500 font-fredoka" id="end-score-p1">0</div>
+                </div>
+                <div class="text-slate-300 text-xl font-bold">VS</div>
+                <div>
+                    <div class="text-3xl" id="end-avatar-p2">🤖</div>
+                    <div class="text-xs font-bold text-slate-500 mt-1" id="end-name-p2">超算AI大師</div>
+                    <div class="text-2xl font-black text-sky-500 font-fredoka" id="end-score-p2">0</div>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="restartGame()" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-200">
+                    再戰一局
+                </button>
+                <button onclick="resetGameToLobby()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-200">
+                    返回設定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 音效合成器 (Web Audio API)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.1);
+                } else if (type === 'claim') {
+                    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.08);
+                    osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.25);
+                    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'steal') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.3);
+                    gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'error') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                    osc.frequency.setValueAtTime(140, audioCtx.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'victory') {
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                    osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.3); // C6
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.6);
+                }
+            } catch (e) {
+                console.log("音效播不出來沒關係：", e);
+            }
+        }
+
+        // 核心設定與變數
+        const state = {
+            p1: { name: '小小乘法王', avatar: '🦖', score: 0 },
+            p2: { name: '超算AI大師', avatar: '🤖', score: 0 },
+            opponentType: 'ai', // ai | player
+            aiDifficulty: 'easy', // easy | medium | hard
+            boardSize: 6, // 6 | 8
+            controlMode: 'free', // free | slider
+            winCondition: 'most', // most | connect
+            allowTakeover: true,
+            
+            // 遊戲中即時狀態
+            currentPlayer: 1, // 1 或 2
+            factor1: null, // 被乘數 (1-9)
+            factor2: null, // 乘數 (1-9)
+            sliders: [3, 4], // 在滑軌模式中，兩個指針的初始位置
+            boardData: [], // 陣列，儲存棋盤每一格的乘積與佔領狀態
+            gameActive: false
+        };
+
+        // 九九乘法表能組出的所有合法乘積
+        const validProducts = [];
+        for (let i = 1; i <= 9; i++) {
+            for (let j = 1; j <= 9; j++) {
+                if (!validProducts.includes(i * j)) {
+                    validProducts.push(i * j);
+                }
+            }
+        }
+        validProducts.sort((a, b) => a - b);
+
+        function selectAvatar(player, avatar) {
+            playSound('click');
+            if (player === 1) {
+                state.p1.avatar = avatar;
+                document.querySelectorAll('#p1-avatar-selectors button').forEach(b => b.classList.replace('border-rose-400', 'border-transparent'));
+                document.getElementById(`av-1-${avatar}`).classList.replace('border-transparent', 'border-rose-400');
+            } else {
+                state.p2.avatar = avatar;
+                document.querySelectorAll('#p2-avatar-selectors button').forEach(b => b.classList.replace('border-sky-400', 'border-transparent'));
+                document.getElementById(`av-2-${avatar}`).classList.replace('border-transparent', 'border-sky-400');
+            }
+        }
+
+        function toggleOpponentType() {
+            playSound('click');
+            const oppType = document.getElementById('opponent-type').value;
+            state.opponentType = oppType;
+            
+            const aiContainer = document.getElementById('ai-difficulty-container');
+            const p2NameInput = document.getElementById('p2-name');
+            
+            if (oppType === 'ai') {
+                aiContainer.classList.remove('hidden');
+                p2NameInput.value = '超算AI大師';
+                state.p2.name = '超算AI大師';
+            } else {
+                aiContainer.classList.add('hidden');
+                p2NameInput.value = '乘法挑戰者';
+                state.p2.name = '乘法挑戰者';
+            }
+        }
+
+        function setAiDiff(diff) {
+            playSound('click');
+            state.aiDifficulty = diff;
+            const buttons = ['easy', 'medium', 'hard'];
+            buttons.forEach(b => {
+                const btn = document.getElementById(`diff-${b}`);
+                if (b === diff) {
+                    btn.className = "px-2 py-1 text-xs font-bold rounded bg-white text-sky-800 shadow-sm";
+                } else {
+                    btn.className = "px-2 py-1 text-xs font-bold rounded text-sky-600 hover:bg-sky-50";
+                }
+            });
+        }
+
+        function setBoardSize(size) {
+            playSound('click');
+            state.boardSize = size;
+            const s6 = document.getElementById('size-6');
+            const s8 = document.getElementById('size-8');
+            if (size === 6) {
+                s6.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md";
+                s8.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700";
+            } else {
+                s8.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md";
+                s6.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700";
+            }
+        }
+
+        function setControlMode(mode) {
+            playSound('click');
+            state.controlMode = mode;
+            const freeBtn = document.getElementById('mode-free');
+            const sliderBtn = document.getElementById('mode-slider');
+            if (mode === 'free') {
+                freeBtn.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md";
+                sliderBtn.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700";
+            } else {
+                sliderBtn.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md";
+                freeBtn.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700";
+            }
+        }
+
+        function setWinCondition(cond) {
+            playSound('click');
+            state.winCondition = cond;
+            const mostBtn = document.getElementById('win-most');
+            const connectBtn = document.getElementById('win-connect');
+            if (cond === 'most') {
+                mostBtn.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md";
+                connectBtn.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700";
+            } else {
+                connectBtn.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-500 bg-emerald-500 text-white shadow-md";
+                mostBtn.className = "px-4 py-1.5 rounded-xl font-bold border-2 border-emerald-200 hover:border-emerald-400 text-emerald-700";
+            }
+        }
+
+        function openRulesModal() {
+            playSound('click');
+            document.getElementById('rules-modal').classList.replace('hidden', 'flex');
+        }
+
+        function closeRulesModal() {
+            playSound('click');
+            document.getElementById('rules-modal').classList.replace('flex', 'hidden');
+        }
+
+        function toggleMathTable() {
+            playSound('click');
+            const drawer = document.getElementById('math-table-drawer');
+            if (drawer.classList.contains('translate-x-full')) {
+                drawer.classList.remove('translate-x-full');
+            } else {
+                drawer.classList.add('translate-x-full');
+            }
+        }
+
+        function highlightProductFromHelper(product) {
+            playSound('click');
+            // 如果遊戲還沒開始，先提醒
+            if (!state.gameActive) {
+                // 自動彈到設定畫面，並找出格子高亮
+                return;
+            }
+            // 找出所有符合此乘積的格子
+            const cells = document.querySelectorAll('.grid-cell');
+            let found = false;
+            cells.forEach(c => {
+                const val = parseInt(c.dataset.value);
+                if (val === product) {
+                    c.classList.add('pulse-valid');
+                    found = true;
+                    setTimeout(() => {
+                        c.classList.remove('pulse-valid');
+                    }, 3000);
+                }
+            });
+            if (found) {
+                toggleMathTable(); // 關閉抽屜
+                updateTipText(`為您在棋盤上高亮了乘積為 ${product} 的格子！`, 'emerald');
+            } else {
+                updateTipText(`糟了！棋盤上剛好沒有 ${product} 這格喔。`, 'rose');
+            }
+        }
+
+        function generateBoardData() {
+            const size = state.boardSize;
+            const totalCells = size * size;
+            const data = [];
+
+            // 隨機選擇九九乘法中的合法數字
+            // 6x6 (36) 我們盡量放 36 個乘數，8x8 (64) 則允許重疊
+            const productsPool = [];
+            
+            // 生成一個九九乘法完整乘積對照列表 (81種)
+            const allProducts = [];
+            for (let i = 1; i <= 9; i++) {
+                for (let j = 1; j <= 9; j++) {
+                    allProducts.push({ val: i * j, equation: `${i}×${j}` });
+                }
+            }
+
+            if (size === 6) {
+                // 盡量取其中 36 個具有豐富組合的數字
+                // 先洗牌
+                const shuffled = allProducts.sort(() => 0.5 - Math.random());
+                const uniqueVals = [];
+                for (let item of shuffled) {
+                    if (!uniqueVals.includes(item.val)) {
+                        uniqueVals.push(item.val);
+                        if (uniqueVals.length === 36) break;
+                    }
+                }
+                // 如果不夠 36 個 (因為九九乘法表去重後只有36個獨特數字)，就直接用全部 36 個獨特值
+                while (uniqueVals.length < 36) {
+                    uniqueVals.push(12); // 安全填充
+                }
+                uniqueVals.forEach(v => data.push({ value: v, owner: 0, scale: 1 }));
+            } else {
+                // 8x8 (64格)，直接隨機從九九乘法表中抽取 64 個
+                // 為了確保所有數字都是能乘得出來的
+                for (let i = 0; i < 64; i++) {
+                    const randItem = allProducts[Math.floor(Math.random() * allProducts.length)];
+                    data.push({ value: randItem.val, owner: 0, scale: 1 });
+                }
+            }
+
+            // 洗牌打亂順序，使之成為無序棋盤
+            state.boardData = data.sort(() => 0.5 - Math.random());
+        }
+
+        function renderBoard() {
+            const grid = document.getElementById('board-grid');
+            grid.innerHTML = '';
+            
+            const size = state.boardSize;
+            grid.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
+            
+            state.boardData.forEach((cell, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `grid-cell aspect-square bg-white border-2 border-slate-200 rounded-2xl flex flex-col items-center justify-center font-fredoka text-base md:text-xl font-black shadow-sm relative overflow-hidden`;
+                btn.dataset.index = idx;
+                btn.dataset.value = cell.value;
+                
+                // 格子內部
+                btn.innerHTML = `
+                    <span class="cell-num transition duration-300 z-10">${cell.value}</span>
+                    <div class="owner-indicator absolute inset-0 opacity-0 transition duration-300 flex items-center justify-center text-3xl"></div>
+                `;
+
+                // 點擊格子處理
+                btn.onclick = () => onCellClicked(idx);
+                grid.appendChild(btn);
+            });
+        }
+
+        function renderControls() {
+            const factor1Row = document.getElementById('factor1-row');
+            const factor2Row = document.getElementById('factor2-row');
+            
+            factor1Row.innerHTML = '';
+            factor2Row.innerHTML = '';
+
+            // 自由模式 1-9 的按鈕
+            for (let i = 1; i <= 9; i++) {
+                const btn1 = document.createElement('button');
+                btn1.className = `py-2 bg-white border-2 border-slate-200 rounded-xl hover:bg-emerald-50 text-slate-700 font-bold transition duration-200 text-sm md:text-base shadow-sm`;
+                btn1.innerText = i;
+                btn1.id = `f1-btn-${i}`;
+                btn1.onclick = () => selectFactor(1, i);
+                factor1Row.appendChild(btn1);
+
+                const btn2 = document.createElement('button');
+                btn2.className = `py-2 bg-white border-2 border-slate-200 rounded-xl hover:bg-emerald-50 text-slate-700 font-bold transition duration-200 text-sm md:text-base shadow-sm`;
+                btn2.innerText = i;
+                btn2.id = `f2-btn-${i}`;
+                btn2.onclick = () => selectFactor(2, i);
+                factor2Row.appendChild(btn2);
+            }
+
+            // 滑軌模式 1-9 的刻度
+            const scaleRow = document.getElementById('slider-scale-row');
+            scaleRow.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = `relative flex flex-col items-center justify-center py-4 bg-white border border-slate-100 rounded-xl shadow-inner cursor-pointer hover:bg-emerald-50/50`;
+                wrapper.onclick = () => selectSliderValue(i);
+                
+                wrapper.innerHTML = `
+                    <span class="font-fredoka font-black text-slate-500 text-sm md:text-base z-10">${i}</span>
+                    <!-- 兩個滑軌的圓圈 -->
+                    <span id="slider-marker-a-${i}" class="absolute top-1 left-1 w-3 h-3 rounded-full bg-rose-500 border border-white hidden transition-all shadow-md"></span>
+                    <span id="slider-marker-b-${i}" class="absolute bottom-1 right-1 w-3 h-3 rounded-full bg-sky-500 border border-white hidden transition-all shadow-md"></span>
+                `;
+                scaleRow.appendChild(wrapper);
+            }
+        }
+
+        function startGame() {
+            playSound('claim');
+            // 讀取名字與奪地開關
+            state.p1.name = document.getElementById('p1-name').value || '小小乘法王';
+            state.p2.name = document.getElementById('p2-name').value || (state.opponentType === 'ai' ? '超算AI大師' : '乘法挑戰者');
+            state.allowTakeover = document.getElementById('takeover-toggle').checked;
+
+            // 切換畫面
+            document.getElementById('lobby-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            // 初始化與渲染
+            state.gameActive = true;
+            state.currentPlayer = 1;
+            state.factor1 = null;
+            state.factor2 = null;
+            state.sliders = [3, 4]; // 經典滑軌預設在 3 與 4
+            state.p1.score = 0;
+            state.p2.score = 0;
+
+            generateBoardData();
+            renderBoard();
+            renderControls();
+
+            // 如果是滑軌模式，切換操作區
+            if (state.controlMode === 'slider') {
+                document.getElementById('free-mode-controls').classList.add('hidden');
+                document.getElementById('slider-mode-controls').classList.remove('hidden');
+                updateSliderVisuals();
+                calculateAndShowSliderProduct();
+            } else {
+                document.getElementById('free-mode-controls').classList.remove('hidden');
+                document.getElementById('slider-mode-controls').classList.add('hidden');
+                resetFactorButtons();
+            }
+
+            updateScoreboard();
+            updateTipText(`大作戰開始！輪到 ${state.p1.avatar} ${state.p1.name} 的回合。請選擇乘數！`, 'rose');
+        }
+
+        function updateScoreboard() {
+            // 更新計分
+            document.getElementById('name-display-p1').innerText = state.p1.name;
+            document.getElementById('avatar-display-p1').innerText = state.p1.avatar;
+            document.getElementById('score-p1').innerText = state.p1.score;
+
+            document.getElementById('name-display-p2').innerText = state.p2.name;
+            document.getElementById('avatar-display-p2').innerText = state.p2.avatar;
+            document.getElementById('score-p2').innerText = state.p2.score;
+
+            // 調整徽章
+            const badge2 = document.getElementById('badge-p2');
+            if (state.opponentType === 'ai') {
+                badge2.innerText = `AI:${state.aiDifficulty.toUpperCase()}`;
+                badge2.className = "absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-purple-500 text-white text-[9px] font-bold";
+            } else {
+                badge2.innerText = "P2";
+                badge2.className = "absolute top-2 left-2 px-1.5 py-0.5 rounded-full bg-sky-500 text-white text-[9px] font-bold";
+            }
+
+            // 高亮目前玩家
+            const card1 = document.getElementById('card-p1');
+            const card2 = document.getElementById('card-p2');
+            if (state.currentPlayer === 1) {
+                card1.className = "bg-rose-50 p-4 rounded-2xl border-4 border-rose-500 flex flex-col items-center justify-center text-center relative overflow-hidden scale-105 shadow-lg transition duration-300";
+                card2.className = "bg-slate-50/70 p-4 rounded-2xl border-2 border-slate-200 flex flex-col items-center justify-center text-center relative overflow-hidden scale-95 opacity-70 shadow-sm transition duration-300";
+            } else {
+                card2.className = "bg-sky-50 p-4 rounded-2xl border-4 border-sky-500 flex flex-col items-center justify-center text-center relative overflow-hidden scale-105 shadow-lg transition duration-300";
+                card1.className = "bg-slate-50/70 p-4 rounded-2xl border-2 border-slate-200 flex flex-col items-center justify-center text-center relative overflow-hidden scale-95 opacity-70 shadow-sm transition duration-300";
+            }
+        }
+
+        function updateTipText(text, theme = 'slate') {
+            const tip = document.getElementById('instruction-tip');
+            tip.innerText = text;
+            tip.className = `text-xs md:text-sm font-bold bg-white/70 rounded-xl p-3 border w-full transition duration-300`;
+            if (theme === 'rose') {
+                tip.classList.add('border-rose-300', 'text-rose-900', 'bg-rose-50/50');
+            } else if (theme === 'sky') {
+                tip.classList.add('border-sky-300', 'text-sky-900', 'bg-sky-50/50');
+            } else if (theme === 'emerald') {
+                tip.classList.add('border-emerald-300', 'text-emerald-900', 'bg-emerald-50/50');
+            } else {
+                tip.classList.add('border-amber-200', 'text-amber-900');
+            }
+        }
+
+        function selectFactor(row, val) {
+            playSound('click');
+            if (state.currentPlayer === 2 && state.opponentType === 'ai') return; // AI 回合不能點
+
+            if (row === 1) {
+                state.factor1 = val;
+            } else {
+                state.factor2 = val;
+            }
+
+            // 更新按鈕高亮
+            for (let i = 1; i <= 9; i++) {
+                const b1 = document.getElementById(`f1-btn-${i}`);
+                if (i === state.factor1) {
+                    b1.className = `py-2 bg-rose-500 border-2 border-rose-600 text-white rounded-xl font-bold text-sm md:text-base shadow`;
+                } else {
+                    b1.className = `py-2 bg-white border-2 border-slate-200 rounded-xl hover:bg-emerald-50 text-slate-700 font-bold text-sm md:text-base shadow-sm`;
+                }
+
+                const b2 = document.getElementById(`f2-btn-${i}`);
+                if (i === state.factor2) {
+                    b2.className = `py-2 bg-sky-500 border-2 border-sky-600 text-white rounded-xl font-bold text-sm md:text-base shadow`;
+                } else {
+                    b2.className = `py-2 bg-white border-2 border-slate-200 rounded-xl hover:bg-emerald-50 text-slate-700 font-bold text-sm md:text-base shadow-sm`;
+                }
+            }
+
+            // 更新公式看板
+            document.getElementById('formula-factor1').innerText = state.factor1 !== null ? state.factor1 : '?';
+            document.getElementById('formula-factor2').innerText = state.factor2 !== null ? state.factor2 : '?';
+            
+            if (state.factor1 !== null && state.factor2 !== null) {
+                const prod = state.factor1 * state.factor2;
+                document.getElementById('formula-product').innerText = prod;
+                
+                // 高亮棋盤上合格的格子
+                highlightValidTargetCells(prod);
+            } else {
+                document.getElementById('formula-product').innerText = '?';
+                clearGridHighlights();
+            }
+        }
+
+        function resetFactorButtons() {
+            state.factor1 = null;
+            state.factor2 = null;
+            document.getElementById('formula-factor1').innerText = '?';
+            document.getElementById('formula-factor2').innerText = '?';
+            document.getElementById('formula-product').innerText = '?';
+            
+            for (let i = 1; i <= 9; i++) {
+                document.getElementById(`f1-btn-${i}`).className = `py-2 bg-white border-2 border-slate-200 rounded-xl hover:bg-emerald-50 text-slate-700 font-bold text-sm md:text-base shadow-sm`;
+                document.getElementById(`f2-btn-${i}`).className = `py-2 bg-white border-2 border-slate-200 rounded-xl hover:bg-emerald-50 text-slate-700 font-bold text-sm md:text-base shadow-sm`;
+            }
+            clearGridHighlights();
+        }
+
+        function selectSliderValue(val) {
+            playSound('click');
+            if (state.currentPlayer === 2 && state.opponentType === 'ai') return; // AI 回合不能點
+
+            // 判斷要移動哪一個滑軌。根據規則，每回合只能移動「其中一個」
+            // 為了極致直觀，我們直接設計成：玩家點擊數字，如果是點選一個全新的數，我們替他替換與其相差最大的、或者由玩家決定。
+            // 更好的方式：如果是玩家一（紅），移動滑軌 A；玩家二（藍），移動滑軌 B？
+            // 不對，標準桌遊是：「任何一個玩家輪到時，都可以把兩根指針中的『任一根』移到新位置。」
+            // 所以我們提供一個最簡便的決定方式：點選了某數後，我們計算「用目前指針 A 去配」與「用目前指針 B 去配」這兩種結果。
+            // 並預設替他更新其中一根。如果本來其中一根就已經在那個數上，則移動另一根。
+            
+            if (state.sliders[0] === val && state.sliders[1] === val) {
+                // 如果兩根都在同個數字，只能移其中一根 (預設移第一根)
+                state.sliders[0] = val; // 沒變
+                return;
+            }
+
+            if (state.sliders[0] === val) {
+                // 如果指針 A 本來就在 val，則我們移動指針 B 到 val (雙指針同數字是合法的，例如 3x3=9)
+                state.sliders[1] = val;
+            } else if (state.sliders[1] === val) {
+                // 如果指針 B 本來就在 val，則我們移動指針 A
+                state.sliders[0] = val;
+            } else {
+                // 如果點選的新數字不是目前 A 或 B，我們需要玩家選擇移動哪一個，
+                // 或者更貼心：我們彈出兩個選項或直接移動最合理的那個（或每次交替、或預設更動最左/最右的）。
+                // 為了最流暢的手機點擊體驗：我們在點擊後，直接「提示移動哪一根能得到可佔領格」，
+                // 若兩者均可或均不可，則我們預設替換上次未被替換的那根（我們直接讓玩家點擊後，更新 Slider A，如果再次點擊，更新 Slider B，交替進行，或直接計算兩者產生的乘積哪個有空位就移哪個！這最聰明！）
+                
+                const pA = val * state.sliders[1];
+                const pB = state.sliders[0] * val;
+                
+                const hasA = hasAvailableCells(pA);
+                const hasB = hasAvailableCells(pB);
+                
+                if (hasA && !hasB) {
+                    state.sliders[0] = val; // 移動第一根
+                } else if (hasB && !hasA) {
+                    state.sliders[1] = val; // 移動第二根
+                } else {
+                    // 兩者皆有或皆無，預設移動第一根
+                    state.sliders[0] = val;
+                }
+            }
+
+            updateSliderVisuals();
+            calculateAndShowSliderProduct();
+        }
+
+        function updateSliderVisuals() {
+            for (let i = 1; i <= 9; i++) {
+                const markerA = document.getElementById(`slider-marker-a-${i}`);
+                const markerB = document.getElementById(`slider-marker-b-${i}`);
+                
+                if (state.sliders[0] === i) {
+                    markerA.classList.remove('hidden');
+                } else {
+                    markerA.classList.add('hidden');
+                }
+
+                if (state.sliders[1] === i) {
+                    markerB.classList.remove('hidden');
+                } else {
+                    markerB.classList.add('hidden');
+                }
+            }
+            
+            document.getElementById('slider-hint').innerText = `目前指針位置：${state.sliders[0]} 和 ${state.sliders[1]}。乘積是 ${state.sliders[0] * state.sliders[1]}`;
+        }
+
+        function calculateAndShowSliderProduct() {
+            state.factor1 = state.sliders[0];
+            state.factor2 = state.sliders[1];
+            
+            document.getElementById('formula-factor1').innerText = state.factor1;
+            document.getElementById('formula-factor2').innerText = state.factor2;
+            
+            const prod = state.factor1 * state.factor2;
+            document.getElementById('formula-product').innerText = prod;
+            
+            highlightValidTargetCells(prod);
+        }
+
+        function hasAvailableCells(product) {
+            return state.boardData.some((cell, idx) => {
+                if (cell.value !== product) return false;
+                if (cell.owner === 0) return true; // 有空地
+                if (state.allowTakeover && cell.owner !== state.currentPlayer) return true; // 開啟奪地且非自己
+                return false;
+            });
+        }
+
+        function highlightValidTargetCells(product) {
+            clearGridHighlights();
+            const cells = document.querySelectorAll('.grid-cell');
+            let matchCount = 0;
+            
+            cells.forEach(c => {
+                const idx = parseInt(c.dataset.index);
+                const val = parseInt(c.dataset.value);
+                const cellData = state.boardData[idx];
+
+                if (val === product) {
+                    // 可以點選的條件：1.無主地  2.開啟奪地且屬於對手
+                    const isUnclaimed = cellData.owner === 0;
+                    const isOpponentClaimed = state.allowTakeover && cellData.owner !== 0 && cellData.owner !== state.currentPlayer;
+                    
+                    if (isUnclaimed || isOpponentClaimed) {
+                        c.classList.add('pulse-valid', 'border-yellow-400');
+                        matchCount++;
+                    }
+                }
+            });
+
+            const currSymbol = state.currentPlayer === 1 ? state.p1.avatar : state.p2.avatar;
+            const currName = state.currentPlayer === 1 ? state.p1.name : state.p2.name;
+            const colorClass = state.currentPlayer === 1 ? 'rose' : 'sky';
+
+            if (matchCount > 0) {
+                updateTipText(`${currSymbol} ${currName} 算得很好！${state.factor1} × ${state.factor2} = ${product}。請在棋盤上點選發黃光、合適的格子來佔領！`, colorClass);
+            } else {
+                updateTipText(`算式為 ${product}，但棋盤上已經沒有可供您佔領的這格囉！`, 'rose');
+            }
+        }
+
+        function clearGridHighlights() {
+            const cells = document.querySelectorAll('.grid-cell');
+            cells.forEach(c => {
+                c.classList.remove('pulse-valid', 'border-yellow-400');
+            });
+        }
+
+        function onCellClicked(idx) {
+            if (!state.gameActive) return;
+            if (state.currentPlayer === 2 && state.opponentType === 'ai') return; // AI 回合不能點
+
+            const cellData = state.boardData[idx];
+            const product = state.factor1 * state.factor2;
+
+            if (state.factor1 === null || state.factor2 === null) {
+                playSound('error');
+                updateTipText(`請先完成選數算式，才能佔領棋盤喔！`, 'rose');
+                return;
+            }
+
+            if (cellData.value !== product) {
+                playSound('error');
+                updateTipText(`哎呀！你選取的這格是 ${cellData.value}，但你算出的結果是 ${product}，不匹配喔，請看清楚！`, 'rose');
+                return;
+            }
+
+            // 檢查是否符合佔領規則
+            if (cellData.owner === state.currentPlayer) {
+                playSound('error');
+                updateTipText(`這裡已經是你的領地了，請把機會留給別的格子！`, 'rose');
+                return;
+            }
+
+            const isTakeover = cellData.owner !== 0;
+
+            if (isTakeover && !state.allowTakeover) {
+                playSound('error');
+                updateTipText(`這格已經被對手佔領了，目前未開啟奪地模式，請選擇其他格子！`, 'rose');
+                return;
+            }
+
+            // 正式佔領
+            executeClaim(idx, state.currentPlayer);
+        }
+
+        function executeClaim(idx, player) {
+            const cellData = state.boardData[idx];
+            const isTakeover = cellData.owner !== 0;
+            
+            cellData.owner = player;
+            
+            // 播放音效
+            if (isTakeover) {
+                playSound('steal');
+            } else {
+                playSound('claim');
+            }
+
+            // 更新棋盤畫面
+            const cellElements = document.querySelectorAll('.grid-cell');
+            const targetCell = cellElements[idx];
+            const cellSpan = targetCell.querySelector('.cell-num');
+            const indicator = targetCell.querySelector('.owner-indicator');
+
+            // 套用動畫樣式
+            if (player === 1) {
+                targetCell.className = `grid-cell aspect-square claimed-p1 border-4 rounded-2xl flex flex-col items-center justify-center font-fredoka text-base md:text-xl font-black shadow-lg relative overflow-hidden`;
+                cellSpan.className = "cell-num text-rose-900 transition duration-300 z-10 scale-75";
+                indicator.innerHTML = state.p1.avatar;
+                indicator.className = "owner-indicator absolute inset-0 opacity-40 flex items-center justify-center text-4xl animate-bounce";
+            } else {
+                targetCell.className = `grid-cell aspect-square claimed-p2 border-4 rounded-2xl flex flex-col items-center justify-center font-fredoka text-base md:text-xl font-black shadow-lg relative overflow-hidden`;
+                cellSpan.className = "cell-num text-sky-900 transition duration-300 z-10 scale-75";
+                indicator.innerHTML = state.p2.avatar;
+                indicator.className = "owner-indicator absolute inset-0 opacity-40 flex items-center justify-center text-4xl animate-bounce";
+            }
+
+            // 計算分數並檢查勝負
+            calculateScores();
+            updateScoreboard();
+
+            // 檢查勝負條件
+            if (checkGameOverConditions(player)) {
+                return;
+            }
+
+            // 換下一位玩家或AI
+            switchTurn();
+        }
+
+        function switchTurn() {
+            state.currentPlayer = state.currentPlayer === 1 ? 2 : 1;
+            updateScoreboard();
+
+            // 清理暫存算式
+            if (state.controlMode === 'free') {
+                resetFactorButtons();
+            } else {
+                calculateAndShowSliderProduct();
+            }
+
+            const nextName = state.currentPlayer === 1 ? state.p1.name : state.p2.name;
+            const nextAvatar = state.currentPlayer === 1 ? state.p1.avatar : state.p2.avatar;
+            const themeColor = state.currentPlayer === 1 ? 'rose' : 'sky';
+
+            updateTipText(`換手！現在輪到 ${nextAvatar} ${nextName} 的回合。`, themeColor);
+
+            // 如果換到電腦，且大腦還活著
+            if (state.currentPlayer === 2 && state.opponentType === 'ai' && state.gameActive) {
+                // 給電腦一點演算法運算時間，感覺更真實
+                setTimeout(() => {
+                    executeAiMove();
+                }, 1000);
+            }
+        }
+
+        function executeAiMove() {
+            const size = state.boardSize;
+            const possibleMoves = [];
+
+            // 尋找所有可行解
+            if (state.controlMode === 'free') {
+                // 自由模式：遍歷 1-9 的所有組合
+                for (let i = 1; i <= 9; i++) {
+                    for (let j = 1; j <= 9; j++) {
+                        const prod = i * j;
+                        // 尋找棋盤上哪裡可以放這個 prod
+                        state.boardData.forEach((cell, idx) => {
+                            if (cell.value === prod) {
+                                const score = evaluateMoveQuality(idx, prod, 2);
+                                if (score !== -1) {
+                                    possibleMoves.push({ f1: i, f2: j, cellIdx: idx, score: score });
+                                }
+                            }
+                        });
+                    }
+                }
+            } else {
+                // 滑軌模式：每回合只能移動滑軌 0 或 1 
+                for (let sliderToMove = 0; sliderToMove < 2; sliderToMove++) {
+                    const stableValue = state.sliders[1 - sliderToMove];
+                    for (let newValue = 1; newValue <= 9; newValue++) {
+                        const prod = stableValue * newValue;
+                        state.boardData.forEach((cell, idx) => {
+                            if (cell.value === prod) {
+                                const score = evaluateMoveQuality(idx, prod, 2);
+                                if (score !== -1) {
+                                    possibleMoves.push({ 
+                                        f1: sliderToMove === 0 ? newValue : stableValue, 
+                                        f2: sliderToMove === 1 ? newValue : stableValue, 
+                                        cellIdx: idx, 
+                                        score: score,
+                                        newSliders: sliderToMove === 0 ? [newValue, stableValue] : [stableValue, newValue]
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+
+            // 如果完全無步可走，直接宣布跳過（或者若棋盤還有位置可由對手走，則平手或略過）
+            if (possibleMoves.length === 0) {
+                updateTipText(`電腦 AI 無法算出能佔地的步法，只好宣布放棄本輪！`, 'rose');
+                setTimeout(() => {
+                    switchTurn();
+                }, 1500);
+                return;
+            }
+
+            // 根據 AI 難度進行篩選
+            let chosenMove = null;
+            
+            // 先依評分高低排序
+            possibleMoves.sort((a, b) => b.score - a.score);
+
+            if (state.aiDifficulty === 'easy') {
+                // 新手：隨機亂選一個可行解
+                chosenMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+            } else if (state.aiDifficulty === 'medium') {
+                // 進階：從前 50% 評分好的走法裡隨機挑一個
+                const poolSize = Math.max(1, Math.ceil(possibleMoves.length * 0.5));
+                chosenMove = possibleMoves[Math.floor(Math.random() * poolSize)];
+            } else {
+                // 大師：毫不留情選擇分數最高的最優解
+                chosenMove = possibleMoves[0];
+            }
+
+            // 執行 AI 的選擇
+            if (state.controlMode === 'free') {
+                state.factor1 = chosenMove.f1;
+                state.factor2 = chosenMove.f2;
+                // 更新公式
+                document.getElementById('formula-factor1').innerText = state.factor1;
+                document.getElementById('formula-factor2').innerText = state.factor2;
+                document.getElementById('formula-product').innerText = state.factor1 * state.factor2;
+            } else {
+                state.sliders = chosenMove.newSliders;
+                updateSliderVisuals();
+                calculateAndShowSliderProduct();
+            }
+
+            // 高亮一下棋盤表示 AI 的思考，再落子
+            const cells = document.querySelectorAll('.grid-cell');
+            cells[chosenMove.cellIdx].classList.add('pulse-valid');
+
+            setTimeout(() => {
+                executeClaim(chosenMove.cellIdx, 2);
+            }, 800);
+        }
+
+        // 步法權重評分演算法
+        function evaluateMoveQuality(idx, prod, testPlayer) {
+            const cell = state.boardData[idx];
+            
+            // 是否為對手領地 (奪地)
+            const isUnclaimed = cell.owner === 0;
+            const isOpponentClaimed = cell.owner !== 0 && cell.owner !== testPlayer;
+
+            if (!isUnclaimed && (!state.allowTakeover || !isOpponentClaimed)) {
+                return -1; // 不合法
+            }
+
+            let score = 0;
+
+            // 基礎得分：搶對手地盤比開拓荒地更高分
+            score += isUnclaimed ? 10 : 25;
+
+            // 加上連線潛能評估（這能讓 AI 智慧爆表）
+            const size = state.boardSize;
+            const row = Math.floor(idx / size);
+            const col = idx % size;
+
+            // 檢視 8 個方向
+            const dirs = [
+                { r: -1, c: -1 }, { r: -1, c: 0 }, { r: -1, c: 1 },
+                { r: 0, c: -1 },                  { r: 0, c: 1 },
+                { r: 1, c: -1 },  { r: 1, c: 0 },  { r: 1, c: 1 }
+            ];
+
+            let adjacentFriends = 0;
+            let adjacentEnemies = 0;
+
+            dirs.forEach(d => {
+                const nr = row + d.r;
+                const nc = col + d.c;
+                if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+                    const nIdx = nr * size + nc;
+                    const neighbor = state.boardData[nIdx];
+                    if (neighbor.owner === testPlayer) {
+                        adjacentFriends++;
+                    } else if (neighbor.owner !== 0 && neighbor.owner !== testPlayer) {
+                        adjacentEnemies++;
+                    }
+                }
+            });
+
+            // 聚落效應：鼓勵把地連在一起
+            score += adjacentFriends * 15;
+            
+            // 防守效應：堵對手也是一項美德
+            score += adjacentEnemies * 10;
+
+            // 特殊位置加分：四角最穩定不易被包夾，或者更容易連線
+            if ((row === 0 || row === size-1) && (col === 0 || col === size-1)) {
+                score += 15; // 角落加成
+            }
+
+            return score;
+        }
+
+        function calculateScores() {
+            let p1Count = 0;
+            let p2Count = 0;
+            state.boardData.forEach(cell => {
+                if (cell.owner === 1) p1Count++;
+                if (cell.owner === 2) p2Count++;
+            });
+            state.p1.score = p1Count;
+            state.p2.score = p2Count;
+        }
+
+        function checkGameOverConditions(lastPlayer) {
+            // 如果是五子連線模式，每次落子都需即時檢查有沒有連成一線
+            if (state.winCondition === 'connect') {
+                if (checkConnectLine(lastPlayer, 5)) {
+                    declareWinner(lastPlayer, `率先達成了超神「五子連線」爆裂擊殺！`);
+                    return true;
+                }
+            }
+
+            // 判斷棋盤是否完全填滿
+            const isFull = state.boardData.every(c => c.owner !== 0);
+            if (isFull) {
+                // 棋盤滿了，以佔地最多者勝
+                if (state.p1.score > state.p2.score) {
+                    declareWinner(1, `大獲全勝！以 ${state.p1.score} 比 ${state.p2.score} 成功統治了戰地。`);
+                } else if (state.p2.score > state.p1.score) {
+                    declareWinner(2, `成功奪冠！以 ${state.p2.score} 比 ${state.p1.score} 成功統治了戰地。`);
+                } else {
+                    declareWinner(0, `握手言和！雙方平分秋色，都佔領了 ${state.p1.score} 格地盤。`);
+                }
+                return true;
+            }
+
+            // 檢查是否還有任何「可執行之步法」。
+            // 在自由選數模式下，只要有空格，基本上一定可以算出該空格 (因為棋盤上的數都是九九乘法表合法的)
+            // 但如果「奪地模式」被關閉，且棋盤全部空格都沒了，便會判定滿格結束。
+            // 在「滑軌模式」下，可能發生任何一個滑軌怎麼移，指針產生的乘積在棋盤上都已被佔領且無法奪地。
+            if (state.controlMode === 'slider' && !hasAnyPossibleMoveLeft()) {
+                // 雙方皆已死步，此時提早結算
+                if (state.p1.score > state.p2.score) {
+                    declareWinner(1, `雙方已無子可下！最後結算：紅隊以 ${state.p1.score} 格勝出！`);
+                } else if (state.p2.score > state.p1.score) {
+                    declareWinner(2, `雙方已無子可下！最後結算：藍隊以 ${state.p2.score} 格勝出！`);
+                } else {
+                    declareWinner(0, `雙方均無路可走！最終握手言和！`);
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+        // 深度連線判定演算法 (支援 gomoku 檢測)
+        function checkConnectLine(player, lineLen = 5) {
+            const size = state.boardSize;
+            
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const idx = r * size + c;
+                    if (state.boardData[idx].owner !== player) continue;
+
+                    // 往 4 個方向搜 (橫、豎、右下斜、左下斜)
+                    const directions = [
+                        { dr: 0, dc: 1 },  // 橫
+                        { dr: 1, dc: 0 },  // 豎
+                        { dr: 1, dc: 1 },  // 右下斜
+                        { dr: 1, dc: -1 }  // 左下斜
+                    ];
+
+                    for (let d of directions) {
+                        let count = 1;
+                        for (let step = 1; step < lineLen; step++) {
+                            const nr = r + d.dr * step;
+                            const nc = c + d.dc * step;
+                            if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+                                if (state.boardData[nr * size + nc].owner === player) {
+                                    count++;
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                        if (count >= lineLen) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        // 檢測滑軌模式是否還能進行任何動作
+        function hasAnyPossibleMoveLeft() {
+            // 滑軌模式下，檢驗兩根滑軌移動任一根後所產生的 17 種可能乘積
+            // (1 到 9 共有 9×2 = 18 種移動，去重自己是17種)
+            // 看棋盤上有沒有任何一個符合該乘積且「可佔領」的格。
+            const testSliders = [...state.sliders];
+            const currentTurn = state.currentPlayer;
+
+            for (let sliderToMove = 0; sliderToMove < 2; sliderToMove++) {
+                const stableValue = testSliders[1 - sliderToMove];
+                for (let newValue = 1; newValue <= 9; newValue++) {
+                    const prod = stableValue * newValue;
+                    const canClaim = state.boardData.some(cell => {
+                        if (cell.value !== prod) return false;
+                        if (cell.owner === 0) return true;
+                        if (state.allowTakeover && cell.owner !== currentTurn) return true;
+                        return false;
+                    });
+                    if (canClaim) return true; // 只要有一步，就還沒結束
+                }
+            }
+            return false;
+        }
+
+        function declareWinner(winner, description) {
+            state.gameActive = false;
+            playSound('victory');
+
+            const title = document.getElementById('winner-title');
+            const desc = document.getElementById('winner-description');
+            const emojis = document.getElementById('winner-emojis');
+
+            // 結算畫面頭像與名字
+            document.getElementById('end-avatar-p1').innerText = state.p1.avatar;
+            document.getElementById('end-name-p1').innerText = state.p1.name;
+            document.getElementById('end-score-p1').innerText = state.p1.score;
+
+            document.getElementById('end-avatar-p2').innerText = state.p2.avatar;
+            document.getElementById('end-name-p2').innerText = state.p2.name;
+            document.getElementById('end-score-p2').innerText = state.p2.score;
+
+            if (winner === 1) {
+                title.innerText = `紅隊勝利！`;
+                title.className = "text-3xl font-black text-rose-600";
+                desc.innerText = `${state.p1.avatar} ${state.p1.name} ${description}`;
+                emojis.innerText = "🏆👑🔥";
+                startConfettiEffect('#fda4af');
+            } else if (winner === 2) {
+                title.innerText = `藍隊勝利！`;
+                title.className = "text-3xl font-black text-sky-600";
+                desc.innerText = `${state.p2.avatar} ${state.p2.name} ${description}`;
+                emojis.innerText = "🏆⚡✨";
+                startConfettiEffect('#7dd3fc');
+            } else {
+                title.innerText = `平手！`;
+                title.className = "text-3xl font-black text-emerald-600";
+                desc.innerText = description;
+                emojis.innerText = "🤝🍉⚔️";
+            }
+
+            document.getElementById('result-modal').classList.replace('hidden', 'flex');
+        }
+
+        function restartGame() {
+            document.getElementById('result-modal').classList.replace('flex', 'hidden');
+            stopConfetti();
+            startGame();
+        }
+
+        function surrenderGame() {
+            // 目前正在下的人認輸
+            const winner = state.currentPlayer === 1 ? 2 : 1;
+            declareWinner(winner, "因對手棄賽認輸，不戰而勝！這就是心算的王者風範！");
+        }
+
+        function resetGameToLobby() {
+            stopConfetti();
+            state.gameActive = false;
+            document.getElementById('result-modal').classList.replace('flex', 'hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('lobby-screen').classList.remove('hidden');
+        }
+
+        let confettiInterval = null;
+        let confettiActive = false;
+        
+        function startConfettiEffect(colorTheme) {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 適配大小
+            const container = document.getElementById('confetti-canvas-container');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            const particles = [];
+            const colors = [colorTheme, '#facc15', '#4ade80', '#60a5fa', '#f472b6', '#a78bfa'];
+
+            for (let i = 0; i < 80; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 6 + 4,
+                    d: Math.random() * canvas.height,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 5,
+                    tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+                    tiltAngle: 0
+                });
+            }
+
+            confettiActive = true;
+            
+            function drawConfetti() {
+                if (!confettiActive) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach((p, idx) => {
+                    p.tiltAngle += p.tiltAngleIncremental;
+                    p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                    p.x += Math.sin(p.tiltAngle);
+                    p.tilt = Math.sin(p.tiltAngle - idx / 3) * 15;
+
+                    if (p.y > canvas.height) {
+                        p.x = Math.random() * canvas.width;
+                        p.y = -20;
+                        p.tilt = Math.random() * 10 - 5;
+                    }
+
+                    ctx.beginPath();
+                    ctx.lineWidth = p.r;
+                    ctx.strokeStyle = p.color;
+                    ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+                    ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+                    ctx.stroke();
+                });
+
+                requestAnimationFrame(drawConfetti);
+            }
+
+            drawConfetti();
+        }
+
+        function stopConfetti() {
+            confettiActive = false;
+            const canvas = document.getElementById('confetti-canvas');
+            if(canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+    </script>
+</body>
+</html>
