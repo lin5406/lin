@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寶可夢剪影冒險：究極捉迷藏</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: 復古像素字體 & 繁中字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Lucide 圖示 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f0b29 100%);
+            overflow-x: hidden;
+        }
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+        /* 寶可夢剪影樣式 */
+        .silhouette {
+            filter: brightness(0) drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+            transition: filter 0.8s ease-out, transform 0.3s ease;
+        }
+        .revealed {
+            filter: brightness(1) drop-shadow(0 10px 20px rgba(0,0,0,0.6));
+        }
+        /* 畫面震動效果 */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-6px); }
+            20%, 40%, 60%, 80% { transform: translateX(6px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        /* 丟精靈球動畫 */
+        @keyframes throwBall {
+            0% { transform: translate(-50%, 100px) scale(0.5) rotate(0deg); opacity: 0; }
+            30% { opacity: 1; }
+            80% { transform: translate(-50%, -150px) scale(1.2) rotate(720deg); }
+            100% { transform: translate(-50%, -120px) scale(0) rotate(900deg); opacity: 0; }
+        }
+        .pokeball-throw {
+            animation: throwBall 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        /* 粒子噴發 */
+        @keyframes particle {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tw-mx), var(--tw-my)) scale(0); opacity: 0; }
+        }
+        .sparkle {
+            animation: particle 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        /* 隱藏滾動條但保持滾動 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* 自訂圖鑑專用滾動條 */
+        .pokedex-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .pokedex-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        .pokedex-scrollbar::-webkit-scrollbar-thumb {
+            background: #FF3838;
+            border-radius: 99px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between select-none">
+
+    <!-- 頂部資訊列 -->
+    <header class="p-4 bg-slate-900/80 backdrop-blur-md border-b border-indigo-950/80 sticky top-0 z-40">
+        <div class="max-w-4xl mx-auto flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-red-500 border-2 border-white flex items-center justify-center animate-bounce">
+                    <div class="w-8 h-1 bg-white"></div>
+                </div>
+                <h1 class="text-xs sm:text-lg font-black tracking-wide bg-gradient-to-r from-yellow-400 via-red-400 to-pink-500 bg-clip-text text-transparent">
+                    POKÉMON ARENA
+                </h1>
+            </div>
+            
+            <!-- 分數、聲音、與新增的圖鑑控制 -->
+            <div class="flex items-center gap-2 sm:gap-4">
+                <!-- 得分板 -->
+                <div class="bg-indigo-950/60 border border-indigo-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 sm:gap-2">
+                    <span class="text-[9px] sm:text-xs text-indigo-300 font-bold">得分</span>
+                    <span id="scoreVal" class="pixel-font text-xs sm:text-sm text-yellow-400">0000</span>
+                </div>
+                <!-- 雙語圖鑑按鈕 -->
+                <button onclick="togglePokedex(true)" class="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition shadow-lg shadow-red-500/20 active:scale-95">
+                    <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                    <span>圖鑑</span>
+                </button>
+                <!-- 靜音按鈕 -->
+                <button onclick="toggleMute()" id="muteBtn" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition border border-slate-700">
+                    <i data-lucide="volume-2" class="w-5 h-5 text-slate-300" id="muteIcon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 遊戲主舞台 -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-6 flex flex-col items-center justify-center gap-6" id="gameArena">
+        
+        <!-- 冒險狀態列：玩家 HP 與 連擊紀錄 -->
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- 玩家生命條 -->
+            <div class="bg-slate-900/60 p-3 rounded-2xl border border-indigo-950/60 flex items-center gap-3">
+                <i data-lucide="shield" class="w-5 h-5 text-red-500 animate-pulse"></i>
+                <div class="flex-1">
+                    <div class="flex justify-between text-xs font-bold text-slate-400 mb-1">
+                        <span>冒險者生命值 (HP)</span>
+                        <span id="hpText" class="pixel-font text-red-400">3 / 3</span>
+                    </div>
+                    <div class="h-3 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                        <div id="hpBar" class="h-full bg-gradient-to-r from-red-500 to-orange-400 rounded-full transition-all duration-300" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 連擊 combo -->
+            <div class="bg-slate-900/60 p-3 rounded-2xl border border-indigo-950/60 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="zap" class="w-5 h-5 text-yellow-400 animate-pulse"></i>
+                    <div>
+                        <span class="text-xs text-slate-400 font-bold block">連續收服 Combo</span>
+                        <span id="comboText" class="text-sm font-black text-yellow-300">0 連擊</span>
+                    </div>
+                </div>
+                <!-- 背包開啟按鈕 -->
+                <button onclick="toggleBag(true)" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="briefcase" class="w-4 h-4"></i>
+                    收服背包 (<span id="bagCount">0</span>)
+                </button>
+            </div>
+        </div>
+
+        <!-- 寶可夢決鬥展示板 -->
+        <div class="relative w-full max-w-lg aspect-[4/3] bg-gradient-to-b from-indigo-950/40 to-slate-900/90 border border-indigo-500/20 rounded-3xl overflow-hidden flex flex-col items-center justify-center p-6 shadow-2xl" id="battleDisplay">
+            
+            <!-- 背景發光網格 -->
+            <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e1b4b_1px,transparent_1px),linear-gradient(to_bottom,#1e1b4b_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none"></div>
+
+            <!-- 神秘對手資訊 -->
+            <div class="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+                <span class="bg-indigo-950/80 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase">
+                    野生的寶可夢出現了！
+                </span>
+                <span id="targetId" class="pixel-font text-xs text-slate-500">No.???</span>
+            </div>
+
+            <!-- 精靈球動畫載體 -->
+            <div id="ballLauncher" class="absolute left-1/2 bottom-0 -translate-x-1/2 w-12 h-12 z-30 pointer-events-none hidden">
+                <!-- SVG 精靈球 -->
+                <svg class="w-12 h-12" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="46" fill="#fff" stroke="#1e293b" stroke-width="8"/>
+                    <path d="M 8 50 A 42 42 0 0 1 92 50 Z" fill="#ef4444"/>
+                    <line x1="4" y1="50" x2="96" y2="50" stroke="#1e293b" stroke-width="8"/>
+                    <circle cx="50" cy="50" r="16" fill="#fff" stroke="#1e293b" stroke-width="8"/>
+                    <circle cx="50" cy="50" r="6" fill="#ef4444"/>
+                </svg>
+            </div>
+
+            <!-- 爆炸粒子容器 -->
+            <div id="particleContainer" class="absolute inset-0 pointer-events-none z-20"></div>
+
+            <!-- 寶可夢圖像 -->
+            <div class="relative w-48 h-48 md:w-56 md:h-56 flex items-center justify-center">
+                <img id="pokeImg" src="" alt="Mystery Pokemon" class="silhouette w-[90%] h-[90%] object-contain pointer-events-none">
+            </div>
+
+            <!-- 名稱揭曉 (預設隱藏) -->
+            <div id="revealNameContainer" class="absolute bottom-4 bg-slate-950/80 border border-emerald-500/40 px-4 py-1.5 rounded-full text-xs font-bold text-emerald-400 hidden animate-bounce">
+                捕捉成功！是 <span id="revealedName" class="text-white font-extrabold">皮卡丘 Pikachu</span> ！
+            </div>
+        </div>
+
+        <!-- 答題選項區 -->
+        <div class="w-full max-w-lg flex flex-col gap-3">
+            <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-widest text-center flex items-center justify-center gap-1.5">
+                <i data-lucide="pointer" class="w-4 h-4 animate-bounce"></i> 點選正確的寶可夢名稱
+            </h4>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="optionsContainer">
+                <!-- 四個選項按鈕會動態生成於此 -->
+            </div>
+        </div>
+
+        <!-- 輔劇操作按鈕 -->
+        <div class="flex items-center gap-4">
+            <button onclick="skipPokemon()" class="text-xs text-slate-400 hover:text-white font-bold underline underline-offset-4 transition flex items-center gap-1">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> 逃跑 / 換一隻
+            </button>
+        </div>
+    </main>
+
+    <!-- 收服背包彈窗 (Modal Drawer) -->
+    <div id="bagModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-gradient-to-br from-indigo-950 to-slate-950 border border-indigo-500/20 rounded-3xl overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
+            <header class="p-6 border-b border-indigo-900/60 flex justify-between items-center">
+                <h3 class="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400 flex items-center gap-2">
+                    <i data-lucide="briefcase" class="text-yellow-400"></i> 我的收服精靈背包
+                </h3>
+                <button onclick="toggleBag(false)" class="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </header>
+
+            <!-- 背包格子列表 -->
+            <div class="p-6 overflow-y-auto flex-1" id="bagGridContainer">
+                <div id="bagEmptyState" class="text-center py-16 text-slate-500">
+                    <i data-lucide="shopping-bag" class="w-12 h-12 mx-auto mb-3 opacity-30"></i>
+                    <p class="text-sm">背包空空如也...快去競技場收服寶可夢吧！</p>
+                </div>
+                <div id="bagGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 hidden">
+                    <!-- 動態渲染收服的寶可夢 -->
+                </div>
+            </div>
+
+            <footer class="p-4 bg-slate-900/40 border-t border-indigo-900/40 text-center text-xs text-indigo-300">
+                目前共收服了 <span id="bagFooterCount" class="font-bold text-yellow-400">0</span> / 151 隻寶可夢
+            </footer>
+        </div>
+    </div>
+
+    <!-- 新增：雙語圖鑑主彈窗 (Pokédex Modal) -->
+    <div id="pokedexModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-5xl bg-gradient-to-br from-indigo-950 to-slate-950 border border-indigo-500/30 rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
+            <header class="p-4 md:p-6 border-b border-indigo-900/60 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="relative w-8 h-8 flex items-center justify-center">
+                        <div class="absolute w-8 h-8 bg-red-500 rounded-full border-2 border-slate-900 animate-pulse"></div>
+                        <div class="absolute w-8 h-1 bg-slate-900 top-[14px] left-0 right-0"></div>
+                        <div class="absolute w-3 h-3 bg-white rounded-full border-2 border-slate-900 z-10"></div>
+                    </div>
+                    <h3 class="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-400 flex items-center gap-2">
+                        寶可夢雙語圖鑑 (Pokédex)
+                    </h3>
+                </div>
+                <!-- 搜尋列與關閉按鈕 -->
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </span>
+                        <input 
+                            type="text" 
+                            id="pokedexSearchInput"
+                            placeholder="搜尋英文、編號、或中文名..." 
+                            class="w-full pl-9 pr-4 py-2 bg-slate-900/95 border border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-slate-100 placeholder-slate-500 transition-all text-xs"
+                        >
+                    </div>
+                    <button onclick="togglePokedex(false)" class="w-9 h-9 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition flex-shrink-0 border border-slate-700">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-4 md:p-6 overflow-y-auto flex-1 space-y-4 pokedex-scrollbar">
+                <!-- 屬性過濾器列 -->
+                <section class="bg-slate-950/20 p-3 rounded-2xl border border-indigo-950/60">
+                    <h4 class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                        <i data-lucide="filter" class="w-3.5 h-3.5 text-red-500"></i> 屬性快速篩選
+                    </h4>
+                    <div id="pokedexTypeFilterContainer" class="flex flex-wrap gap-1.5 max-h-[85px] overflow-y-auto pr-1 pokedex-scrollbar">
+                        <button onclick="pokedexFilterByType('all')" class="pokedex-type-btn active px-3 py-1 rounded-full text-[10px] font-bold bg-red-500 text-white hover:opacity-90 transition shadow-md shadow-red-500/20">
+                            全部屬性
+                        </button>
+                    </div>
+                </section>
+
+                <!-- 寶可夢卡片網格 -->
+                <section id="pokedexPokemonGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <!-- 卡片由 JS 注入 -->
+                </section>
+
+                <!-- 分頁控制導覽區 -->
+                <section class="mt-8 mb-2 flex flex-col items-center gap-3">
+                    <div id="pokedexPaginationInfo" class="text-[11px] text-slate-400 font-medium">
+                        正在連線大木博士資料庫...
+                    </div>
+                    <div id="pokedexPaginationControls" class="flex items-center justify-center gap-1 flex-wrap">
+                        <!-- 按鈕由 JS 注入 -->
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增：圖鑑詳細資料第二彈窗 (Pokédex Detail Modal) -->
+    <div id="pokedexDetailModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm hidden">
+        <div class="relative w-full max-w-xl bg-gradient-to-br from-indigo-950 to-slate-900 border border-indigo-500/30 rounded-3xl overflow-hidden shadow-2xl transform scale-95 opacity-0 transition-all duration-300 ease-out" id="pokedexModalCard">
+            
+            <button onclick="closePokedexDetailModal()" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-slate-900/80 hover:bg-slate-900 text-slate-300 hover:text-white flex items-center justify-center transition border border-slate-800">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="p-6 flex flex-col md:flex-row gap-6 items-center md:items-start">
+                
+                <!-- 左側：圖片與屬性 -->
+                <div class="w-full md:w-2/5 flex flex-col items-center text-center">
+                    <div class="relative w-40 h-40 bg-slate-950/40 rounded-3xl flex items-center justify-center border border-indigo-500/20 shadow-inner overflow-hidden">
+                        <div class="absolute inset-0 opacity-5 flex items-center justify-center pointer-events-none scale-150">
+                            <i data-lucide="aperture" class="w-full h-full text-white"></i>
+                        </div>
+                        <img id="pokedexModalImg" src="" alt="" class="w-[85%] h-[85%] object-contain z-10 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">
+                    </div>
+                    
+                    <span id="pokedexModalId" class="text-red-500 font-bold text-xs tracking-wider mt-3 block">#000</span>
+                    <h2 id="pokedexModalNameEn" class="text-xl font-black tracking-wide text-white uppercase mt-0.5">Pokemon</h2>
+                    <h3 id="pokedexModalNameZh" class="text-lg font-bold text-slate-300">載入中...</h3>
+                    
+                    <div id="pokedexModalTypes" class="flex gap-1.5 justify-center mt-2"></div>
+                </div>
+
+                <!-- 右側：詳細數據與能力 -->
+                <div class="w-full md:w-3/5 flex flex-col">
+                    <div class="grid grid-cols-2 gap-3 bg-slate-950/40 p-3 rounded-xl border border-indigo-500/10 text-center mb-4 text-xs">
+                        <div>
+                            <span class="text-slate-400 block mb-0.5">身高</span>
+                            <span id="pokedexModalHeight" class="font-bold text-slate-200">-- m</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block mb-0.5">體重</span>
+                            <span id="pokedexModalWeight" class="font-bold text-slate-200">-- kg</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 bg-slate-950/20 p-3 rounded-xl border border-indigo-500/10 text-xs">
+                        <h4 class="font-bold text-red-400 uppercase mb-1 flex items-center gap-1">
+                            <i data-lucide="book-open" class="w-3.5 h-3.5"></i> 圖鑑說明
+                        </h4>
+                        <p id="pokedexModalDesc" class="text-slate-300 leading-relaxed min-h-[32px]">
+                            正在連結大木博士的資料庫獲取繁體中文說明...
+                        </p>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs font-bold text-red-400 uppercase mb-2 flex items-center gap-1">
+                            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> 基礎種族值
+                        </h4>
+                        <div id="pokedexModalStats" class="space-y-1.5">
+                            <!-- 數值條由 JS 注入 -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊戲結束彈窗 (Game Over Screen) -->
+    <div id="gameOverModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-gradient-to-br from-slate-900 to-indigo-950 border-2 border-red-500/30 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
+            
+            <!-- 裝飾背景 -->
+            <div class="absolute -top-12 -left-12 w-24 h-24 bg-red-500/10 rounded-full blur-xl"></div>
+            <div class="absolute -bottom-12 -right-12 w-24 h-24 bg-yellow-500/10 rounded-full blur-xl"></div>
+
+            <h2 class="pixel-font text-2xl text-red-500 mb-2 animate-pulse">GAME OVER</h2>
+            <p class="text-sm text-slate-400 mb-6">冒險者的 HP 歸零了！本次捕捉大冒險在此畫下句點。</p>
+
+            <!-- 數據統計板 -->
+            <div class="bg-slate-950/60 p-4 rounded-2xl border border-indigo-950 mb-6 space-y-3">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-400">最終獲得分數</span>
+                    <span id="finalScore" class="pixel-font text-yellow-400">0</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-400">最高連擊 Combo</span>
+                    <span id="finalCombo" class="font-bold text-indigo-300">0 combo</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-400">成功收服隻數</span>
+                    <span id="finalCaught" class="font-bold text-emerald-400">0 隻</span>
+                </div>
+            </div>
+
+            <!-- 按鈕控制 -->
+            <div class="flex flex-col gap-3">
+                <button onclick="restartGame()" class="w-full bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white font-extrabold py-3 rounded-xl transition duration-200 shadow-lg shadow-red-500/20 text-sm">
+                    重新開始大冒險
+                </button>
+                <button onclick="toggleBag(true); document.getElementById('gameOverModal').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition text-sm">
+                    查看本次收服背包
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 圖鑑骨架屏載入效果模板 -->
+    <template id="pokedexSkeletonTemplate">
+        <div class="animate-pulse bg-indigo-950/30 border border-slate-800 rounded-2xl p-3 flex flex-col items-center h-[200px]">
+            <div class="w-20 h-20 bg-slate-800 rounded-full mb-3"></div>
+            <div class="w-10 h-3 bg-slate-800 rounded mb-1.5"></div>
+            <div class="w-16 h-4 bg-slate-800 rounded mb-3"></div>
+            <div class="flex gap-1.5">
+                <div class="w-10 h-4 bg-slate-800 rounded-full"></div>
+                <div class="w-10 h-4 bg-slate-800 rounded-full"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- 底部版權宣告 -->
+    <footer class="p-4 text-center text-xs text-slate-600 border-t border-slate-900">
+        © 2026 Pokémon Silhouette Adventure. Powered by PokeAPI.
+    </footer>
+
+    <script>
+        // --- 8-bit 音效合成器 (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let isMuted = false;
+
+        function playSound(type) {
+            if (isMuted) return;
+            
+            // 恢復音訊內容，防範瀏覽器安全政策
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'select') {
+                // 短促選擇音
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } 
+            else if (type === 'correct') {
+                // 成功音效 (經典捕獲成功琶音)
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                osc.frequency.setValueAtTime(1046.50, now + 0.24); // C6
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+                osc.start(now);
+                osc.stop(now + 0.45);
+            } 
+            else if (type === 'incorrect') {
+                // 答錯音效 (受傷悲鳴)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(60, now + 0.35);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } 
+            else if (type === 'gameover') {
+                // 結束旋律 (降音階)
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.setValueAtTime(350, now + 0.2);
+                osc.frequency.setValueAtTime(300, now + 0.4);
+                osc.frequency.setValueAtTime(220, now + 0.6);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.9);
+                osc.start(now);
+                osc.stop(now + 0.95);
+            }
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const muteIcon = document.getElementById('muteIcon');
+            if (isMuted) {
+                muteIcon.setAttribute('data-lucide', 'volume-x');
+                document.getElementById('muteBtn').classList.add('bg-red-950/40', 'border-red-800/40');
+            } else {
+                muteIcon.setAttribute('data-lucide', 'volume-2');
+                document.getElementById('muteBtn').classList.remove('bg-red-950/40', 'border-red-800/40');
+                playSound('select');
+            }
+            lucide.createIcons();
+        }
+
+        // 內建 151 隻第一世代寶可夢的中英文名稱對照表
+        const pokemonDatabase = [
+            { id: 1, en: "Bulbasaur", zh: "妙蛙種子" },
+            { id: 2, en: "Ivysaur", zh: "妙蛙草" },
+            { id: 3, en: "Venusaur", zh: "妙蛙花" },
+            { id: 4, en: "Charmander", zh: "小火龍" },
+            { id: 5, en: "Charmeleon", zh: "火恐龍" },
+            { id: 6, en: "Charizard", zh: "噴火龍" },
+            { id: 7, en: "Squirtle", zh: "傑尼龜" },
+            { id: 8, en: "Wartortle", zh: "卡咪龜" },
+            { id: 9, en: "Blastoise", zh: "水箭龜" },
+            { id: 10, en: "Caterpie", zh: "綠毛蟲" },
+            { id: 11, en: "Metapod", zh: "鐵甲蛹" },
+            { id: 12, en: "Butterfree", zh: "巴大蝶" },
+            { id: 13, en: "Weedle", zh: "獨角蟲" },
+            { id: 14, en: "Kakuna", zh: "鐵殼蛹" },
+            { id: 15, en: "Beedrill", zh: "大針蜂" },
+            { id: 16, en: "Pidgey", zh: "波波" },
+            { id: 17, en: "Pidgeotto", zh: "比比鳥" },
+            { id: 18, en: "Pidgeot", zh: "大比鳥" },
+            { id: 19, en: "Rattata", zh: "小拉達" },
+            { id: 20, en: "Raticate", zh: "拉達" },
+            { id: 21, en: "Spearow", zh: "烈雀" },
+            { id: 22, en: "Fearow", zh: "大嘴雀" },
+            { id: 23, en: "Ekans", zh: "阿柏蛇" },
+            { id: 24, en: "Arbok", zh: "阿柏怪" },
+            { id: 25, en: "Pikachu", zh: "皮卡丘" },
+            { id: 26, en: "Raichu", zh: "雷丘" },
+            { id: 27, en: "Sandshrew", zh: "穿山鼠" },
+            { id: 28, en: "Sandslash", zh: "穿山王" },
+            { id: 29, en: "Nidoran♀", zh: "尼多蘭" },
+            { id: 30, en: "Nidorina", zh: "尼多娜" },
+            { id: 31, en: "Nidoqueen", zh: "尼多後" },
+            { id: 32, en: "Nidoran♂", zh: "尼多朗" },
+            { id: 33, en: "Nidorino", zh: "尼多力諾" },
+            { id: 34, en: "Nidoking", zh: "尼多王" },
+            { id: 35, en: "Clefairy", zh: "皮皮" },
+            { id: 36, en: "Clefable", zh: "皮可西" },
+            { id: 37, en: "Vulpix", zh: "六尾" },
+            { id: 38, en: "Ninetales", zh: "九尾" },
+            { id: 39, en: "Jigglypuff", zh: "胖丁" },
+            { id: 40, en: "Wigglytuff", zh: "胖可丁" },
+            { id: 41, en: "Zubat", zh: "超音蝠" },
+            { id: 42, en: "Golbat", zh: "大嘴蝠" },
+            { id: 43, en: "Oddish", zh: "走路草" },
+            { id: 44, en: "Gloom", zh: "臭臭花" },
+            { id: 45, en: "Vileplume", zh: "霸王花" },
+            { id: 46, en: "Paras", zh: "派拉斯" },
+            { id: 47, en: "Parasect", zh: "派拉斯特" },
+            { id: 48, en: "Venonat", zh: "毛球" },
+            { id: 49, en: "Venomoth", zh: "摩魯蛾" },
+            { id: 50, en: "Diglett", zh: "地鼠" },
+            { id: 51, en: "Dugtrio", zh: "三地鼠" },
+            { id: 52, en: "Meowth", zh: "喵喵" },
+            { id: 53, en: "Persian", zh: "貓老大" },
+            { id: 54, en: "Psyduck", zh: "可達鴨" },
+            { id: 55, en: "Golduck", zh: "哥達鴨" },
+            { id: 56, en: "Mankey", zh: "猴怪" },
+            { id: 57, en: "Primeape", zh: "火暴猴" },
+            { id: 58, en: "Growlithe", zh: "卡蒂狗" },
+            { id: 59, en: "Arcanine", zh: "風速狗" },
+            { id: 60, en: "Poliwag", zh: "蚊香蝌蚪" },
+            { id: 61, en: "Poliwhirl", zh: "蚊香君" },
+            { id: 62, en: "Poliwrath", zh: "蚊香泳士" },
+            { id: 63, en: "Abra", zh: "凱西" },
+            { id: 64, en: "Kadabra", zh: "勇基拉" },
+            { id: 65, en: "Alakazam", zh: "胡地" },
+            { id: 66, en: "Machop", zh: "腕力" },
+            { id: 67, en: "Machoke", zh: "豪力" },
+            { id: 68, en: "Machamp", zh: "怪力" },
+            { id: 69, en: "Bellsprout", zh: "喇叭芽" },
+            { id: 70, en: "Weepinbell", zh: "口呆花" },
+            { id: 71, en: "Victreebel", zh: "大食花" },
+            { id: 72, en: "Tentacool", zh: "瑪瑙水母" },
+            { id: 73, en: "Tentacruel", zh: "毒刺水母" },
+            { id: 74, en: "Geodude", zh: "小拳石" },
+            { id: 75, en: "Graveler", zh: "隆隆石" },
+            { id: 76, en: "Golem", zh: "隆隆岩" },
+            { id: 77, en: "Ponyta", zh: "小火馬" },
+            { id: 78, en: "Rapidash", zh: "烈焰馬" },
+            { id: 79, en: "Slowpoke", zh: "呆呆獸" },
+            { id: 80, en: "Slowbro", zh: "呆殼獸" },
+            { id: 81, en: "Magnemite", zh: "小磁怪" },
+            { id: 82, en: "Magneton", zh: "三合一磁怪" },
+            { id: 83, en: "Farfetch'd", zh: "大蔥鴨" },
+            { id: 84, en: "Doduo", zh: "嘟嘟" },
+            { id: 85, en: "Dodrio", zh: "嘟嘟利" },
+            { id: 86, en: "Seel", zh: "小海獅" },
+            { id: 87, en: "Dewgong", zh: "白海獅" },
+            { id: 88, en: "Grimer", zh: "臭泥" },
+            { id: 89, en: "Muk", zh: "臭臭泥" },
+            { id: 90, en: "Shellder", zh: "大舌貝" },
+            { id: 91, en: "Cloyster", zh: "刺甲貝" },
+            { id: 92, en: "Gastly", zh: "鬼斯" },
+            { id: 93, en: "Haunter", zh: "鬼斯通" },
+            { id: 94, en: "Gengar", zh: "耿鬼" },
+            { id: 95, en: "Onix", zh: "大岩蛇" },
+            { id: 96, en: "Drowzee", zh: "催眠貘" },
+            { id: 97, en: "Hypno", zh: "引夢貘人" },
+            { id: 98, en: "Krabby", zh: "大鉗蟹" },
+            { id: 99, en: "Kingler", zh: "巨鉗蟹" },
+            { id: 100, en: "Voltorb", zh: "霹靂電球" },
+            { id: 101, en: "Electrode", zh: "頑皮雷彈" },
+            { id: 102, en: "Exeggcute", zh: "蛋蛋" },
+            { id: 103, en: "Exeggutor", zh: "椰蛋樹" },
+            { id: 104, en: "Cubone", zh: "卡拉卡拉" },
+            { id: 105, en: "Marowak", zh: "嘎啦嘎啦" },
+            { id: 106, en: "Hitmonlee", zh: "沙瓦郎" },
+            { id: 107, en: "Hitmonchan", zh: "艾比郎" },
+            { id: 108, en: "Lickitung", zh: "大舌頭" },
+            { id: 109, en: "Koffing", zh: "瓦斯彈" },
+            { id: 110, en: "Weezing", zh: "雙彈瓦斯" },
+            { id: 111, en: "Rhyhorn", zh: "獨角犀牛" },
+            { id: 112, en: "Rhydon", zh: "鑽角犀獸" },
+            { id: 113, en: "Chansey", zh: "吉利蛋" },
+            { id: 114, en: "Tangela", zh: "蔓藤怪" },
+            { id: 115, en: "Kangaskhan", zh: "袋獸" },
+            { id: 116, en: "Horsea", zh: "墨海馬" },
+            { id: 117, en: "Seadra", zh: "海刺龍" },
+            { id: 118, en: "Goldeen", zh: "角金魚" },
+            { id: 119, en: "Seaking", zh: "金魚王" },
+            { id: 120, en: "Staryu", zh: "海星星" },
+            { id: 121, en: "Starmie", zh: "寶石海星" },
+            { id: 122, en: "Mr. Mime", zh: "魔牆人偶" },
+            { id: 123, en: "Scyther", zh: "飛天螳螂" },
+            { id: 124, en: "Jynx", zh: "迷唇姐" },
+            { id: 125, en: "Electabuzz", zh: "電擊獸" },
+            { id: 126, en: "Magmar", zh: "鴨嘴火獸" },
+            { id: 127, en: "Pinsir", zh: "凱羅斯" },
+            { id: 128, en: "Tauros", zh: "肯泰羅" },
+            { id: 129, en: "Magikarp", zh: "鯉魚王" },
+            { id: 130, en: "Gyarados", zh: "暴鯉龍" },
+            { id: 131, en: "Lapras", zh: "拉普拉斯" },
+            { id: 132, en: "Ditto", zh: "百變怪" },
+            { id: 133, en: "Eevee", zh: "伊布" },
+            { id: 134, en: "Vaporeon", zh: "水伊布" },
+            { id: 135, en: "Jolteon", zh: "雷伊布" },
+            { id: 136, en: "Flareon", zh: "火伊布" },
+            { id: 137, en: "Porygon", zh: "多邊獸" },
+            { id: 138, en: "Omanyte", zh: "菊石獸" },
+            { id: 139, en: "Omastar", zh: "多刺菊石獸" },
+            { id: 140, en: "Kabuto", zh: "化石盔" },
+            { id: 141, en: "Kabutops", zh: "鐮刀盔" },
+            { id: 142, en: "Aerodactyl", zh: "化石翼龍" },
+            { id: 143, en: "Snorlax", zh: "卡比獸" },
+            { id: 144, en: "Articuno", zh: "急凍鳥" },
+            { id: 145, en: "Zapdos", zh: "閃電鳥" },
+            { id: 146, en: "Moltres", zh: "火焰鳥" },
+            { id: 147, en: "Dratini", zh: "迷你龍" },
+            { id: 148, en: "Dragonair", zh: "哈克龍" },
+            { id: 149, en: "Dragonite", zh: "快龍" },
+            { id: 150, en: "Mewtwo", zh: "超夢" },
+            { id: 151, en: "Mew", zh: "夢幻" }
+        ];
+
+        // 遊戲狀態變數
+        let score = 0;
+        let hp = 3;
+        const maxHp = 3;
+        let combo = 0;
+        let maxCombo = 0;
+        
+        let currentTarget = null; // 本輪的正確答案寶可夢
+        let choices = [];         // 四個選項
+        let caughtBag = [];       // 本輪收服的寶可夢
+        let isLocked = false;     // 防止點選選項後重複點按
+
+        // --- 雙語圖鑑 (Pokédex) 全域變數 ---
+        let pokedexAllList = [];
+        let pokedexFilteredList = [];
+        let pokedexActiveTypeFilter = 'all';
+        let pokedexCurrentPage = 1;
+        const pokedexItemsPerPage = 12; // 調整為 12 隻，更適合在遊戲彈窗內展示
+        const pokedexChineseNameCache = {};
+        const pokedexChineseDescCache = {};
+        const pokedexDetailCache = {};
+        let isPokedexInitialized = false;
+
+        // 18種屬性 中英對照與色彩
+        const pokedexTypeConfig = {
+            normal: { name: '一般', color: 'bg-stone-500 text-stone-100 border-stone-400/30' },
+            fire: { name: '火', color: 'bg-red-500 text-red-500 bg-red-500/10 border-red-500/30' },
+            water: { name: '水', color: 'bg-blue-500 text-blue-400 bg-blue-500/10 border-blue-500/30' },
+            grass: { name: '草', color: 'bg-green-500 text-green-400 bg-green-500/10 border-green-500/30' },
+            electric: { name: '電', color: 'bg-yellow-400 text-yellow-400 bg-yellow-400/10 border-yellow-400/30' },
+            ice: { name: '冰', color: 'bg-cyan-400 text-cyan-400 bg-cyan-400/10 border-cyan-400/30' },
+            fighting: { name: '格鬥', color: 'bg-red-700 text-red-400 bg-red-700/10 border-red-700/30' },
+            poison: { name: '毒', color: 'bg-purple-500 text-purple-400 bg-purple-500/10 border-purple-500/30' },
+            ground: { name: '地面', color: 'bg-amber-600 text-amber-500 bg-amber-600/10 border-amber-600/30' },
+            flying: { name: '飛行', color: 'bg-indigo-400 text-indigo-400 bg-indigo-400/10 border-indigo-400/30' },
+            psychic: { name: '超能力', color: 'bg-pink-500 text-pink-400 bg-pink-500/10 border-pink-500/30' },
+            bug: { name: '蟲', color: 'bg-lime-500 text-lime-400 bg-lime-500/10 border-lime-500/30' },
+            rock: { name: '岩石', color: 'bg-yellow-700 text-yellow-600 bg-yellow-700/10 border-yellow-700/30' },
+            ghost: { name: '幽靈', color: 'bg-violet-700 text-violet-400 bg-violet-700/10 border-violet-700/30' },
+            dragon: { name: '龍', color: 'bg-indigo-600 text-indigo-500 bg-indigo-600/10 border-indigo-600/30' },
+            steel: { name: '鋼', color: 'bg-slate-400 text-slate-300 bg-slate-400/10 border-slate-400/30' },
+            fairy: { name: '妖精', color: 'bg-pink-300 text-pink-300 bg-pink-300/10 border-pink-300/30' },
+            dark: { name: '惡', color: 'bg-slate-800 text-slate-400 bg-slate-800/10 border-slate-800/30' }
+        };
+
+        const pokedexStatTranslations = {
+            'hp': '生命 (HP)',
+            'attack': '攻擊 (ATK)',
+            'defense': '防禦 (DEF)',
+            'special-attack': '特攻 (SATK)',
+            'special-defense': '特防 (SDEF)',
+            'speed': '速度 (SPD)'
+        };
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            newRound();
+        });
+
+        // 啟動新回合
+        function newRound() {
+            isLocked = false;
+
+            // 1. 隨機抽選一隻正確的寶可夢
+            const randomIndex = Math.floor(Math.random() * pokemonDatabase.length);
+            currentTarget = pokemonDatabase[randomIndex];
+
+            // 2. 抽出三隻作為干擾項 (Decoys)
+            let decoys = [];
+            while (decoys.length < 3) {
+                const decoyIndex = Math.floor(Math.random() * pokemonDatabase.length);
+                const possibleDecoy = pokemonDatabase[decoyIndex];
+                if (possibleDecoy.id !== currentTarget.id && !decoys.some(d => d.id === possibleDecoy.id)) {
+                    decoys.push(possibleDecoy);
+                }
+            }
+
+            // 3. 混亂排定 4 個選項
+            choices = [currentTarget, ...decoys];
+            choices.sort(() => Math.random() - 0.5);
+
+            // 4. 重置與更新 UI 展示
+            const pokeImg = document.getElementById('pokeImg');
+            pokeImg.classList.remove('revealed');
+            pokeImg.classList.add('silhouette');
+            pokeImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${currentTarget.id}.png`;
+            
+            document.getElementById('targetId').innerText = `No.${String(currentTarget.id).padStart(3, '0')}`;
+            document.getElementById('revealNameContainer').classList.add('hidden');
+            document.getElementById('battleDisplay').classList.remove('animate-shake');
+
+            // 5. 繪製按鈕
+            renderOptions();
+        }
+
+        // 渲染 4 個名字選項按鈕
+        function renderOptions() {
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
+
+            choices.forEach((poke, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500/50 p-4 rounded-2xl flex items-center justify-between transition-all duration-200 group active:scale-[0.98]`;
+                btn.onclick = () => selectChoice(poke, btn);
+
+                btn.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="text-xs font-bold text-indigo-400 group-hover:text-indigo-300 uppercase tracking-wider">${poke.en}</span>
+                        <span class="text-base font-extrabold text-slate-100 mt-0.5">${poke.zh}</span>
+                    </div>
+                    <div class="w-8 h-8 rounded-full border-2 border-slate-700 group-hover:border-indigo-500 flex items-center justify-center text-xs font-extrabold text-slate-500 group-hover:text-indigo-400 pixel-font transition">
+                        ${idx + 1}
+                    </div>
+                `;
+
+                container.appendChild(btn);
+            });
+        }
+
+        // 點選選項事件
+        function selectChoice(selectedPoke, clickedBtn) {
+            if (isLocked) return;
+            isLocked = true;
+
+            const isCorrect = (selectedPoke.id === currentTarget.id);
+
+            if (isCorrect) {
+                // --- 答對：捕捉動畫 ---
+                playSound('correct');
+                score += 100 + (combo * 10); // 有連擊加成
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+
+                // 觸發精靈球投擲特效
+                throwPokeball(() => {
+                    // 精靈球擊中後揭曉圖鑑
+                    const pokeImg = document.getElementById('pokeImg');
+                    pokeImg.classList.remove('silhouette');
+                    pokeImg.classList.add('revealed');
+
+                    // 煙火爆發效果
+                    burstSparkles();
+
+                    // 收進背包
+                    if (!caughtBag.some(p => p.id === currentTarget.id)) {
+                        caughtBag.push(currentTarget);
+                    }
+
+                    // 顯示捕獲成功條
+                    document.getElementById('revealedName').innerText = `${currentTarget.zh} (${currentTarget.en})`;
+                    document.getElementById('revealNameContainer').classList.remove('hidden');
+
+                    // 更新統計數據
+                    updateStats();
+
+                    // 延遲 1.8 秒後進入下一輪
+                    setTimeout(newRound, 1800);
+                });
+
+            } else {
+                // --- 答錯：寶可夢攻擊反擊 ---
+                playSound('incorrect');
+                combo = 0; // 連擊中斷
+                hp--;
+
+                // 戰鬥畫面劇烈搖晃
+                const display = document.getElementById('battleDisplay');
+                display.classList.add('animate-shake');
+
+                // 標示答錯的按鈕紅色樣式
+                clickedBtn.classList.remove('border-slate-800', 'hover:border-indigo-500/50');
+                clickedBtn.classList.add('border-red-500/80', 'bg-red-950/20');
+
+                // 更新血量與連擊狀態
+                updateStats();
+
+                if (hp <= 0) {
+                    // 生命歸零：遊戲結束
+                    setTimeout(triggerGameOver, 800);
+                } else {
+                    // 還能再試
+                    isLocked = false;
+                }
+            }
+        }
+
+        // 更新冒險狀態 UI
+        function updateStats() {
+            document.getElementById('scoreVal').innerText = String(score).padStart(4, '0');
+            document.getElementById('comboText').innerText = `${combo} 連擊`;
+            document.getElementById('bagCount').innerText = caughtBag.length;
+            
+            // 生命條比例
+            const hpPercent = (hp / maxHp) * 100;
+            document.getElementById('hpBar').style.width = `${hpPercent}%`;
+            document.getElementById('hpText').innerText = `${hp} / ${maxHp}`;
+        }
+
+        // 逃跑/換一隻寶可夢
+        function skipPokemon() {
+            playSound('select');
+            combo = 0;
+            updateStats();
+            newRound();
+        }
+
+        // 模擬精靈球投擲
+        function throwPokeball(callback) {
+            const launcher = document.getElementById('ballLauncher');
+            launcher.classList.remove('hidden');
+            launcher.classList.add('pokeball-throw');
+
+            setTimeout(() => {
+                launcher.classList.add('hidden');
+                launcher.classList.remove('pokeball-throw');
+                callback();
+            }, 800);
+        }
+
+        // 捕捉成功的繽紛煙火粒子特效
+        function burstSparkles() {
+            const container = document.getElementById('particleContainer');
+            container.innerHTML = '';
+
+            const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#ef4444', '#ffff00'];
+            const particleCount = 40;
+
+            for (let i = 0; i < particleCount; i++) {
+                const div = document.createElement('div');
+                div.className = 'absolute w-2 h-2 rounded-full sparkle z-20';
+                
+                // 隨機角度與飛出距離
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 80 + Math.random() * 120;
+                const mx = Math.cos(angle) * distance + 'px';
+                const my = Math.sin(angle) * distance + 'px';
+
+                // 套用隨機方向變數
+                div.style.setProperty('--tw-mx', mx);
+                div.style.setProperty('--tw-my', my);
+                div.style.left = '50%';
+                div.style.top = '50%';
+                div.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+                container.appendChild(div);
+            }
+        }
+
+        // 觸發遊戲結束
+        function triggerGameOver() {
+            playSound('gameover');
+            
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('finalCombo').innerText = `${maxCombo} Combo`;
+            document.getElementById('finalCaught').innerText = `${caughtBag.length} 隻`;
+
+            document.getElementById('gameOverModal').classList.remove('hidden');
+        }
+
+        // 重新開始遊戲
+        function restartGame() {
+            playSound('select');
+            score = 0;
+            hp = 3;
+            combo = 0;
+            maxCombo = 0;
+            caughtBag = [];
+            
+            updateStats();
+            document.getElementById('gameOverModal').classList.add('hidden');
+            newRound();
+        }
+
+        // 開啟/關閉收服背包
+        function toggleBag(show) {
+            playSound('select');
+            const modal = document.getElementById('bagModal');
+            if (show) {
+                modal.classList.remove('hidden');
+                renderBagGrid();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // 渲染收服精靈包包
+        function renderBagGrid() {
+            const empty = document.getElementById('bagEmptyState');
+            const grid = document.getElementById('bagGrid');
+            const footerCount = document.getElementById('bagFooterCount');
+
+            footerCount.innerText = caughtBag.length;
+
+            if (caughtBag.length === 0) {
+                empty.classList.remove('hidden');
+                grid.classList.add('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            grid.classList.remove('hidden');
+            grid.innerHTML = '';
+
+            caughtBag.forEach(poke => {
+                const card = document.createElement('div');
+                card.className = `bg-slate-900/80 border border-indigo-500/20 p-3 rounded-2xl flex flex-col items-center text-center shadow-lg`;
+
+                card.innerHTML = `
+                    <div class="w-16 h-16 bg-slate-950/40 rounded-full flex items-center justify-center p-1 mb-2">
+                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${poke.id}.png" alt="${poke.zh}" class="w-full h-full object-contain">
+                    </div>
+                    <span class="text-[9px] font-bold text-yellow-500 pixel-font">No.${String(poke.id).padStart(3, '0')}</span>
+                    <span class="text-xs font-black text-white mt-1 leading-tight truncate w-full">${poke.zh}</span>
+                    <span class="text-[9px] text-slate-500 uppercase font-semibold truncate w-full">${poke.en}</span>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // 支援鍵盤熱鍵操作 (1, 2, 3, 4 按鍵對應選項)
+        window.addEventListener('keydown', (e) => {
+            const key = e.key;
+            if (['1', '2', '3', '4'].includes(key)) {
+                const idx = parseInt(key) - 1;
+                const buttons = document.getElementById('optionsContainer').querySelectorAll('button');
+                if (buttons && buttons[idx] && !isLocked) {
+                    buttons[idx].click();
+                }
+            }
+        });
+
+        // ==========================================
+        //  新增：雙語圖鑑 (Pokédex) 核心邏輯整合
+        // ==========================================
+
+        function togglePokedex(show) {
+            playSound('select');
+            const modal = document.getElementById('pokedexModal');
+            if (show) {
+                modal.classList.remove('hidden');
+                if (!isPokedexInitialized) {
+                    pokedexInit();
+                }
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function pokedexInit() {
+            isPokedexInitialized = true;
+            pokedexInitTypeFilters();
+            pokedexFetchInitial();
+            pokedexSetupSearch();
+        }
+
+        // 建立圖鑑屬性過濾按鈕
+        function pokedexInitTypeFilters() {
+            const container = document.getElementById('pokedexTypeFilterContainer');
+            Object.keys(pokedexTypeConfig).forEach(typeKey => {
+                const type = pokedexTypeConfig[typeKey];
+                const btn = document.createElement('button');
+                btn.id = `pokedex-btn-${typeKey}`;
+                btn.className = `pokedex-type-btn px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 transition duration-200`;
+                btn.innerHTML = `${type.name}`;
+                btn.onclick = () => pokedexFilterByType(typeKey);
+                container.appendChild(btn);
+            });
+        }
+
+        // 渲染骨架屏
+        function pokedexShowSkeletons(count = 12) {
+            const grid = document.getElementById('pokedexPokemonGrid');
+            grid.innerHTML = '';
+            const template = document.getElementById('pokedexSkeletonTemplate');
+            if (template) {
+                for (let i = 0; i < count; i++) {
+                    grid.appendChild(template.content.cloneNode(true));
+                }
+            }
+        }
+
+        // 1次名單請求，高速載入 151 隻圖鑑卡片，避免瀏覽器連線阻擋
+        async function pokedexFetchInitial() {
+            pokedexShowSkeletons(12);
+            try {
+                const listResponse = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151');
+                if (!listResponse.ok) throw new Error('API 無法響應');
+                const listData = await listResponse.json();
+                
+                pokedexAllList = listData.results.map((poke, index) => {
+                    const id = index + 1;
+                    return {
+                        id: id,
+                        name: poke.name,
+                        url: poke.url,
+                        imageUrl: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`,
+                        types: [] // 背景懶加載注入
+                    };
+                });
+                
+                pokedexFilteredList = [...pokedexAllList];
+                pokedexCurrentPage = 1;
+                pokedexRenderPage();
+
+            } catch (error) {
+                console.error("圖鑑載入失敗:", error);
+                document.getElementById('pokedexPokemonGrid').innerHTML = `
+                    <div class="col-span-full text-center py-8 text-red-400 font-bold text-xs">
+                        大木博士的連線異常，請稍後重試。
+                    </div>
+                `;
+            }
+        }
+
+        // 執行分頁渲染與雙語懶加載
+        function pokedexRenderPage() {
+            const totalItems = pokedexFilteredList.length;
+            const totalPages = Math.ceil(totalItems / pokedexItemsPerPage);
+
+            if (pokedexCurrentPage > totalPages && totalPages > 0) {
+                pokedexCurrentPage = totalPages;
+            } else if (pokedexCurrentPage < 1) {
+                pokedexCurrentPage = 1;
+            }
+
+            const startIndex = (pokedexCurrentPage - 1) * pokedexItemsPerPage;
+            const endIndex = Math.min(startIndex + pokedexItemsPerPage, totalItems);
+            const pageItems = pokedexFilteredList.slice(startIndex, endIndex);
+
+            // 先載入預設圖片及中英名稱骨架
+            pokedexRenderGrid(pageItems);
+            pokedexRenderPaginationControls(totalPages);
+
+            const infoText = document.getElementById('pokedexPaginationInfo');
+            if (totalItems === 0) {
+                infoText.innerText = "找到 0 隻寶可夢";
+            } else {
+                infoText.innerText = `顯示第 ${startIndex + 1} - ${endIndex} 隻，共 ${totalItems} 隻 (第 ${pokedexCurrentPage} / ${totalPages || 1} 頁)`;
+            }
+
+            // 背景對目前分頁進行屬性與翻譯的懶加載
+            pokedexLazyLoadPageDetails(pageItems);
+        }
+
+        // 背景懶加載當前頁細節與中文名稱
+        async function pokedexLazyLoadPageDetails(pageItems) {
+            pageItems.forEach(async (poke) => {
+                const id = poke.id;
+                
+                if (pokedexDetailCache[id] && pokedexChineseNameCache[id]) {
+                    pokedexUpdateCardUI(id, pokedexDetailCache[id], pokedexChineseNameCache[id]);
+                    return;
+                }
+
+                try {
+                    const pDetail = pokedexDetailCache[id] 
+                        ? Promise.resolve(pokedexDetailCache[id])
+                        : fetch(`https://pokeapi.co/api/v2/pokemon/${id}/`).then(res => res.json());
+
+                    const pSpecies = (pokedexChineseNameCache[id] && pokedexChineseDescCache[id])
+                        ? Promise.resolve({ names: [{ language: { name: 'zh-hant' }, name: pokedexChineseNameCache[id] }] })
+                        : fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}/`).then(res => res.json());
+
+                    const [detailResult, speciesResult] = await Promise.allSettled([pDetail, pSpecies]);
+
+                    let details = pokedexDetailCache[id] || null;
+                    if (detailResult.status === 'fulfilled') {
+                        details = detailResult.value;
+                        pokedexDetailCache[id] = details;
+                    }
+
+                    let zhName = pokedexChineseNameCache[id] || poke.name;
+                    if (speciesResult.status === 'fulfilled') {
+                        const speciesData = speciesResult.value;
+                        
+                        const zhNameObj = speciesData.names.find(n => n.language.name.toLowerCase() === 'zh-hant') ||
+                                          speciesData.names.find(n => n.language.name.toLowerCase() === 'zh-hans');
+                        if (zhNameObj) {
+                            zhName = zhNameObj.name;
+                            pokedexChineseNameCache[id] = zhName;
+                        }
+
+                        if (speciesData.flavor_text_entries) {
+                            const zhDescObj = speciesData.flavor_text_entries.find(e => e.language.name.toLowerCase() === 'zh-hant') ||
+                                              speciesData.flavor_text_entries.find(e => e.language.name.toLowerCase() === 'zh-hans');
+                            if (zhDescObj) {
+                                pokedexChineseDescCache[id] = zhDescObj.flavor_text.replace(/\s+/g, ' ');
+                            }
+                        }
+                    }
+
+                    pokedexChineseNameCache[id] = zhName;
+                    pokedexUpdateCardUI(id, details, zhName);
+
+                } catch (err) {
+                    console.warn(`懶加載 ID ${id} 數據時出錯`, err);
+                }
+            });
+        }
+
+        // 卡片載入完成後漸變更新 UI
+        function pokedexUpdateCardUI(id, details, zhName) {
+            const nameEl = document.getElementById(`pokedex-zh-name-${id}`);
+            if (nameEl) {
+                nameEl.innerText = zhName;
+                nameEl.className = "text-xs font-bold text-slate-200 transition-colors duration-300";
+            }
+
+            const typeContainer = document.getElementById(`pokedex-card-types-${id}`);
+            if (typeContainer && details && details.types) {
+                const typeBadges = details.types.map(t => {
+                    const cfg = pokedexTypeConfig[t.type.name] || { name: t.type.name, color: 'bg-slate-700' };
+                    return `<span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold ${cfg.color.split(' ')[0]} text-white border border-white/10 shadow-sm">${cfg.name}</span>`;
+                }).join('');
+                typeContainer.innerHTML = typeBadges;
+            }
+        }
+
+        // 渲染圖鑑網格卡片
+        function pokedexRenderGrid(pokemonList) {
+            const grid = document.getElementById('pokedexPokemonGrid');
+            grid.innerHTML = '';
+
+            if (pokemonList.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-10 text-slate-500">
+                        <p class="text-xs">找不到符合條件的寶可夢</p>
+                    </div>
+                `;
+                return;
+            }
+
+            pokemonList.forEach(poke => {
+                const card = document.createElement('div');
+                card.className = `group bg-slate-900/60 hover:bg-slate-800/60 border border-slate-800 hover:border-red-500/40 rounded-2xl p-3 flex flex-col items-center cursor-pointer transition-all duration-300 hover:shadow-xl hover:shadow-red-500/5 hover:-translate-y-1`;
+                card.onclick = () => openPokedexDetailModal(poke);
+
+                const formattedId = String(poke.id).padStart(3, '0');
+                const hasZhCache = !!pokedexChineseNameCache[poke.id];
+                const zhNameHtml = hasZhCache 
+                    ? `<span id="pokedex-zh-name-${poke.id}" class="text-xs font-bold text-slate-200 transition-colors duration-300">${pokedexChineseNameCache[poke.id]}</span>`
+                    : `<span id="pokedex-zh-name-${poke.id}" class="text-[10px] text-slate-500 animate-pulse transition-all duration-300">載入中...</span>`;
+
+                card.innerHTML = `
+                    <div class="relative w-20 h-20 flex items-center justify-center bg-slate-950/20 rounded-full mb-2 group-hover:bg-slate-950/40 transition">
+                        <img src="${poke.imageUrl}" alt="${poke.name}" class="w-[85%] h-[85%] object-contain drop-shadow-md transform group-hover:scale-115 transition duration-300" onerror="this.src='https://placehold.co/120?text=No+Img'">
+                    </div>
+                    <span class="text-[9px] font-bold text-red-500 tracking-widest">#${formattedId}</span>
+                    <div class="flex flex-col items-center mt-0.5 text-center w-full justify-center min-h-[36px]">
+                        <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-wider truncate w-full leading-tight">${poke.name}</h3>
+                        ${zhNameHtml}
+                    </div>
+                    <div id="pokedex-card-types-${poke.id}" class="flex gap-1 mt-1.5 min-h-[16px]">
+                        <!-- 屬性 -->
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        // 渲染圖鑑分頁按鈕
+        function pokedexRenderPaginationControls(totalPages) {
+            const container = document.getElementById('pokedexPaginationControls');
+            container.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            const buttonBaseClass = "w-8 h-8 rounded-lg flex items-center justify-center font-bold text-[10px] transition duration-200 border";
+            
+            // 上一頁
+            const prevBtn = document.createElement('button');
+            prevBtn.className = `${buttonBaseClass} ${pokedexCurrentPage === 1 ? 'border-slate-800 text-slate-600 cursor-not-allowed bg-slate-950/20' : 'border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white bg-slate-900'}`;
+            prevBtn.innerHTML = `<i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>`;
+            prevBtn.disabled = pokedexCurrentPage === 1;
+            prevBtn.onclick = () => {
+                if (pokedexCurrentPage > 1) {
+                    pokedexCurrentPage--;
+                    pokedexRenderPage();
+                }
+            };
+            container.appendChild(prevBtn);
+
+            // 頁碼 (保持 5 頁可見以適配行動版)
+            const maxVisiblePages = 5;
+            let startPage = Math.max(1, pokedexCurrentPage - 2);
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+            if (endPage - startPage < maxVisiblePages - 1) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                const isActive = i === pokedexCurrentPage;
+                pageBtn.className = `${buttonBaseClass} ${isActive 
+                    ? 'bg-red-500 border-red-500 text-white shadow-md shadow-red-500/20' 
+                    : 'border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white bg-slate-900'}`;
+                pageBtn.innerText = i;
+                pageBtn.onclick = () => {
+                    pokedexCurrentPage = i;
+                    pokedexRenderPage();
+                };
+                container.appendChild(pageBtn);
+            }
+
+            // 下一頁
+            const nextBtn = document.createElement('button');
+            nextBtn.className = `${buttonBaseClass} ${pokedexCurrentPage === totalPages ? 'border-slate-800 text-slate-600 cursor-not-allowed bg-slate-950/20' : 'border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white bg-slate-900'}`;
+            nextBtn.innerHTML = `<i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>`;
+            nextBtn.disabled = pokedexCurrentPage === totalPages;
+            nextBtn.onclick = () => {
+                if (pokedexCurrentPage < totalPages) {
+                    pokedexCurrentPage++;
+                    pokedexRenderPage();
+                }
+            };
+            container.appendChild(nextBtn);
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        // 圖鑑搜尋監聽
+        function pokedexSetupSearch() {
+            const searchInput = document.getElementById('pokedexSearchInput');
+            searchInput.addEventListener('input', () => {
+                pokedexCurrentPage = 1;
+                pokedexApplyFilterAndSearch();
+            });
+        }
+
+        // 屬性篩選與組合過濾
+        function pokedexFilterByType(typeKey) {
+            playSound('select');
+            pokedexActiveTypeFilter = typeKey;
+            pokedexCurrentPage = 1;
+            
+            document.querySelectorAll('.pokedex-type-btn').forEach(btn => {
+                btn.className = `pokedex-type-btn px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 transition duration-200`;
+            });
+
+            if (typeKey === 'all') {
+                const btn = document.querySelector('button[onclick="pokedexFilterByType(\'all\')"]');
+                if (btn) btn.className = `pokedex-type-btn active px-3 py-1 rounded-full text-[10px] font-bold bg-red-500 text-white hover:opacity-90 transition shadow-md shadow-red-500/20`;
+            } else {
+                const btn = document.getElementById(`pokedex-btn-${typeKey}`);
+                if (btn) {
+                    const cfg = pokedexTypeConfig[typeKey];
+                    btn.className = `pokedex-type-btn active px-2.5 py-1 rounded-full text-[10px] font-semibold ${cfg.color.split(' ')[0]} text-white border border-white/20 shadow-md shadow-white/5`;
+                }
+            }
+
+            pokedexApplyFilterAndSearch();
+        }
+
+        async function pokedexApplyFilterAndSearch() {
+            const query = document.getElementById('pokedexSearchInput').value.trim().toLowerCase();
+            let result = pokedexAllList;
+
+            // 1. 屬性交叉過濾
+            if (pokedexActiveTypeFilter !== 'all') {
+                try {
+                    const typeResponse = await fetch(`https://pokeapi.co/api/v2/type/${pokedexActiveTypeFilter}`);
+                    if (typeResponse.ok) {
+                        const typeData = await typeResponse.json();
+                        const allowedNames = typeData.pokemon.map(p => p.pokemon.name);
+                        result = result.filter(poke => allowedNames.includes(poke.name));
+                    }
+                } catch (e) {
+                    result = result.filter(poke => {
+                        const cached = pokedexDetailCache[poke.id];
+                        return cached && cached.types.some(t => t.type.name === pokedexActiveTypeFilter);
+                    });
+                }
+            }
+
+            // 2. 關鍵字交叉篩選
+            if (query !== '') {
+                result = result.filter(poke => {
+                    const matchesEn = poke.name.toLowerCase().includes(query);
+                    const matchesId = String(poke.id).includes(query);
+                    const zhCache = pokedexChineseNameCache[poke.id] || '';
+                    const matchesZh = zhCache.includes(query);
+                    return matchesEn || matchesId || matchesZh;
+                });
+            }
+
+            pokedexFilteredList = result;
+            pokedexRenderPage();
+        }
+
+        // 開啟圖鑑詳細資訊彈窗 (Pokedex Detail Modal)
+        async function openPokedexDetailModal(poke) {
+            playSound('select');
+            const modal = document.getElementById('pokedexDetailModal');
+            const card = document.getElementById('pokedexModalCard');
+            
+            // 立即顯示同步基礎資料
+            document.getElementById('pokedexModalId').innerText = `#${String(poke.id).padStart(3, '0')}`;
+            document.getElementById('pokedexModalNameEn').innerText = poke.name;
+            document.getElementById('pokedexModalImg').src = poke.imageUrl;
+
+            if (pokedexChineseNameCache[poke.id]) {
+                document.getElementById('pokedexModalNameZh').innerText = pokedexChineseNameCache[poke.id];
+                document.getElementById('pokedexModalDesc').innerText = pokedexChineseDescCache[poke.id] || '暫無中文介紹。';
+            } else {
+                document.getElementById('pokedexModalNameZh').innerText = '載入中...';
+                document.getElementById('pokedexModalDesc').innerText = '正向大木博士索取中文說明...';
+            }
+
+            document.getElementById('pokedexModalHeight').innerText = '-- m';
+            document.getElementById('pokedexModalWeight').innerText = '-- kg';
+            document.getElementById('pokedexModalTypes').innerHTML = '';
+            document.getElementById('pokedexModalStats').innerHTML = '數據拉取中...';
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                card.classList.remove('scale-95', 'opacity-0');
+                card.classList.add('scale-100', 'opacity-100');
+            }, 10);
+
+            // 異步加載種族值等詳細特徵
+            try {
+                let details = pokedexDetailCache[poke.id];
+                if (!details) {
+                    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${poke.id}/`);
+                    details = await res.json();
+                    pokedexDetailCache[poke.id] = details;
+                    pokedexUpdateCardUI(poke.id, details, pokedexChineseNameCache[poke.id] || poke.name);
+                }
+
+                document.getElementById('pokedexModalHeight').innerText = `${details.height / 10} m`;
+                document.getElementById('pokedexModalWeight').innerText = `${details.weight / 10} kg`;
+
+                const typeBadges = details.types.map(t => {
+                    const cfg = pokedexTypeConfig[t.type.name] || { name: t.type.name, color: 'bg-slate-700' };
+                    return `<span class="px-3 py-1 rounded-full text-xs font-bold ${cfg.color.split(' ')[0]} text-white border border-white/10 shadow">${cfg.name}</span>`;
+                }).join('');
+                document.getElementById('pokedexModalTypes').innerHTML = typeBadges;
+
+                // 繪製雷達條 (Stats)
+                const statsContainer = document.getElementById('pokedexModalStats');
+                statsContainer.innerHTML = '';
+                details.stats.forEach(s => {
+                    const translatedName = pokedexStatTranslations[s.stat.name] || s.stat.name;
+                    const value = s.base_stat;
+                    
+                    let barColor = 'bg-red-500';
+                    if (value >= 120) barColor = 'bg-cyan-400';
+                    else if (value >= 90) barColor = 'bg-green-500';
+                    else if (value >= 60) barColor = 'bg-yellow-400';
+
+                    statsContainer.innerHTML += `
+                        <div class="flex items-center text-[10px]">
+                            <span class="w-20 text-slate-400 font-semibold">${translatedName}</span>
+                            <span class="w-8 text-right font-bold text-slate-100 pr-2">${value}</span>
+                            <div class="flex-1 h-2 bg-slate-950/80 rounded-full overflow-hidden border border-slate-800">
+                                <div class="h-full ${barColor} rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // 動畫進度條
+                setTimeout(() => {
+                    const bars = statsContainer.querySelectorAll('.h-full');
+                    details.stats.forEach((s, idx) => {
+                        const percentage = Math.min((s.base_stat / 180) * 100, 100);
+                        if (bars[idx]) bars[idx].style.width = `${percentage}%`;
+                    });
+                }, 100);
+
+            } catch (err) {
+                console.error("加載詳細數值失敗", err);
+            }
+
+            // 加載大木博士說明與翻譯
+            if (!pokedexChineseDescCache[poke.id]) {
+                try {
+                    const speciesRes = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${poke.id}/`);
+                    const speciesData = await speciesRes.json();
+                    
+                    const zhNameObj = speciesData.names.find(n => n.language.name.toLowerCase() === 'zh-hant') ||
+                                      speciesData.names.find(n => n.language.name.toLowerCase() === 'zh-hans');
+                    const zhName = zhNameObj ? zhNameObj.name : poke.name;
+                    
+                    const zhDescObj = speciesData.flavor_text_entries.find(e => e.language.name.toLowerCase() === 'zh-hant') ||
+                                      speciesData.flavor_text_entries.find(e => e.language.name.toLowerCase() === 'zh-hans');
+                    const cleanDesc = zhDescObj 
+                        ? zhDescObj.flavor_text.replace(/\s+/g, ' ') 
+                        : '未發現中文說明記錄。';
+
+                    pokedexChineseNameCache[poke.id] = zhName;
+                    pokedexChineseDescCache[poke.id] = cleanDesc;
+
+                    document.getElementById('pokedexModalNameZh').innerText = zhName;
+                    document.getElementById('pokedexModalDesc').innerText = cleanDesc;
+                    
+                    const nameEl = document.getElementById(`pokedex-zh-name-${poke.id}`);
+                    if (nameEl) nameEl.innerText = zhName;
+
+                } catch (e) {
+                    document.getElementById('pokedexModalNameZh').innerText = poke.name.toUpperCase();
+                    document.getElementById('pokedexModalDesc').innerText = '未取得大木博士的語音描述（API 中文連線超時）。';
+                }
+            }
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function closePokedexDetailModal() {
+            const modal = document.getElementById('pokedexDetailModal');
+            const card = document.getElementById('pokedexModalCard');
+            
+            card.classList.remove('scale-100', 'opacity-100');
+            card.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
