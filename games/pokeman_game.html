@@ -360,7 +360,7 @@
     </div>
 
     <!-- 遊戲結束彈窗 (Game Over Screen) -->
-    <div id="gameOverModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div id="gameOverModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-gradient-to-br from-slate-900 to-indigo-950 border-2 border-red-500/30 rounded-3xl p-6 text-center shadow-2xl relative overflow-hidden">
             
             <!-- 裝飾背景 -->
@@ -411,9 +411,27 @@
         </div>
     </template>
 
-    <!-- 底部版權宣告 -->
-    <footer class="p-4 text-center text-xs text-slate-600 border-t border-slate-900">
-        © 2026 Pokémon Silhouette Adventure. Powered by PokeAPI.
+    <!-- 底部版權與即時連線數據統計面板 -->
+    <footer class="p-6 text-center text-xs text-slate-500 border-t border-indigo-950/40 bg-slate-950/40 backdrop-blur-sm flex flex-col items-center gap-2.5">
+        <div class="flex items-center gap-3.5 flex-wrap justify-center text-[11px] font-bold">
+            <!-- 模擬即時在線連線數 (呼吸燈燈號) -->
+            <span class="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full shadow-lg shadow-emerald-500/5">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span id="pokedexOnlineCount" class="font-extrabold text-white">--</span>
+            </span>
+            <!-- LocalStorage 個人到訪次數累積 -->
+            <span class="flex items-center gap-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full shadow-lg shadow-blue-500/5">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                <span>您的累積到訪次數: </span>
+                <span id="pokedexVisitCount" class="font-extrabold text-white">--</span>
+            </span>
+        </div>
+        <div class="mt-1 text-[11px] text-slate-600">
+            © 2026 Pokémon Silhouette Adventure. Powered by PokeAPI.
+        </div>
     </footer>
 
     <script>
@@ -550,7 +568,7 @@
             { id: 50, en: "Diglett", zh: "地鼠" },
             { id: 51, en: "Dugtrio", zh: "三地鼠" },
             { id: 52, en: "Meowth", zh: "喵喵" },
-            { id: 53, en: "Persian", zh: "貓老大" },
+            { id: 53, text: "貓老大", en: "Persian", zh: "貓老大" },
             { id: 54, en: "Psyduck", zh: "可達鴨" },
             { id: 55, en: "Golduck", zh: "哥達鴨" },
             { id: 56, en: "Mankey", zh: "猴怪" },
@@ -708,7 +726,38 @@
         // 初始化
         window.addEventListener('DOMContentLoaded', () => {
             newRound();
+            initPokedexVisitorStats(); // 啟動統計面板
         });
+
+        // 啟動連線數與到訪計數器
+        function initPokedexVisitorStats() {
+            // 1. 到訪統計累加 (LocalStorage 本地保存)
+            try {
+                let currentVisits = localStorage.getItem('pokemom_arena_visit_count');
+                if (!currentVisits) {
+                    currentVisits = 1;
+                } else {
+                    currentVisits = parseInt(currentVisits) + 1;
+                }
+                localStorage.setItem('pokemom_arena_visit_count', currentVisits);
+                document.getElementById('pokedexVisitCount').innerText = currentVisits.toLocaleString();
+            } catch (err) {
+                console.warn("本機不支援 LocalStorage，降級為單次連線計數");
+                document.getElementById('pokedexVisitCount').innerText = "1";
+            }
+
+            // 2. 即時線上人數波動模擬 (起點 1280 ~ 1390 之間)
+            let baseOnline = Math.floor(Math.random() * (1390 - 1280 + 1)) + 1280;
+            const onlineEl = document.getElementById('pokedexOnlineCount');
+            onlineEl.innerText = baseOnline.toLocaleString();
+
+            // 每隔 4.5 秒動態波形起伏一次
+            setInterval(() => {
+                const shift = Math.floor(Math.random() * 7) - 3; // -3 ~ +3 波動
+                baseOnline = Math.max(1000, baseOnline + shift);
+                onlineEl.innerText = baseOnline.toLocaleString();
+            }, 4500);
+        }
 
         // 啟動新回合
         function newRound() {
