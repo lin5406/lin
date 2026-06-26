@@ -239,7 +239,10 @@
                 </div>
 
                 <!-- 回合/重置控制台 -->
-                <div class="flex gap-2">
+                <div class="flex flex-col sm:flex-row gap-2 w-full">
+                    <button id="pass-btn" onclick="passTurn()" class="flex-1 py-3 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold rounded-2xl transition duration-200 text-sm flex items-center justify-center gap-2 border border-amber-200 shadow">
+                        <i class="fa-solid fa-forward"></i> 跳過本回合 (PASS)
+                    </button>
                     <button onclick="surrenderGame()" class="flex-1 py-3 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold rounded-2xl transition duration-200 text-sm flex items-center justify-center gap-2 border border-rose-200 shadow">
                         <i class="fa-solid fa-flag"></i> 認輸
                     </button>
@@ -473,6 +476,14 @@
                     gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
                     osc.start();
                     osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'pass') {
+                    // 新增 PASS 的柔和滑音
+                    osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                    gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
                 } else if (type === 'error') {
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(180, audioCtx.currentTime);
@@ -513,7 +524,8 @@
             factor2: null, // 乘數 (1-9)
             sliders: [3, 4], // 在滑軌模式中，兩個指針的初始位置
             boardData: [], // 陣列，儲存棋盤每一格的乘積與佔領狀態
-            gameActive: false
+            gameActive: false,
+            consecutivePasses: 0 // 新增：用於記錄雙方連續跳過的次數，累計到 2 即終局
         };
 
         // 九九乘法表能組出的所有合法乘積
@@ -795,6 +807,7 @@
             state.sliders = [3, 4]; // 經典滑軌預設在 3 與 4
             state.p1.score = 0;
             state.p2.score = 0;
+            state.consecutivePasses = 0; // 重置跳過次數
 
             generateBoardData();
             renderBoard();
@@ -1055,39 +1068,38 @@
         function onCellClicked(idx) {
             if (!state.gameActive) return;
             if (state.currentPlayer === 2 && state.opponentType === 'ai') return; // AI 回合不能點
+        function passTurn() {
+            if (!state.gameActive) return;
+            if (state.currentPlayer === 2 && state.opponentType === 'ai') return; // AI回合不能手動按
 
-            const cellData = state.boardData[idx];
-            const product = state.factor1 * state.factor2;
+            playSound('pass');
+            state.consecutivePasses++;
 
-            if (state.factor1 === null || state.factor2 === null) {
-                playSound('error');
-                updateTipText(`請先完成選數算式，才能佔領棋盤喔！`, 'rose');
+            const currentName = state.currentPlayer === 1 ? state.p1.name : state.p2.name;
+            const currentAvatar = state.currentPlayer === 1 ? state.p1.avatar : state.p2.avatar;
+
+            updateTipText(`${currentAvatar} ${currentName} 選擇跳過本回合 (PASS)！`, 'amber');
+
+            // 如果雙方連續 PASS 達 2 次，代表完全無解，直接進入僵局結算
+            if (state.consecutivePasses >= 2) {
+                setTimeout(() => {
+                    calculateScores();
+                    const winDesc = `雙方連續選擇跳過！終局格數比拼：紅隊 ${state.p1.score} 格 VS 藍隊 ${state.p2.score} 格。`;
+                    if (state.p1.score > state.p2.score) {
+                        declareWinner(1, winDesc + `紅隊獲勝！`);
+                    } else if (state.p2.score > state.p1.score) {
+                        declareWinner(2, winDesc + `藍隊獲勝！`);
+                    } else {
+                        declareWinner(0, winDesc + `雙方平手！`);
+                    }
+                }, 1000);
                 return;
             }
 
-            if (cellData.value !== product) {
-                playSound('error');
-                updateTipText(`哎呀！你選取的這格是 ${cellData.value}，但你算出的結果是 ${product}，不匹配喔，請看清楚！`, 'rose');
-                return;
-            }
-
-            // 檢查是否符合佔領規則
-            if (cellData.owner === state.currentPlayer) {
-                playSound('error');
-                updateTipText(`這裡已經是你的領地了，請把機會留給別的格子！`, 'rose');
-                return;
-            }
-
-            const isTakeover = cellData.owner !== 0;
-
-            if (isTakeover && !state.allowTakeover) {
-                playSound('error');
-                updateTipText(`這格已經被對手佔領了，目前未開啟奪地模式，請選擇其他格子！`, 'rose');
-                return;
-            }
-
-            // 正式佔領
-            executeClaim(idx, state.currentPlayer);
+            // 切換玩家
+            setTimeout(() => {
+                switchTurn();
+            }, 800);
         }
 
         function executeClaim(idx, player) {
@@ -1095,6 +1107,7 @@
             const isTakeover = cellData.owner !== 0;
             
             cellData.owner = player;
+            state.consecutivePasses = 0; // 成功佔地時，重置連續 PASS 計數器！
             
             // 播放音效
             if (isTakeover) {
@@ -1206,9 +1219,28 @@
                 }
             }
 
-            // 如果完全無步可走，直接宣布跳過（或者若棋盤還有位置可由對手走，則平手或略過）
+            // 如果 AI 完全無步可走，自動執行 PASS
             if (possibleMoves.length === 0) {
-                updateTipText(`電腦 AI 無法算出能佔地的步法，只好宣布放棄本輪！`, 'rose');
+                state.consecutivePasses++;
+                playSound('pass');
+                updateTipText(`電腦 AI 無法算出能佔地的步法，只好跳過本回合 (PASS)！`, 'rose');
+
+                // 檢查是否連續 2 次 PASS 進入終局
+                if (state.consecutivePasses >= 2) {
+                    setTimeout(() => {
+                        calculateScores();
+                        const winDesc = `因雙方無子可下且連續選擇 PASS！終局格數結算：`;
+                        if (state.p1.score > state.p2.score) {
+                            declareWinner(1, winDesc + `紅隊以 ${state.p1.score} 格勝出！`);
+                        } else if (state.p2.score > state.p1.score) {
+                            declareWinner(2, winDesc + `藍隊以 ${state.p2.score} 格勝出！`);
+                        } else {
+                            declareWinner(0, winDesc + `雙方平手！`);
+                        }
+                    }, 1500);
+                    return;
+                }
+
                 setTimeout(() => {
                     switchTurn();
                 }, 1500);
