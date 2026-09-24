@@ -17,7 +17,6 @@
 </head>
 <body class="bg-slate-900 text-slate-100 h-screen flex flex-col overflow-hidden">
 
-    <!-- Top Minimal Header -->
     <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700 py-1.5 px-3 sm:px-4 shadow-md z-20 flex justify-between items-center shrink-0">
         <div>
             <h1 class="text-xs sm:text-base font-bold text-amber-400 flex items-center gap-1.5">
@@ -28,14 +27,13 @@
             <div id="status-badge" class="bg-amber-500/10 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-medium">
                 載入中...
             </div>
-            <!-- Toggle Sidebar / Toolbar Button -->
+            <!-- Toggle Sidebar Button with active/inactive states -->
             <button id="sidebar-toggle-btn" onclick="toggleSidebar()" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-semibold transition shadow cursor-pointer flex items-center gap-1">
                 <span>🎛️</span> 面板
             </button>
         </div>
     </header>
 
-    <!-- Main Workspace -->
     <main class="flex-grow flex flex-col sm:flex-row relative overflow-hidden w-full h-full p-1 gap-1">
         
         <!-- Center Maximized Viewer -->
@@ -54,14 +52,13 @@
                 </div>
             </div>
 
-            <!-- Special Page 48 YouTube Video View -->
             <div id="video-view-container" class="hidden absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-slate-950 p-4 overflow-y-auto z-20">
                 <div class="max-w-3xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col items-center text-center">
                     <span class="bg-amber-500/20 text-amber-300 text-xs px-3 py-1 rounded-full font-semibold border border-amber-500/30 mb-3">第 48 頁：專題影音推薦</span>
                     <h2 class="text-lg sm:text-2xl font-bold text-slate-100 mb-2">活不明白的時候去讀陶淵明：他才是治癒“精神內耗”的真正祖師爺</h2>
                     <p class="text-xs sm:text-sm text-slate-400 mb-6">跨越千尋尋找內心寧靜，點擊下方按鈕即可前往 YouTube 觀看精彩專題解析影片</p>
                     
-                    <!-- Video Thumbnail Card with Play Button (Bypassing Error 153) -->
+                    <!-- Video Thumbnail Card with Play Button -->
                     <div class="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl border border-slate-700 bg-slate-800 flex items-center justify-center group mb-6">
                         <img src="https://img.youtube.com/vi/_31qAL3ZIfE/hqdefault.jpg" alt="影片封面" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-300">
                         <div class="absolute inset-0 bg-black/40"></div>
@@ -76,12 +73,11 @@
                 </div>
             </div>
 
-            <!-- Floating quick bottom-left page indicator -->
+            <!-- Floating page indicator -->
             <div class="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] sm:text-xs text-amber-300 font-medium shadow-lg z-20">
                 <span id="floating-page-indicator">1 / 48</span>
             </div>
 
-            <!-- Floating Right Icon-Only Toolbar (Optimized for Mobile & Desktop) -->
             <div class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-1.5 sm:p-2 shadow-2xl flex flex-col gap-2 z-30">
                 <button onclick="goToFirst()" title="第一頁" class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-xl transition shadow border border-slate-700 cursor-pointer text-xs sm:text-sm">
                     ⏫
@@ -98,18 +94,15 @@
                 
                 <hr class="border-slate-700 my-0.5">
                 
-                <!-- Drawing Mode Toggle Button -->
                 <button id="draw-mode-btn" onclick="toggleDrawingMode()" title="切換塗鴉/畫線模式" class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-xl transition shadow border border-slate-700 cursor-pointer text-xs sm:text-sm">
                     📝
                 </button>
-                <!-- Clear Drawing Button -->
                 <button onclick="clearCanvas()" title="清除當前頁面塗鴉" class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white rounded-xl transition shadow border border-slate-700 cursor-pointer text-xs sm:text-sm">
                     🧹
                 </button>
             </div>
         </div>
 
-        <!-- Right Control Sidebar (Collapsible & Mobile Responsive) -->
         <aside id="control-sidebar" class="w-full sm:w-72 bg-slate-800/95 backdrop-blur border border-slate-700 rounded-xl p-3 shadow-2xl flex flex-col justify-between transition-all duration-300 z-10 shrink-0 max-h-[35vh] sm:max-h-none overflow-y-auto sm:overflow-visible">
             <div class="flex flex-col gap-2.5">
                 <div>
@@ -119,18 +112,15 @@
                     <p class="text-[11px] text-slate-400">點擊右側快捷圖標或選取頁碼</p>
                 </div>
 
-                <!-- Filename Badge -->
                 <div class="bg-slate-900/80 border border-slate-700/80 rounded-lg p-2">
                     <span class="text-[10px] text-slate-400 block mb-0.5">當前頁面：</span>
                     <span id="file-name-display" class="text-[11px] font-semibold text-amber-300 break-words">載入中...</span>
                 </div>
 
-                <!-- Page Jump Selector -->
                 <div class="flex flex-col gap-1">
                     <label for="page-select" class="text-[11px] text-slate-300 font-medium">跳至指定頁面：</label>
                     <div class="flex items-center gap-2 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-700">
                         <select id="page-select" onchange="jumpToPage(this.value)" class="bg-transparent text-slate-200 text-xs font-medium focus:outline-none w-full cursor-pointer">
-                            <!-- Options generated dynamically -->
                         </select>
                         <span id="total-pages-label" class="text-[11px] text-slate-400 shrink-0">/ 48</span>
                     </div>
@@ -142,7 +132,6 @@
                         <span class="flex items-center gap-1"><span>✏️</span> 塗鴉設定工具列</span>
                     </span>
                     
-                    <!-- Mode Switcher: Pen vs Highlighter -->
                     <div class="grid grid-cols-2 gap-1.5 bg-slate-800 p-1 rounded-lg border border-slate-700">
                         <button id="mode-pen-btn" onclick="setDrawingTool('pen')" class="py-1 text-[11px] font-semibold rounded transition text-white bg-amber-600 shadow">
                             🖊️ 一般畫筆
@@ -152,7 +141,6 @@
                         </button>
                     </div>
 
-                    <!-- Color Swatches -->
                     <div class="flex flex-col gap-1">
                         <span class="text-[10px] text-slate-400">選擇畫筆顏色：</span>
                         <div class="flex items-center gap-1.5 justify-between">
@@ -164,7 +152,7 @@
                             <input type="color" id="custom-color-picker" onchange="setBrushColor(this.value)" class="w-5 h-5 sm:w-6 sm:h-6 rounded cursor-pointer bg-transparent border-0" title="自訂顏色">
                         </div>
                     </div>
-                    <!-- Brush Size Slider -->
+                    
                     <div class="flex flex-col gap-1">
                         <div class="flex justify-between text-[10px] text-slate-400">
                             <span id="brush-size-title">畫筆粗細：</span>
@@ -175,7 +163,6 @@
                 </div>
             </div>
 
-            <!-- Footer Keyboard Tip inside sidebar -->
             <div class="pt-2 border-t border-slate-700 text-[10px] text-slate-400 text-center hidden sm:block">
                 提示：可使用鍵盤 <kbd class="bg-slate-700 px-1 py-0.5 rounded text-slate-200">←</kbd> <kbd class="bg-slate-700 px-1 py-0.5 rounded text-slate-200">→</kbd> 翻頁
             </div>
@@ -184,7 +171,6 @@
     </main>
 
     <script>
-        // Complete 48 items array (Pages 1 to 47 are images, Page 48 is YouTube video summary)
         const imageItems = [
             { name: "第 1 頁 (全書封面)", type: "image", id: "1VX5UpfhcDQU8HXhAI0oral23w3Zh1Yr1" },
             { name: "第 2 頁", type: "image", id: "1U8I9xBXnR9vVafbWnH0keVnE0BHy-41_" },
@@ -249,11 +235,10 @@
         let currentFormatIndex = 0;
         let sidebarOpen = true;
         let drawingMode = false;
-        let drawingTool = 'pen'; // 'pen' or 'highlighter'
+        let drawingTool = 'pen';
         let brushColor = '#fbbf24';
         let brushSize = 4;
         
-        // Store annotations per page index
         const pageAnnotations = {};
 
         const imgElement = document.getElementById('current-image');
@@ -293,15 +278,14 @@
         function toggleSidebar() {
             sidebarOpen = !sidebarOpen;
             if (sidebarOpen) {
-                controlSidebar.classList.remove('hidden', 'w-0', 'opacity-0', 'p-0', 'overflow-hidden');
-                controlSidebar.classList.add('w-72', 'opacity-100', 'p-3');
+                controlSidebar.classList.remove('hidden', 'w-0', 'opacity-0', 'p-0', 'overflow-hidden', 'pointer-events-none');
+                controlSidebar.classList.add('w-full', 'sm:w-72', 'opacity-100', 'p-3');
                 sidebarToggleBtn.className = "bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-semibold transition shadow cursor-pointer flex items-center gap-1";
             } else {
-                controlSidebar.classList.add('w-0', 'opacity-0', 'p-0', 'overflow-hidden');
-                controlSidebar.classList.remove('w-72', 'opacity-100', 'p-3');
+                controlSidebar.classList.add('w-0', 'opacity-0', 'p-0', 'overflow-hidden', 'pointer-events-none');
+                controlSidebar.classList.remove('w-full', 'sm:w-72', 'opacity-100', 'p-3');
                 sidebarToggleBtn.className = "bg-slate-700 hover:bg-slate-600 text-slate-400 px-2.5 py-1 rounded-md text-xs font-semibold transition shadow cursor-pointer flex items-center gap-1";
             }
-            // Recalculate canvas bounding rectangle and dimensions after transition completes
             setTimeout(resizeCanvas, 320);
         }
 
@@ -373,7 +357,6 @@
             pageAnnotations[currentIndex] = canvas.toDataURL();
         }
 
-        // Drawing Event Listeners (with accurate coordinate mapping)
         canvas.addEventListener('mousedown', (e) => {
             if (!drawingMode) return;
             isDrawing = true;
@@ -396,7 +379,6 @@
             ctx.lineCap = drawingTool === 'highlighter' ? 'square' : 'round';
             ctx.lineJoin = 'round';
             
-            // Ultra-light highlighter alpha (0.10) so underlying text remains perfectly crisp and readable
             if (drawingTool === 'highlighter') {
                 ctx.globalAlpha = 0.10;
             } else {
@@ -404,7 +386,7 @@
             }
 
             ctx.stroke();
-            ctx.globalAlpha = 1.0; // Reset alpha
+            ctx.globalAlpha = 1.0;
 
             lastX = currentX;
             lastY = currentY;
@@ -414,7 +396,6 @@
         canvas.addEventListener('mouseup', () => { isDrawing = false; });
         canvas.addEventListener('mouseleave', () => { isDrawing = false; });
 
-        // Touch support for mobile devices
         canvas.addEventListener('touchstart', (e) => {
             if (!drawingMode) return;
             isDrawing = true;
@@ -518,7 +499,6 @@
         function goNext() { if (currentIndex < imageItems.length - 1) showPage(currentIndex + 1); }
         function jumpToPage(val) { showPage(parseInt(val, 10)); }
 
-        // Keyboard navigation support
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
                 goPrev();
