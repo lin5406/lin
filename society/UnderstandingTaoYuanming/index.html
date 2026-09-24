@@ -79,33 +79,33 @@
                 <span id="floating-page-indicator">1 / 48</span>
             </div>
 
-            <!-- Right floating icon-only toolbar (Width optimized: max 2/3 width placement / compact right edge) -->
-            <div class="absolute right-1.5 sm:right-3 top-1/2 -translate-y-1/2 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-xl p-1 shadow-2xl flex flex-col gap-1.5 z-30 scale-90 sm:scale-100 origin-right">
-                <button onclick="goToFirst()" title="第一頁" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-lg transition shadow border border-slate-700 cursor-pointer text-xs">
+            <!-- Right floating icon-only toolbar: compact width (max 2/3 width placement / extreme right edge) -->
+            <div class="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 rounded-lg p-0.5 shadow-2xl flex flex-col gap-1 z-30 scale-85 sm:scale-100 origin-right">
+                <button onclick="goToFirst()" title="第一頁" class="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded transition shadow border border-slate-700 cursor-pointer text-[11px]">
                     ⏫
                 </button>
-                <button onclick="goPrev()" title="上一頁" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition shadow cursor-pointer text-xs">
+                <button onclick="goPrev()" title="上一頁" class="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white rounded transition shadow cursor-pointer text-[11px]">
                     🔼
                 </button>
-                <button onclick="goNext()" title="下一頁" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition shadow cursor-pointer text-xs">
+                <button onclick="goNext()" title="下一頁" class="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white rounded transition shadow cursor-pointer text-[11px]">
                     🔽
                 </button>
-                <button onclick="goToLast()" title="最後一頁 (第48頁)" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-lg transition shadow border border-slate-700 cursor-pointer text-xs">
+                <button onclick="goToLast()" title="最後一頁 (第48頁)" class="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded transition shadow border border-slate-700 cursor-pointer text-[11px]">
                     ⏬
                 </button>
                 
                 <hr class="border-slate-700 my-0.5">
                 
-                <button id="draw-mode-btn" onclick="toggleDrawingMode()" title="切換塗鴉/畫線模式" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-lg transition shadow border border-slate-700 cursor-pointer text-xs">
+                <button id="draw-mode-btn" onclick="toggleDrawingMode()" title="切換塗鴉/畫線模式" class="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded transition shadow border border-slate-700 cursor-pointer text-[11px]">
                     📝
                 </button>
-                <button onclick="clearCanvas()" title="清除當前頁面塗鴉" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white rounded-lg transition shadow border border-slate-700 cursor-pointer text-xs">
+                <button onclick="clearCanvas()" title="清除當前頁面塗鴉" class="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white rounded transition shadow border border-slate-700 cursor-pointer text-[11px]">
                     🧹
                 </button>
             </div>
         </div>
 
-        <aside id="control-sidebar" class="hidden sm:flex w-full sm:w-72 bg-slate-800/95 backdrop-blur border border-slate-700 rounded-xl p-3 shadow-2xl flex-col justify-between transition-all duration-300 z-10 shrink-0 max-h-[35vh] sm:max-h-none overflow-y-auto sm:overflow-visible">
+        <aside id="control-sidebar" class="hidden w-full sm:w-72 bg-slate-800/95 backdrop-blur border border-slate-700 rounded-xl p-3 shadow-2xl flex-col justify-between transition-all duration-300 z-10 shrink-0 max-h-[35vh] sm:max-h-none overflow-y-auto sm:overflow-visible">
             <div class="flex flex-col gap-2.5">
                 <div>
                     <h2 class="text-xs font-bold text-amber-300 mb-0.5 flex items-center gap-1">
@@ -217,7 +217,7 @@
             { name: "第 41 頁", type: "image", id: "1hxzzjfldsr1i5SvQ7owAqLtoAXrVo09u" },
             { name: "第 42 頁", type: "image", id: "166np8EnSG9zf4VGvlw8lYneSsUvaDJFF" },
             { name: "第 43 頁", type: "image", id: "1LmpKuzIgwWHF2dpc1xfmk0yI62ONR65N" },
-            { name: "第 44 頁", type: "image", id: "194iBQ3Yqbs-o1EvTCQ4foFFaTtkr_JiV" },
+            { name: "Test 44", type: "image", id: "194iBQ3Yqbs-o1EvTCQ4foFFaTtkr_JiV" },
             { name: "第 45 頁", type: "image", id: "1VGyBsLCvl-70ljATVrYLPhBhsQ3bW-Nt" },
             { name: "第 46 頁", type: "image", id: "1iBCgMgjXpLMdj8yg6nFSeoS02pqDyTsN" },
             { name: "第 47 頁", type: "image", id: "1n1vCNXCoQIZXdZTSFgYaUmX_yaWsa0sg" },
