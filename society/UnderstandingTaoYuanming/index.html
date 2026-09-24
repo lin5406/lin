@@ -52,6 +52,7 @@
                 </div>
             </div>
 
+            <!-- Special Page 48 YouTube Video View -->
             <div id="video-view-container" class="hidden absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-slate-950 p-4 overflow-y-auto z-20">
                 <div class="max-w-3xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col items-center text-center">
                     <span class="bg-amber-500/20 text-amber-300 text-xs px-3 py-1 rounded-full font-semibold border border-amber-500/30 mb-3">第 48 頁：專題影音推薦</span>
@@ -78,6 +79,7 @@
                 <span id="floating-page-indicator">1 / 48</span>
             </div>
 
+            <!-- Right floating icon-only toolbar -->
             <div class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-1.5 sm:p-2 shadow-2xl flex flex-col gap-2 z-30">
                 <button onclick="goToFirst()" title="第一頁" class="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-xl transition shadow border border-slate-700 cursor-pointer text-xs sm:text-sm">
                     ⏫
@@ -282,7 +284,7 @@
                 controlSidebar.classList.add('w-full', 'sm:w-72', 'opacity-100', 'p-3');
                 sidebarToggleBtn.className = "bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-semibold transition shadow cursor-pointer flex items-center gap-1";
             } else {
-                controlSidebar.classList.add('w-0', 'opacity-0', 'p-0', 'overflow-hidden', 'pointer-events-none');
+                controlSidebar.classList.add('hidden', 'w-0', 'opacity-0', 'p-0', 'overflow-hidden', 'pointer-events-none');
                 controlSidebar.classList.remove('w-full', 'sm:w-72', 'opacity-100', 'p-3');
                 sidebarToggleBtn.className = "bg-slate-700 hover:bg-slate-600 text-slate-400 px-2.5 py-1 rounded-md text-xs font-semibold transition shadow cursor-pointer flex items-center gap-1";
             }
