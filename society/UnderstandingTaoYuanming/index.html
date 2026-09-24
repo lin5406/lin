@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>讀懂陶淵明 - 48頁全集漫畫與影音瀏覽器（含螢光畫筆）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-container {
+            max-height: 94vh;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700 py-1.5 px-4 shadow-md z-20 flex justify-between items-center shrink-0">
+        <div>
+            <h1 class="text-sm sm:text-base font-bold text-amber-400 flex items-center gap-2">
+                <span>📖</span> 讀懂陶淵明：48頁全集漫畫與影音瀏覽器
+            </h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <div id="status-badge" class="bg-amber-500/10 border border-amber-500/30 text-amber-300 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                載入中...
+            </div>
+            <button onclick="toggleSidebar()" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-md text-xs font-semibold transition shadow cursor-pointer flex items-center gap-1">
+                <span>🎛️</span> <span id="sidebar-toggle-text">收起控制面板</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow flex relative overflow-hidden w-full h-full p-1 gap-1">
+        
+        <!-- Center Maximized Viewer -->
+        <div id="main-content-wrapper" class="content-container relative flex-grow flex items-center justify-center bg-slate-950 rounded-xl overflow-hidden border border-slate-800 shadow-inner w-full h-full p-1">
+            
+            <!-- Standard Comic Image View -->
+            <div id="image-view-container" class="relative w-full h-full flex items-center justify-center">
+                <img id="current-image" src="" alt="漫畫頁面" class="max-h-[94vh] max-w-full w-auto h-auto object-contain rounded-lg shadow-2xl transition-all duration-200" onload="handleImageLoad()" onerror="handleImageError(this)">
+                
+                <!-- Drawing Canvas Overlay for Annotation & Highlighting -->
+                <canvas id="drawing-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+
+                <!-- Loading overlay -->
+                <div id="loader" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 transition-opacity duration-200 pointer-events-none">
+                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-400"></div>
+                </div>
+            </div>
+
+            <!-- Special Page 48 YouTube Video View -->
+            <div id="video-view-container" class="hidden absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-slate-950 p-4 overflow-y-auto">
+                <div class="max-w-3xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl flex flex-col items-center text-center">
+                    <span class="bg-amber-500/20 text-amber-300 text-xs px-3 py-1 rounded-full font-semibold border border-amber-500/30 mb-3">第 48 頁：專題影音推薦</span>
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-100 mb-2">活不明白的時候去讀陶淵明：他才是治癒“精神內耗”的真正祖師爺</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mb-6">跨越千尋尋找內心寧靜，點擊下方按鈕即可前往 YouTube 觀看精彩專題解析影片</p>
+                    
+                    <!-- Video Thumbnail Card with Play Button (Bypassing Error 153) -->
+                    <div class="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl border border-slate-700 bg-slate-800 flex items-center justify-center group mb-6">
+                        <img src="https://img.youtube.com/vi/_31qAL3ZIfE/hqdefault.jpg" alt="影片封面" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute inset-0 bg-black/40"></div>
+                        <a href="https://www.youtube.com/watch?v=_31qAL3ZIfE" target="_blank" rel="noopener noreferrer" class="relative z-10 w-20 h-20 bg-red-600 hover:bg-red-500 text-white rounded-full flex items-center justify-center shadow-2xl transition transform hover:scale-110 cursor-pointer">
+                            <span class="text-3xl ml-1">▶</span>
+                        </a>
+                    </div>
+
+                    <a href="https://www.youtube.com/watch?v=_31qAL3ZIfE" target="_blank" rel="noopener noreferrer" class="bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-lg cursor-pointer">
+                        <span>▶️</span> 在 YouTube 網頁中開啟專題影片
+                    </a>
+                </div>
+            </div>
+
+            <!-- Floating quick overlay page indicator -->
+            <div class="absolute bottom-3 left-3 bg-slate-900/80 backdrop-blur px-2.5 py-1 rounded-lg border border-slate-700 text-xs text-amber-300 font-medium shadow-lg z-20">
+                <span id="floating-page-indicator">1 / 48</span>
+            </div>
+
+            <!-- Floating Right Icon-Only Toolbar (Hover Tooltips) -->
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 bg-slate-900/90 backdrop-blur-md border border-slate-700/80 rounded-2xl p-2 shadow-2xl flex flex-col gap-2.5 z-30">
+                <button onclick="goToFirst()" title="第一頁" class="w-10 h-10 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-xl transition shadow border border-slate-700 cursor-pointer text-sm">
+                    ⏫
+                </button>
+                <button onclick="goPrev()" title="上一頁" class="w-10 h-10 flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white rounded-xl transition shadow cursor-pointer text-sm">
+                    🔼
+                </button>
+                <button onclick="goNext()" title="下一頁" class="w-10 h-10 flex items-center justify-center bg-amber-600 hover:bg-amber-500 text-white rounded-xl transition shadow cursor-pointer text-sm">
+                    🔽
+                </button>
+                <button onclick="goToLast()" title="最後一頁 (第48頁)" class="w-10 h-10 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-xl transition shadow border border-slate-700 cursor-pointer text-sm">
+                    ⏬
+                </button>
+                
+                <hr class="border-slate-700 my-1">
+                
+                <!-- Drawing Mode Toggle Button -->
+                <button id="draw-mode-btn" onclick="toggleDrawingMode()" title="切換塗鴉/畫線模式" class="w-10 h-10 flex items-center justify-center bg-slate-800 hover:bg-amber-600 text-slate-200 hover:text-white rounded-xl transition shadow border border-slate-700 cursor-pointer text-sm">
+                    📝
+                </button>
+                <!-- Clear Drawing Button -->
+                <button onclick="clearCanvas()" title="清除當前頁面塗鴉" class="w-10 h-10 flex items-center justify-center bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white rounded-xl transition shadow border border-slate-700 cursor-pointer text-sm">
+                    🧹
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Control Sidebar (Collapsible) -->
+        <aside id="control-sidebar" class="w-72 bg-slate-800/95 backdrop-blur border border-slate-700 rounded-xl p-3 shadow-2xl flex flex-col justify-between transition-all duration-300 z-10 shrink-0">
+            <div class="flex flex-col gap-3">
+                <div>
+                    <h2 class="text-xs font-bold text-amber-300 mb-0.5 flex items-center gap-1">
+                        <span>📑</span> 頁面導航與控制
+                    </h2>
+                    <p class="text-[11px] text-slate-400">點擊右側快捷圖標或選取頁碼</p>
+                </div>
+
+                <!-- Filename Badge -->
+                <div class="bg-slate-900/80 border border-slate-700/80 rounded-lg p-2">
+                    <span class="text-[10px] text-slate-400 block mb-0.5">當前頁面：</span>
+                    <span id="file-name-display" class="text-[11px] font-semibold text-amber-300 break-words">載入中...</span>
+                </div>
+
+                <!-- Page Jump Selector -->
+                <div class="flex flex-col gap-1">
+                    <label for="page-select" class="text-[11px] text-slate-300 font-medium">跳至指定頁面：</label>
+                    <div class="flex items-center gap-2 bg-slate-900 px-2.5 py-1.5 rounded-lg border border-slate-700">
+                        <select id="page-select" onchange="jumpToPage(this.value)" class="bg-transparent text-slate-200 text-xs font-medium focus:outline-none w-full cursor-pointer">
+                            <!-- Options generated dynamically -->
+                        </select>
+                        <span id="total-pages-label" class="text-[11px] text-slate-400 shrink-0">/ 48</span>
+                    </div>
+                </div>
+
+                <div id="drawing-config-box" class="hidden bg-slate-900/90 border border-amber-500/40 rounded-lg p-2.5 flex flex-col gap-2">
+                    <span class="text-[11px] font-semibold text-amber-300 flex items-center justify-between">
+                        <span class="flex items-center gap-1"><span>✏️</span> 塗鴉設定工具列</span>
+                    </span>
+                    
+                    <!-- Mode Switcher: Pen vs Highlighter -->
+                    <div class="grid grid-cols-2 gap-1.5 bg-slate-800 p-1 rounded-lg border border-slate-700">
+                        <button id="mode-pen-btn" onclick="setDrawingTool('pen')" class="py-1 text-[11px] font-semibold rounded transition text-white bg-amber-600 shadow">
+                            🖊️ 一般畫筆
+                        </button>
+                        <button id="mode-highlighter-btn" onclick="setDrawingTool('highlighter')" class="py-1 text-[11px] font-semibold rounded transition text-slate-300 hover:text-white">
+                            🖍️ 螢光筆特效
+                        </button>
+                    </div>
+
+                    <!-- Color Swatches -->
+                    <div class="flex flex-col gap-1">
+                        <span class="text-[10px] text-slate-400">選擇畫筆顏色：</span>
+                        <div class="flex items-center gap-1.5 justify-between">
+                            <button onclick="setBrushColor('#fbbf24')" class="w-6 h-6 rounded-full bg-amber-400 border-2 border-white shadow color-btn active-color" data-color="#fbbf24" title="琥珀金"></button>
+                            <button onclick="setBrushColor('#ef4444')" class="w-6 h-6 rounded-full bg-red-500 border-2 border-transparent shadow color-btn" data-color="#ef4444" title="亮紅"></button>
+                            <button onclick="setBrushColor('#3b82f6')" class="w-6 h-6 rounded-full bg-blue-500 border-2 border-transparent shadow color-btn" data-color="#3b82f6" title="寶藍"></button>
+                            <button onclick="setBrushColor('#10b981')" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-transparent shadow color-btn" data-color="#10b981" title="翠綠"></button>
+                            <button onclick="setBrushColor('#ffffff')" class="w-6 h-6 rounded-full bg-white border-2 border-transparent shadow color-btn" data-color="#ffffff" title="純白"></button>
+                            <input type="color" id="custom-color-picker" onchange="setBrushColor(this.value)" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0" title="自訂顏色">
+                        </div>
+                    </div>
+                    <!-- Brush Size Slider -->
+                    <div class="flex flex-col gap-1">
+                        <div class="flex justify-between text-[10px] text-slate-400">
+                            <span id="brush-size-title">畫筆粗細：</span>
+                            <span id="brush-size-label">4 px</span>
+                        </div>
+                        <input type="range" id="brush-size-range" min="1" max="40" value="4" oninput="setBrushSize(this.value)" class="w-full accent-amber-500 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Keyboard Tip inside sidebar -->
+            <div class="pt-2 border-t border-slate-700 text-[10px] text-slate-400 text-center">
+                提示：可使用鍵盤 <kbd class="bg-slate-700 px-1 py-0.5 rounded text-slate-200">←</kbd> <kbd class="bg-slate-700 px-1 py-0.5 rounded text-slate-200">→</kbd> 翻頁
+            </div>
+        </aside>
+
+    </main>
+
+    <script>
+        // Complete 48 items array (Pages 1 to 47 are images, Page 48 is the YouTube summary)
+        const imageItems = [
+            { name: "第 1 頁 (全書封面)", type: "image", id: "1VX5UpfhcDQU8HXhAI0oral23w3Zh1Yr1" },
+            { name: "第 2 頁", type: "image", id: "1U8I9xBXnR9vVafbWnH0keVnE0BHy-41_" },
+            { name: "第 3 頁", type: "image", id: "1Zaph6ZZuyYWQK3Asq95z4F6RQzDtxXpE" },
+            { name: "第 4 頁", type: "image", id: "1mRY9X4bjsVYFrx1z97xJZig73DQvk3r_" },
+            { name: "第 5 頁", type: "image", id: "1nGEostLyDysAjKWYtWBLGCKddrDpKnHi" },
+            { name: "第 6 頁", type: "image", id: "1qpV96nnTjGaWAu3Xr6OgOf5PE4IHInOw" },
+            { name: "第 7 頁", type: "image", id: "1zAGohUzTWE4lU6AsXQv9_Zll9sXL7a3f" },
+            { name: "第 8 頁", type: "image", id: "1wtLjcQm12iWuk3_KN8XOMpMmVR868Bk9" },
+            { name: "第 9 頁", type: "image", id: "1HX5TYe7M6MtlArcsYC3p9eLY9djO5YXd" },
+            { name: "第 10 頁", type: "image", id: "1-KThDBOJSBDGn4nE9PmVYk39Ky7fhzVc" },
+            { name: "第 11 頁", type: "image", id: "1zB8AsXIXvanIBN5SXQ0t6BmCyX2oUni_" },
+            { name: "第 12 頁", type: "image", id: "17shi-JnZsLNyI4roVNgkY5VyBikbTFCq" },
+            { name: "第 13 頁", type: "image", id: "1cMTMnKk2TUfHf7d_HdDVPR6mHDvDSbuQ" },
+            { name: "第 14 頁", type: "image", id: "1UcjUHwUmmZEAmKU5BmLzwyNgVJdWE538" },
+            { name: "第 15 頁", type: "image", id: "1VoaWaYl44UcWXKx0BIYdpKs0vH9gAyMg" },
+            { name: "第 16 頁", type: "image", id: "1MAW37RK0jwNtKr7--sA0wt-e-OvsdJE5" },
+            { name: "第 17 頁", type: "image", id: "158ZR6z-1Q5y67Rq-ZpvazVc9Fg9uPMfP" },
+            { name: "第 18 頁", type: "image", id: "13h9J3PRKpPU2WMoaew1zOrmAJdw6Yebr" },
+            { name: "第 19 頁", type: "image", id: "1oqOISdgTN45EjXG5F-R_hv-kBnpMoR2x" },
+            { name: "第 20 頁", type: "image", id: "1hlKMov-UT3wkGymCxUsetPtqUDhm1_Dn" },
+            { name: "第 21 頁", type: "image", id: "1MQVooCHxKIcnMkpaf6bhHKMKLql9U9iF" },
+            { name: "第 22 頁", type: "image", id: "1whZJkxXZ9mzC21PYqruOlN1sj3-guY2A" },
+            { name: "第 23 頁", type: "image", id: "1kkcdrxJz7mv7jyGDYSMmd1WiiLYvAsjd" },
+            { name: "第 24 頁", type: "image", id: "1ylFzE_Dh7xQH65Jo77qQ6l9FMpV4R0hP" },
+            { name: "第 25 頁", type: "image", id: "1IqWoSXILgvW79YtYaGtSvlmFtoywNVWr" },
+            { name: "第 26 頁", type: "image", id: "13_G1s9pLzzagM2WuPD96FQ_TFpEtTTlt" },
+            { name: "第 27 頁", type: "image", id: "1xVekGcOYdIL0-_TKaneDp2a2k01lLDCu" },
+            { name: "第 28 頁", type: "image", id: "1AN9vwricJK3sLPJ_0ANFWOmUXKELMB5L" },
+            { name: "第 29 頁", type: "image", id: "1JVPldh_57IYwSB5EEmFGuHywuBD8S6Sz" },
+            { name: "第 30 頁", type: "image", id: "1vlU1wQxdbIg82yns32XyzxgjPytO6o1c" },
+            { name: "第 31 頁", type: "image", id: "1FxT0F6jYpIQ0hQu5rfU-LArPeUcHFlfx" },
+            { name: "第 32 頁", type: "image", id: "1OrMBwpOF3YFmeRwUZPD3fyI6nEmVupUn" },
+            { name: "第 33 頁", type: "image", id: "1s1yoaMEJdcM5R87PXuadLHLGlWy7qQOM" },
+            { name: "第 34 頁", type: "image", id: "1q5so2VusBoop62--cWQGg1P6xz9gH8pd" },
+            { name: "第 35 頁", type: "image", id: "1HJeDv2HMFK9P0kQ-3EGii-pElrModDJw" },
+            { name: "第 36 頁", type: "image", id: "1Fu8WwHMhLVQMYR3QUeV0eSrmqjO19tMS" },
+            { name: "第 37 頁", type: "image", id: "1o7xpcvxLZJKKHTllcmPpB4GpghkUUKIr" },
+            { name: "第 38 頁", type: "image", id: "1z8opojJsP2Vkm9bSMdDHHvXXAOtqMVnh" },
+            { name: "第 39 頁", type: "image", id: "1UbjYvNjGW41TqNeomStlbngt5ZY_kWG-" },
+            { name: "第 40 頁", type: "image", id: "1iJuOivyejgXZU614eMRb1ivMXpGqGoDD" },
+            { name: "第 41 頁", type: "image", id: "1hxzzjfldsr1i5SvQ7owAqLtoAXrVo09u" },
+            { name: "第 42 頁", type: "image", id: "166np8EnSG9zf4VGvlw8lYneSsUvaDJFF" },
+            { name: "第 43 頁", type: "image", id: "1LmpKuzIgwWHF2dpc1xfmk0yI62ONR65N" },
+            { name: "第 44 頁", type: "image", id: "194iBQ3Yqbs-o1EvTCQ4foFFaTtkr_JiV" },
+            { name: "第 45 頁", type: "image", id: "1VGyBsLCvl-70ljATVrYLPhBhsQ3bW-Nt" },
+            { name: "第 46 頁", type: "image", id: "1iBCgMgjXpLMdj8yg6nFSeoS02pqDyTsN" },
+            { name: "第 47 頁", type: "image", id: "1n1vCNXCoQIZXdZTSFgYaUmX_yaWsa0sg" },
+            { name: "第 48 頁 (專題影音)", type: "video", videoId: "_31qAL3ZIfE", name: "活不明白的時候去讀陶淵明：他才是治癒“精神內耗”的真正祖師爺" }
+        ];
+
+        function getDriveUrl(fileId, formatIndex = 0) {
+            const urls = [
+                `https://lh3.googleusercontent.com/d/${fileId}=s1600`,
+                `https://drive.google.com/uc?export=view&id=${fileId}`,
+                `https://drive.google.com/uc?export=download&id=${fileId}`
+            ];
+            return urls[formatIndex % urls.length];
+        }
+
+        let currentIndex = 0;
+        let currentFormatIndex = 0;
+        let sidebarOpen = true;
+        let drawingMode = false;
+        let drawingTool = 'pen'; // 'pen' or 'highlighter'
+        let brushColor = '#fbbf24';
+        let brushSize = 4;
+        
+        // Store annotations per page index
+        const pageAnnotations = {};
+
+        const imgElement = document.getElementById('current-image');
+        const imageViewContainer = document.getElementById('image-view-container');
+        const videoViewContainer = document.getElementById('video-view-container');
+        const fileNameDisplay = document.getElementById('file-name-display');
+        const statusBadge = document.getElementById('status-badge');
+        const pageSelect = document.getElementById('page-select');
+        const totalPagesLabel = document.getElementById('total-pages-label');
+        const floatingPageIndicator = document.getElementById('floating-page-indicator');
+        const loader = document.getElementById('loader');
+        const controlSidebar = document.getElementById('control-sidebar');
+        const sidebarToggleText = document.getElementById('sidebar-toggle-text');
+        
+        const canvas = document.getElementById('drawing-canvas');
+        const ctx = canvas.getContext('2d');
+        const drawModeBtn = document.getElementById('draw-mode-btn');
+        const drawingConfigBox = document.getElementById('drawing-config-box');
+        const brushSizeLabel = document.getElementById('brush-size-label');
+        const brushSizeRange = document.getElementById('brush-size-range');
+        const brushSizeTitle = document.getElementById('brush-size-title');
+        const modePenBtn = document.getElementById('mode-pen-btn');
+        const modeHighlighterBtn = document.getElementById('mode-highlighter-btn');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            redrawCanvas();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+            if (sidebarOpen) {
+                controlSidebar.classList.remove('hidden', 'w-0', 'opacity-0', 'p-0', 'overflow-hidden');
+                controlSidebar.classList.add('w-72', 'opacity-100', 'p-3');
+                sidebarToggleText.textContent = "收起控制面板";
+            } else {
+                controlSidebar.classList.add('w-0', 'opacity-0', 'p-0', 'overflow-hidden');
+                controlSidebar.classList.remove('w-72', 'opacity-100', 'p-3');
+                sidebarToggleText.textContent = "展開控制面板";
+            }
+            // Recalculate canvas coordinates immediately after transition completes
+            setTimeout(resizeCanvas, 320);
+        }
+
+        function toggleDrawingMode() {
+            drawingMode = !drawingMode;
+            if (drawingMode) {
+                canvas.classList.remove('pointer-events-none');
+                drawModeBtn.classList.add('bg-amber-600', 'text-white');
+                drawModeBtn.classList.remove('bg-slate-800', 'text-slate-200');
+                drawingConfigBox.classList.remove('hidden');
+            } else {
+                canvas.classList.add('pointer-events-none');
+                drawModeBtn.classList.remove('bg-amber-600', 'text-white');
+                drawModeBtn.classList.add('bg-slate-800', 'text-slate-200');
+                drawingConfigBox.classList.add('hidden');
+            }
+        }
+
+        function setDrawingTool(tool) {
+            drawingTool = tool;
+            if (tool === 'pen') {
+                modePenBtn.className = "py-1 text-[11px] font-semibold rounded transition text-white bg-amber-600 shadow";
+                modeHighlighterBtn.className = "py-1 text-[11px] font-semibold rounded transition text-slate-300 hover:text-white";
+                brushSizeRange.value = 4;
+                setBrushSize(4);
+            } else {
+                modeHighlighterBtn.className = "py-1 text-[11px] font-semibold rounded transition text-white bg-amber-600 shadow";
+                modePenBtn.className = "py-1 text-[11px] font-semibold rounded transition text-slate-300 hover:text-white";
+                brushSizeRange.value = 22;
+                setBrushSize(22);
+            }
+        }
+
+        function setBrushColor(color) {
+            brushColor = color;
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                if(btn.dataset.color === color) {
+                    btn.classList.add('border-white');
+                    btn.classList.remove('border-transparent');
+                } else {
+                    btn.classList.remove('border-white');
+                    btn.classList.add('border-transparent');
+                }
+            });
+        }
+
+        function setBrushSize(size) {
+            brushSize = parseInt(size, 10);
+            brushSizeLabel.textContent = `${brushSize} px`;
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pageAnnotations[currentIndex] = null;
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (pageAnnotations[currentIndex]) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+                img.src = pageAnnotations[currentIndex];
+            }
+        }
+
+        function saveCanvas() {
+            pageAnnotations[currentIndex] = canvas.toDataURL();
+        }
+
+        // Drawing Event Listeners
+        canvas.addEventListener('mousedown', (e) => {
+            if (!drawingMode) return;
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastX = e.clientX - rect.left;
+            lastY = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing || !drawingMode) return;
+            const rect = canvas.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.strokeStyle = brushColor;
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = drawingTool === 'highlighter' ? 'square' : 'round';
+            ctx.lineJoin = 'round';
+            
+            // Ultra-light highlighter alpha (0.10) so underlying text remains perfectly crisp and readable
+            if (drawingTool === 'highlighter') {
+                ctx.globalAlpha = 0.10;
+            } else {
+                ctx.globalAlpha = 1.0;
+            }
+
+            ctx.stroke();
+            ctx.globalAlpha = 1.0; // Reset alpha
+
+            lastX = currentX;
+            lastY = currentY;
+            saveCanvas();
+        });
+
+        canvas.addEventListener('mouseup', () => { isDrawing = false; });
+        canvas.addEventListener('mouseleave', () => { isDrawing = false; });
+
+        // Touch support for mobile devices
+        canvas.addEventListener('touchstart', (e) => {
+            if (!drawingMode) return;
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            lastX = touch.clientX - rect.left;
+            lastY = touch.clientY - rect.top;
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDrawing || !drawingMode) return;
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const currentX = touch.clientX - rect.left;
+            const currentY = touch.clientY - rect.top;
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.strokeStyle = brushColor;
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = drawingTool === 'highlighter' ? 'square' : 'round';
+            ctx.lineJoin = 'round';
+
+            if (drawingTool === 'highlighter') {
+                ctx.globalAlpha = 0.10;
+            } else {
+                ctx.globalAlpha = 1.0;
+            }
+
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+
+            lastX = currentX;
+            lastY = currentY;
+            saveCanvas();
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchend', () => { isDrawing = false; });
+
+        function initSelect() {
+            pageSelect.innerHTML = '';
+            imageItems.forEach((item, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = `第 ${index + 1} 頁：${item.name}`;
+                pageSelect.appendChild(opt);
+            });
+            totalPagesLabel.textContent = `/ ${imageItems.length}`;
+        }
+
+        function showPage(index) {
+            if (index < 0) index = 0;
+            if (index >= imageItems.length) index = imageItems.length - 1;
+            currentIndex = index;
+            currentFormatIndex = 0;
+
+            const currentItem = imageItems[currentIndex];
+            statusBadge.textContent = `進度: ${currentIndex + 1} / ${imageItems.length}`;
+            floatingPageIndicator.textContent = `${currentIndex + 1} / ${imageItems.length}`;
+            pageSelect.value = currentIndex;
+            fileNameDisplay.textContent = `${currentItem.name}`;
+
+            if (currentItem.type === "video") {
+                imageViewContainer.classList.add('hidden');
+                videoViewContainer.classList.remove('hidden');
+            } else {
+                videoViewContainer.classList.add('hidden');
+                imageViewContainer.classList.remove('hidden');
+
+                loader.style.opacity = '1';
+                imgElement.src = getDriveUrl(currentItem.id, currentFormatIndex);
+            }
+            
+            setTimeout(() => {
+                resizeCanvas();
+            }, 50);
+        }
+
+        function handleImageLoad() {
+            loader.style.opacity = '0';
+            resizeCanvas();
+        }
+
+        function handleImageError(img) {
+            currentFormatIndex++;
+            const currentItem = imageItems[currentIndex];
+            if (currentFormatIndex < 3) {
+                img.src = getDriveUrl(currentItem.id, currentFormatIndex);
+            } else {
+                loader.style.opacity = '0';
+                img.src = `https://placehold.co/900x1270/1e293b/fbbf24?text=Drive+Permission+Error:+${encodeURIComponent(currentItem.name)}`;
+            }
+        }
+
+        function goToFirst() { showPage(0); }
+        function goToLast() { showPage(imageItems.length - 1); }
+        function goPrev() { if (currentIndex > 0) showPage(currentIndex - 1); }
+        function goNext() { if (currentIndex < imageItems.length - 1) showPage(currentIndex + 1); }
+        function jumpToPage(val) { showPage(parseInt(val, 10)); }
+
+        // Keyboard navigation support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                goPrev();
+            } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+                goNext();
+            }
+        });
+
+        window.onload = function() {
+            initSelect();
+            showPage(0);
+        };
+    </script>
+</body>
+</html>
