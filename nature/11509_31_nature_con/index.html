@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>康軒三上自然互動學習網</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSidebar()" class="bg-emerald-700 hover:bg-emerald-800 px-3.5 py-2 rounded-lg text-sm transition text-white shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-bars"></i> <span id="sidebarToggleText">展開目錄</span>
+                </button>
+                <div class="bg-white text-emerald-600 p-2 rounded-xl shadow-inner font-bold text-xl flex items-center justify-center w-10 h-10">
+                    <i class="fa-solid fa-seedling"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wide">康軒三上自然互動學習網</h1>
+                    <p class="text-xs text-emerald-100">三年級上學期自然與生活科技</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="hidden md:flex items-center space-x-1 text-xs bg-emerald-700/60 px-3 py-1.5 rounded-full">
+                    <i class="fa-solid fa-book-open text-emerald-200 mr-1"></i>
+                    <span id="totalCountBadge">載入中...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto w-full flex-grow flex flex-col p-4 gap-6 relative">
+        
+        <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+
+        <aside id="sidebar" class="fixed top-0 left-0 bottom-0 w-80 bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 flex flex-col border-r border-slate-200">
+            <div class="p-4 bg-emerald-50 border-b border-slate-100 flex justify-between items-center">
+                <h2 class="font-bold text-emerald-800 flex items-center">
+                    <i class="fa-solid fa-list-ul mr-2 text-emerald-600"></i> 單元導覽與圖片目錄
+                </h2>
+                <button onclick="toggleSidebar()" class="text-slate-500 hover:text-slate-700 p-1.5 rounded-lg hover:bg-emerald-100 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-3 border-b border-slate-100 bg-slate-50">
+                <input type="text" id="searchInput" placeholder="搜尋圖片主題或編號..." oninput="filterImages()" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            </div>
+            <div id="imageListContainer" class="overflow-y-auto flex-grow p-2 space-y-1">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </aside>
+
+        <main id="mainContentArea" class="flex-grow flex flex-col space-y-6 w-full">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center relative">
+                
+                <div class="w-full flex flex-row justify-between items-center mb-4 pb-3 border-b border-slate-100 gap-3 relative">
+                    
+                    <!-- Left group: Badge and Title -->
+                    <div class="flex items-center space-x-3 min-w-0 pr-2">
+                        <span id="imageBadge" class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">單元 1</span>
+                        <h2 id="imageTitle" class="text-lg sm:text-xl font-bold text-slate-800 truncate">載入中...</h2>
+                    </div>
+
+                    <!-- Floating Doodle Toolbar positioned cleanly in the middle gap space (moved right) -->
+                    <div id="doodleToolbar" class="hidden absolute left-[350px] sm:left-[390px] top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-md shadow-xl rounded-xl px-3 py-1.5 flex items-center space-x-2 border border-emerald-300 z-45">
+                        <input type="color" id="brushColor" value="#ef4444" class="w-5 h-5 rounded border-0 cursor-pointer" title="選擇顏色">
+                        <select id="brushMode" class="text-xs bg-slate-50 border border-slate-200 rounded px-1.5 py-1" title="筆刷類型">
+                            <option value="pen">畫筆</option>
+                            <option value="highlighter">螢光筆</option>
+                        </select>
+                        <select id="brushSize" class="text-xs bg-slate-50 border border-slate-200 rounded px-1.5 py-1" title="筆刷粗細">
+                            <option value="2">細</option>
+                            <option value="5" selected>中</option>
+                            <option value="12">粗</option>
+                            <option value="25">特粗螢光</option>
+                        </select>
+                        <button onclick="clearDoodle()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 w-7 h-7 rounded transition flex items-center justify-center" title="清除塗鴉">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                        <button onclick="toggleDoodleMode()" class="bg-emerald-600 hover:bg-emerald-700 text-white w-7 h-7 rounded transition flex items-center justify-center shadow-sm" title="完成">
+                            <i class="fa-solid fa-check text-xs"></i>
+                        </button>
+                    </div>
+
+                    <!-- Right group: Counter and symbol-only pagination buttons on the right side -->
+                    <div class="flex items-center space-x-2 shrink-0">
+                        <span id="imageCounter" class="text-xs font-medium text-slate-500 px-1">1 / 59</span>
+                        <button onclick="firstImage()" title="第一頁" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-lg text-sm font-medium transition flex items-center justify-center">
+                            ⏮
+                        </button>
+                        <button onclick="prevImage()" title="上一頁" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-lg text-sm font-medium transition flex items-center justify-center">
+                            🔼
+                        </button>
+                        <button onclick="nextImage()" title="下一頁" class="bg-emerald-600 hover:bg-emerald-700 text-white w-9 h-9 rounded-lg text-sm font-medium transition flex items-center justify-center shadow-sm">
+                            🔽
+                        </button>
+                        <button onclick="lastImage()" title="最後一頁" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-lg text-sm font-medium transition flex items-center justify-center">
+                            ⏭
+                        </button>
+                        <button onclick="toggleDoodleMode()" id="doodleBtn" title="畫線塗鴉" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-lg text-sm font-medium transition flex items-center justify-center ml-1 border border-slate-200">
+                            📝
+                        </button>
+                    </div>
+                </div>
+
+                <div id="contentDisplayWrapper" class="w-full bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center relative min-h-[450px] sm:min-h-[580px] group shadow-inner">
+                    <div id="loadingSpinner" class="absolute inset-0 flex items-center justify-center bg-slate-900/50 text-white z-10">
+                        <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
+                    </div>
+                    <img id="mainImageView" src="" alt="課程圖片" class="max-h-[680px] w-auto object-contain transition-transform duration-300 group-hover:scale-102" onload="hideSpinner()" onerror="handleImageError()">
+                    
+                    <!-- Quiz Iframe View for Page 59 -->
+                    <iframe id="quizFrame" src="" class="absolute inset-0 w-full h-full border-0 hidden z-15 bg-white" title="單元互動測驗"></iframe>
+
+                    <!-- Doodle Canvas overlay -->
+                    <canvas id="doodleCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-25 cursor-crosshair"></canvas>
+
+                    <!-- Direct Google Drive view fallback helper link overlay -->
+                    <div id="fallbackNotice" class="absolute bottom-3 right-3 hidden bg-black/70 backdrop-blur-md text-white text-xs px-3 py-1.5 rounded-lg z-20">
+                        <a id="originalLink" href="#" target="_blank" class="underline hover:text-emerald-300 flex items-center gap-1">
+                            <i class="fa-solid fa-external-link-alt"></i> 在 Google 雲端硬碟中檢視原圖
+                        </a>
+                    </div>
+                </div>
+
+                <div class="w-full mt-4 bg-emerald-50/60 border border-emerald-100 rounded-xl p-4 text-sm text-emerald-900 flex items-start space-x-3">
+                    <i class="fa-solid fa-circle-info text-emerald-600 mt-0.5 text-base"></i>
+                    <div>
+                        <span class="font-bold">學習重點提示：</span>
+                        <span id="imageDescription">請點選左上角「展開目錄」或右側導覽按鈕切換康軒三上自然觀察重點圖片。</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <h3 class="font-bold text-slate-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-th-large mr-2 text-emerald-600"></i> 所有圖片快速預覽
+                </h3>
+                <div id="thumbnailGrid" class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-3 max-h-64 overflow-y-auto p-1">
+                    <!-- Thumbnails populated via JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
+        <p>康軒三上自然教材輔助網 © 2026 | 依據最新指定雲端圖片順序建構</p>
+    </footer>
+
+    <script>
+        const driveUrls = [
+            "https://drive.google.com/file/d/15aGOw_BGhEXkAYe-lGz3uzjkNUsaIKvP/view?usp=sharing",
+            "https://drive.google.com/file/d/1NUOtAD9tQVQHa4ZnGiKoMx_UxEezS1qf/view?usp=drive_link",
+            "https://drive.google.com/file/d/1yoQDWzWiZgQKSbgB0JMrCu8YFKcUjppt/view?usp=drive_link",
+            "https://drive.google.com/file/d/1I107ABHlxtAVF_e8zHfrs8nNVYIuw53R/view?usp=drive_link",
+            "https://drive.google.com/file/d/19E7SFqyi6VpV42zj_nOntTh7OZpSeoTA/view?usp=drive_link",
+            "https://drive.google.com/file/d/17ugKmAkpiZ-hUkV0rre0XkTMaz23Ccgu/view?usp=drive_link",
+            "https://drive.google.com/file/d/1fql-jbHopzpZJj2T58_ypZXJr-SQp9kP/view?usp=drive_link",
+            "https://drive.google.com/file/d/1kpY-bRtHpW9M-AeXceC4MxOH0So7HYFX/view?usp=drive_link",
+            "https://drive.google.com/file/d/1_CGkdqC9HqGp7CHqi94S7UythzbYbrXE/view?usp=drive_link",
+            "https://drive.google.com/file/d/17H4j4IdRiKkDNziCycMA0B7tSjc2V1fP/view?usp=drive_link",
+            "https://drive.google.com/file/d/15hL3TMevRBuTQSqnUKTXreDzXFoJ89fR/view?usp=drive_link",
+            "https://drive.google.com/file/d/1vUn65yXNXmi8lR5yL1tTBzuhtRH1txgn/view?usp=drive_link",
+            "https://drive.google.com/file/d/1gXs_WiNSc5qAOaqwGO2O68wx6M9FOjFg/view?usp=drive_link",
+            "https://drive.google.com/file/d/1inGcJwzrQgyBG9auYx8xUf20tHckon-u/view?usp=drive_link",
+            "https://drive.google.com/file/d/18tUxVjVitrrai32uIYMlui-hQ1pnpBaC/view?usp=drive_link",
+            "https://drive.google.com/file/d/1ylL9TLlZkeQCWG21MCKuAFYMAwLAB8Xt/view?usp=drive_link",
+            "https://drive.google.com/file/d/1LnQh13wCODTfljG1eA8kNEpelQRCloHN/view?usp=drive_link",
+            "https://drive.google.com/file/d/1TDqMK-TZOB0PIB4SyGAv7904LME0h9aO/view?usp=drive_link",
+            "https://drive.google.com/file/d/1vV8v2AoX06z4MfF_A1shrFCWK8b3NANc/view?usp=drive_link",
+            "https://drive.google.com/file/d/1dATm8g8xfKviDDBW-dazEmUI9bLPDtrj/view?usp=drive_link",
+            "https://drive.google.com/file/d/12nZtZq20P_2QUaY0EJELicFxE2hWESRS/view?usp=drive_link",
+            "https://drive.google.com/file/d/1NSwsIWzMShpEUV01tddeqxu_8gGql-vP/view?usp=drive_link",
+            "https://drive.google.com/file/d/1w9QN-EVDbcI_U-0rMd7lMS1PcMC8MxxY/view?usp=drive_link",
+            "https://drive.google.com/file/d/1ciPZ0CRYvcYq5ucIr0xLD4bCqgzNEL3E/view?usp=drive_link",
+            "https://drive.google.com/file/d/17NIN_qxeOlRpT6YO-le6MaD5UlaLdooE/view?usp=drive_link",
+            "https://drive.google.com/file/d/18wVjnQso78dLfz97UteajckrBmE3D-mp/view?usp=drive_link",
+            "https://drive.google.com/file/d/19WGd-2UFUfyI6jSmuaEwiPeCXAmg5EL5/view?usp=drive_link",
+            "https://drive.google.com/file/d/1u-If7jidrftwnaJvyNFbjY8hXzDrmswy/view?usp=drive_link",
+            "https://drive.google.com/file/d/1k_Vyey0pxP4uw9txPL1iPO-GJbAGjJOR/view?usp=drive_link",
+            "https://drive.google.com/file/d/1QDB0c_CT94REiMBpiKnUj8VQOHeOKHfy/view?usp=drive_link",
+            "https://drive.google.com/file/d/17yiHwKW7AHn5KGqSBiaFQ07dWpNp_cRG/view?usp=drive_link",
+            "https://drive.google.com/file/d/1_7mkHd6mbWMVEjqerkhKoebdDAvHfze_/view?usp=drive_link",
+            "https://drive.google.com/file/d/1uSrQJMpZtYu2dP0wrP2gZT_yjej5096i/view?usp=drive_link",
+            "https://drive.google.com/file/d/1IQwZvr6Urc-WpLvItD61ENjI_fSo_FQw/view?usp=drive_link",
+            "https://drive.google.com/file/d/1zpr18shndn9Y-CMzoK4OGjixwHPU_UxB/view?usp=drive_link",
+            "https://drive.google.com/file/d/1OeKH7a6XvEYGboGYJNELMWHtSNiMvL-o/view?usp=drive_link",
+            "https://drive.google.com/file/d/1iOix-Z0xPrKCH9y3rusPy9F8Fn3y5Td8/view?usp=drive_link",
+            "https://drive.google.com/file/d/1c-4GCIKIPCdzsBvfqTBmLlt1TBuyFQ1l/view?usp=drive_link",
+            "https://drive.google.com/file/d/1EG3RqvAamHexYp3lBVTUH_qk3pvPR6PO/view?usp=drive_link",
+            "https://drive.google.com/file/d/1Hjs9oPT11YVElibIx8V5pIMVD-3tiHU4/view?usp=drive_link",
+            "https://drive.google.com/file/d/1uA6pbD32z3nAVVW7x49IorKhyMI3q3iA/view?usp=drive_link",
+            "https://drive.google.com/file/d/16uanuysp4BlxVyHkveF8u_220GeY8Qxx/view?usp=drive_link",
+            "https://drive.google.com/file/d/148QJHaMrSeytS7yY-EQnWlQfQwxzEJTf/view?usp=drive_link",
+            "https://drive.google.com/file/d/1Zzk_XOxAQW8k72066PMXv0IUVidpnKhP/view?usp=drive_link",
+            "https://drive.google.com/file/d/1Ctt3GF08f8o6cRjwhHgQQAmdAe3lPykR/view?usp=drive_link",
+            "https://drive.google.com/file/d/1oc4nksU-nOq4m8DyJo7htJLB-ULvqcVk/view?usp=drive_link",
+            "https://drive.google.com/file/d/1LzFchH-yTcMjo1BninYDNRZx058krqPH/view?usp=drive_link",
+            "https://drive.google.com/file/d/1Np7JmKV8iGqJ5CkCMgo5lRcIXJpL0jbi/view?usp=drive_link",
+            "https://drive.google.com/file/d/1-ThDONcADMiLn3ygOzJ5bSxmqOlx-xJ5/view?usp=drive_link",
+            "https://drive.google.com/file/d/1CcQaEFjlRUzByR5ndcMmhF2EzLEmEdTe/view?usp=drive_link",
+            "https://drive.google.com/file/d/1vrMuJvSwqCgmyC9fkhCAPwvMtgl8_D4b/view?usp=drive_link",
+            "https://drive.google.com/file/d/1gKKe4ptUUmbmJceV6mQBwcP43DjsLRzY/view?usp=drive_link",
+            "https://drive.google.com/file/d/13iExWqLczZZkRJsOokkYMw7h3eBC33bS/view?usp=drive_link",
+            "https://drive.google.com/file/d/1SQKNLr0nj5wYugB6Pim7b3Nev7_ywZkx/view?usp=drive_link",
+            "https://drive.google.com/file/d/1s-4O-Plieb32K9uHcraZAzwVrS-sME5Y/view?usp=drive_link",
+            "https://drive.google.com/file/d/1-xLoHv3r7_Xxy9g6_Wp30VyFFY6dp577/view?usp=drive_link",
+            "https://drive.google.com/file/d/1-TKM_c1CE5ezGjGd5_BtCRDf74mXMV-z/view?usp=drive_link",
+            "https://drive.google.com/file/d/1x3TLc3VhfrUqPBe-Z-YRh5zNviy0IhE7/view?usp=drive_link"
+        ];
+
+        const items = driveUrls.map((url, index) => {
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            const fileId = match ? match[1] : '';
+            return {
+                type: 'image',
+                id: fileId,
+                title: `康軒三上自然 - 單元重點 (${index + 1})`,
+                description: `這是康軒版三年級上學期自然與生活科技第 ${index + 1} 張學習觀察與重點解說圖片。`,
+                badge: `第 ${Math.floor(index / 10) + 1} 主題`,
+                originalUrl: url,
+                directUrl: fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w1200` : '',
+                thumbUrl: fileId ? `https://lh3.googleusercontent.com/d/${fileId}=w200` : 'https://placehold.co/200x150/10b981/ffffff?text=Science'
+            };
+        });
+
+        // Add Page 59 as Quiz item
+        items.push({
+            type: 'quiz',
+            id: 'quiz-59',
+            title: '康軒三上自然 - 單元互動測驗',
+            description: '透過趣味互動測驗來複習與檢測您在康軒三上自然課程中所學習到的核心科學知識！',
+            badge: '綜合測驗',
+            originalUrl: 'https://nature-science-quest.fortranlin.chatgpt.site/',
+            directUrl: 'https://nature-science-quest.fortranlin.chatgpt.site/',
+            thumbUrl: 'https://placehold.co/200x150/059669/ffffff?text=Quiz'
+        });
+
+        let currentIndex = 0;
+        let isDrawing = false;
+        let doodleActive = false;
+        let doodleDataMap = {};
+        let sidebarOpen = false;
+
+        function initApp() {
+            document.getElementById('totalCountBadge').textContent = `共收錄 ${items.length} 項學習內容與測驗`;
+            renderImageList(items);
+            renderThumbnailGrid(items);
+            setupCanvas();
+            loadItem(0);
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebarOpen = !sidebarOpen;
+            
+            if (sidebarOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                backdrop.classList.remove('hidden');
+                document.getElementById('sidebarToggleText').textContent = '收合目錄';
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                backdrop.classList.add('hidden');
+                document.getElementById('sidebarToggleText').textContent = '展開目錄';
+            }
+        }
+
+        function setupCanvas() {
+            const canvas = document.getElementById('doodleCanvas');
+            
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                redrawCanvas();
+            }
+            window.addEventListener('resize', resizeCanvas);
+            setTimeout(resizeCanvas, 100);
+
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+            });
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                canvas.dispatchEvent(new MouseEvent('mouseup', {}));
+            });
+        }
+
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            if (!doodleActive) return;
+            isDrawing = true;
+            const canvas = document.getElementById('doodleCanvas');
+            const ctx = canvas.getContext('2d');
+            const pos = getMousePos(canvas, e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
+
+        function draw(e) {
+            if (!isDrawing || !doodleActive) return;
+            const canvas = document.getElementById('doodleCanvas');
+            const ctx = canvas.getContext('2d');
+            const pos = getMousePos(canvas, e);
+            
+            const color = document.getElementById('brushColor').value;
+            const mode = document.getElementById('brushMode').value;
+            const size = document.getElementById('brushSize').value;
+
+            ctx.lineWidth = size;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (mode === 'highlighter') {
+                ctx.globalAlpha = 0.05; // 5% 輕透螢光筆效果
+                ctx.strokeStyle = color;
+            } else {
+                ctx.globalAlpha = 1.0;
+                ctx.strokeStyle = color;
+            }
+            
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.globalAlpha = 1.0; // Reset alpha
+        }
+
+        function stopDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            saveCurrentDoodle();
+        }
+
+        function saveCurrentDoodle() {
+            const canvas = document.getElementById('doodleCanvas');
+            doodleDataMap[currentIndex] = canvas.toDataURL();
+        }
+
+        function redrawCanvas() {
+            const canvas = document.getElementById('doodleCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (doodleDataMap[currentIndex]) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+                img.src = doodleDataMap[currentIndex];
+            }
+        }
+
+        function clearDoodle() {
+            const canvas = document.getElementById('doodleCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            delete doodleDataMap[currentIndex];
+        }
+
+        function toggleDoodleMode() {
+            doodleActive = !doodleActive;
+            const canvas = document.getElementById('doodleCanvas');
+            const toolbar = document.getElementById('doodleToolbar');
+            const btn = document.getElementById('doodleBtn');
+
+            if (doodleActive) {
+                canvas.classList.remove('pointer-events-none');
+                toolbar.classList.remove('hidden');
+                btn.className = "bg-emerald-600 text-white w-9 h-9 rounded-lg text-sm font-medium transition flex items-center justify-center ml-1 shadow-sm";
+                btn.title = "關閉畫筆";
+            } else {
+                canvas.classList.add('pointer-events-none');
+                toolbar.classList.add('hidden');
+                btn.className = "bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-lg text-sm font-medium transition flex items-center justify-center ml-1 border border-slate-200";
+                btn.title = "畫線塗鴉";
+            }
+        }
+
+        function renderImageList(data) {
+            const container = document.getElementById('imageListContainer');
+            container.innerHTML = data.map((item, originalIndex) => {
+                return `
+                    <div onclick="selectImage(${originalIndex}); toggleSidebar();" id="list-item-${originalIndex}" class="sidebar-item px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition flex items-center justify-between ${originalIndex === currentIndex ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}">
+                        <div class="flex items-center space-x-2.5 truncate">
+                            <span class="text-xs px-1.5 py-0.5 rounded ${originalIndex === currentIndex ? 'bg-emerald-700 text-white' : 'bg-slate-200 text-slate-700'}">${originalIndex + 1}</span>
+                            <span class="truncate">${item.title}</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderThumbnailGrid(data) {
+            const grid = document.getElementById('thumbnailGrid');
+            grid.innerHTML = data.map((item, originalIndex) => {
+                return `
+                    <div onclick="selectImage(${originalIndex})" class="thumb-card group relative rounded-lg overflow-hidden border-2 ${originalIndex === currentIndex ? 'border-emerald-600 shadow-md' : 'border-slate-200 hover:border-emerald-400'} cursor-pointer aspect-video bg-slate-100 transition">
+                        <img src="${item.thumbUrl}" alt="縮圖" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://placehold.co/200x150/10b981/ffffff?text=Image'">
+                        <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold">
+                            ${originalIndex + 1}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectImage(index) {
+            if (index < 0 || index >= items.length) return;
+            currentIndex = index;
+            loadItem(currentIndex);
+            updateActiveUI();
+        }
+
+        function loadItem(index) {
+            const item = items[index];
+            const imgEl = document.getElementById('mainImageView');
+            const quizFrame = document.getElementById('quizFrame');
+            const spinner = document.getElementById('loadingSpinner');
+            const fallbackNotice = document.getElementById('fallbackNotice');
+
+            document.getElementById('imageTitle').textContent = item.title;
+            document.getElementById('imageBadge').textContent = item.badge;
+            document.getElementById('imageDescription').textContent = item.description;
+            document.getElementById('imageCounter').textContent = `${index + 1} / ${items.length}`;
+            document.getElementById('originalLink').href = item.originalUrl;
+
+            if (item.type === 'quiz') {
+                spinner.style.display = 'none';
+                imgEl.classList.add('hidden');
+                quizFrame.classList.remove('hidden');
+                quizFrame.src = item.directUrl;
+                fallbackNotice.classList.add('hidden');
+            } else {
+                quizFrame.classList.add('hidden');
+                imgEl.classList.remove('hidden');
+                spinner.style.display = 'flex';
+                fallbackNotice.classList.add('hidden');
+                imgEl.src = item.directUrl;
+            }
+            setTimeout(redrawCanvas, 200);
+        }
+
+        function hideSpinner() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        function handleImageError() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('fallbackNotice').classList.remove('hidden');
+        }
+
+        function firstImage() {
+            if (currentIndex <= 0) return;
+            selectImage(0);
+            scrollToActiveItem();
+        }
+
+        function lastImage() {
+            if (currentIndex >= items.length - 1) return;
+            selectImage(items.length - 1);
+            scrollToActiveItem();
+        }
+
+        function nextImage() {
+            if (currentIndex >= items.length - 1) return;
+            selectImage(currentIndex + 1);
+            scrollToActiveItem();
+        }
+
+        function prevImage() {
+            if (currentIndex <= 0) return;
+            selectImage(currentIndex - 1);
+            scrollToActiveItem();
+        }
+
+        function updateActiveUI() {
+            document.querySelectorAll('#imageListContainer > div').forEach((el, idx) => {
+                const originalIndex = idx;
+                if (originalIndex === currentIndex) {
+                    el.className = "sidebar-item px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition flex items-center justify-between bg-emerald-600 text-white shadow-sm";
+                    const spanEl = el.querySelector('span');
+                    if(spanEl) spanEl.className = "text-xs px-1.5 py-0.5 rounded bg-emerald-700 text-white";
+                } else {
+                    el.className = "sidebar-item px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition flex items-center justify-between text-slate-600 hover:bg-slate-100";
+                    const spanEl = el.querySelector('span');
+                    if(spanEl) spanEl.className = "text-xs px-1.5 py-0.5 rounded bg-slate-200 text-slate-700";
+                }
+            });
+            renderThumbnailGrid(items);
+        }
+
+        function scrollToActiveItem() {
+            const activeItem = document.getElementById(`list-item-${currentIndex}`);
+            if (activeItem) {
+                activeItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function filterImages() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const container = document.getElementById('imageListContainer');
+            
+            const matchedItems = items.filter((item, idx) => 
+                item.title.toLowerCase().includes(query) || 
+                item.description.toLowerCase().includes(query) || 
+                (idx + 1).toString().includes(query)
+            );
+
+            container.innerHTML = matchedItems.map((item) => {
+                const originalIndex = items.indexOf(item);
+                return `
+                    <div onclick="selectImage(${originalIndex}); toggleSidebar();" id="list-item-${originalIndex}" class="sidebar-item px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition flex items-center justify-between ${originalIndex === currentIndex ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'}">
+                        <div class="flex items-center space-x-2.5 truncate">
+                            <span class="text-xs px-1.5 py-0.5 rounded ${originalIndex === currentIndex ? 'bg-emerald-700 text-white' : 'bg-slate-200 text-slate-700'}">${originalIndex + 1}</span>
+                            <span class="truncate">${item.title}</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
