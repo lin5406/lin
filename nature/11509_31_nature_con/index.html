@@ -66,7 +66,7 @@
                 </button>
             </div>
             <div class="p-3 border-b border-slate-100 bg-slate-50">
-                <input type="text" id="searchInput" placeholder="搜尋圖片主題或編號..." oninput="filterImages()" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <input type="text" id="searchInput" placeholder="搜尋主題或編號..." oninput="filterImages()" class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
             <div id="imageListContainer" class="overflow-y-auto flex-grow p-2 space-y-1">
                 <!-- Dynamically populated via JS -->
@@ -76,26 +76,26 @@
         <main id="mainContentArea" class="flex-grow flex flex-col space-y-6 w-full">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center relative">
                 
-                <div class="w-full flex flex-row justify-between items-center mb-4 pb-3 border-b border-slate-100 gap-3 relative">
+                <div class="w-full flex flex-row justify-between items-center mb-4 pb-3 border-b border-slate-100 gap-2 relative">
                     
-                    <!-- Left group: Badge and Title -->
+                    <!-- Left group: Badge and Title with precise spacing for toolbar -->
                     <div class="flex items-center space-x-3 min-w-0 pr-2">
                         <span id="imageBadge" class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">單元 1</span>
                         <h2 id="imageTitle" class="text-lg sm:text-xl font-bold text-slate-800 truncate">載入中...</h2>
                     </div>
 
-                    <!-- Floating Doodle Toolbar positioned cleanly in the middle gap space (moved right) -->
-                    <div id="doodleToolbar" class="hidden absolute left-[350px] sm:left-[390px] top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-md shadow-xl rounded-xl px-3 py-1.5 flex items-center space-x-2 border border-emerald-300 z-45">
+                    <!-- Floating Doodle Toolbar positioned in the gap between title and counter without blocking -->
+                    <div id="doodleToolbar" class="hidden absolute left-[380px] sm:left-[420px] top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-md shadow-xl rounded-xl px-2.5 py-1.5 flex items-center space-x-1.5 border border-emerald-300 z-45">
                         <input type="color" id="brushColor" value="#ef4444" class="w-5 h-5 rounded border-0 cursor-pointer" title="選擇顏色">
                         <select id="brushMode" class="text-xs bg-slate-50 border border-slate-200 rounded px-1.5 py-1" title="筆刷類型">
                             <option value="pen">畫筆</option>
-                            <option value="highlighter">螢光筆</option>
+                            <option value="highlighter">透明螢光筆</option>
                         </select>
                         <select id="brushSize" class="text-xs bg-slate-50 border border-slate-200 rounded px-1.5 py-1" title="筆刷粗細">
                             <option value="2">細</option>
                             <option value="5" selected>中</option>
                             <option value="12">粗</option>
-                            <option value="25">特粗螢光</option>
+                            <option value="25">特粗</option>
                         </select>
                         <button onclick="clearDoodle()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 w-7 h-7 rounded transition flex items-center justify-center" title="清除塗鴉">
                             <i class="fa-solid fa-trash-can text-xs"></i>
@@ -105,9 +105,9 @@
                         </button>
                     </div>
 
-                    <!-- Right group: Counter and symbol-only pagination buttons on the right side -->
+                    <!-- Right group: Counter and symbol-only pagination buttons -->
                     <div class="flex items-center space-x-2 shrink-0">
-                        <span id="imageCounter" class="text-xs font-medium text-slate-500 px-1">1 / 59</span>
+                        <span id="imageCounter" class="text-xs font-medium text-slate-500 px-1">1 / 61</span>
                         <button onclick="firstImage()" title="第一頁" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-9 h-9 rounded-lg text-sm font-medium transition flex items-center justify-center">
                             ⏮
                         </button>
@@ -132,8 +132,20 @@
                     </div>
                     <img id="mainImageView" src="" alt="課程圖片" class="max-h-[680px] w-auto object-contain transition-transform duration-300 group-hover:scale-102" onload="hideSpinner()" onerror="handleImageError()">
                     
-                    <!-- Quiz Iframe View for Page 59 -->
-                    <iframe id="quizFrame" src="" class="absolute inset-0 w-full h-full border-0 hidden z-15 bg-white" title="單元互動測驗"></iframe>
+                    <!-- Iframe View for Quiz & Ebooks -->
+                    <iframe id="quizFrame" src="" class="absolute inset-0 w-full h-full border-0 hidden z-15 bg-white" title="互動內容"></iframe>
+
+                    <!-- Ebook Direct Action Overlay Card -->
+                    <div id="ebookCard" class="absolute inset-0 w-full h-full hidden z-20 bg-slate-900/95 flex flex-col items-center justify-center p-6 text-center text-white">
+                        <div class="bg-emerald-600 p-4 rounded-2xl mb-4 text-3xl shadow-lg">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                        </div>
+                        <h3 id="ebookCardTitle" class="text-xl font-bold mb-2">電子書單元</h3>
+                        <p id="ebookCardDesc" class="text-slate-300 text-sm max-w-md mb-6">點擊下方按鈕將在新分頁中開啟康軒電子書互動頁面。</p>
+                        <a id="ebookOpenBtn" href="#" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
+                            <i class="fa-solid fa-external-link-alt"></i> 開啟康軒電子書
+                        </a>
+                    </div>
 
                     <!-- Doodle Canvas overlay -->
                     <canvas id="doodleCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-25 cursor-crosshair"></canvas>
@@ -150,14 +162,14 @@
                     <i class="fa-solid fa-circle-info text-emerald-600 mt-0.5 text-base"></i>
                     <div>
                         <span class="font-bold">學習重點提示：</span>
-                        <span id="imageDescription">請點選左上角「展開目錄」或右側導覽按鈕切換康軒三上自然觀察重點圖片。</span>
+                        <span id="imageDescription">請點選左上角「展開目錄」或右側導覽按鈕切換康軒三上自然觀察重點圖片與電子書資源。</span>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <h3 class="font-bold text-slate-800 mb-4 flex items-center">
-                    <i class="fa-solid fa-th-large mr-2 text-emerald-600"></i> 所有圖片快速預覽
+                    <i class="fa-solid fa-th-large mr-2 text-emerald-600"></i> 所有圖片與資源快速預覽
                 </h3>
                 <div id="thumbnailGrid" class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-3 max-h-64 overflow-y-auto p-1">
                     <!-- Thumbnails populated via JS -->
@@ -167,7 +179,7 @@
     </div>
 
     <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
-        <p>康軒三上自然教材輔助網 © 2026 | 依據最新指定雲端圖片順序建構</p>
+        <p>康軒三上自然教材輔助網 © 2026 | 依據最新指定雲端圖片與電子書資源建構</p>
     </footer>
 
     <script>
@@ -259,6 +271,30 @@
             thumbUrl: 'https://placehold.co/200x150/059669/ffffff?text=Quiz'
         });
 
+        // Add Ebook Page 1 (Units 1-2)
+        items.push({
+            type: 'ebook',
+            id: 'ebook-60',
+            title: '自然3上電子書第1-2單元',
+            description: '康軒三年級上學期自然與生活科技電子書互動網頁（第1-2單元）。點擊下方按鈕將以新分頁開啟電子書。',
+            badge: '電子書',
+            originalUrl: 'https://digitalmaster.knsh.com.tw/ebooks/BookMain/Viewer_A/index.html?CUR_BOOK_URL=https://digitalmaster.knsh.com.tw/ebooks/%E5%9C%8B%E5%B0%8F/Books/113%E4%B8%8A/04_%E8%87%AA%E7%84%B6_nature/03_3%E5%B9%B4%E7%B4%9A/01_%E7%B6%B2%E9%A0%81%E9%9B%BB%E5%AD%90%E6%9B%B8/K11311Nature_3/Resource/SystemResource/knsh_book/&shortcode=j1h789v0c3b3r8v3m23366w7z0l7ta19&uuid=397e20c7-e380-40fc-bb3f-5b74329299e5&openby=knsh',
+            directUrl: 'https://digitalmaster.knsh.com.tw/ebooks/BookMain/Viewer_A/index.html?CUR_BOOK_URL=https://digitalmaster.knsh.com.tw/ebooks/%E5%9C%8B%E5%B0%8F/Books/113%E4%B8%8A/04_%E8%87%AA%E7%84%B6_nature/03_3%E5%B9%B4%E7%B4%9A/01_%E7%B6%B2%E9%A0%81%E9%9B%BB%E5%AD%90%E6%9B%B8/K11311Nature_3/Resource/SystemResource/knsh_book/&shortcode=j1h789v0c3b3r8v3m23366w7z0l7ta19&uuid=397e20c7-e380-40fc-bb3f-5b74329299e5&openby=knsh',
+            thumbUrl: 'https://placehold.co/200x150/047857/ffffff?text=Ebook+1-2'
+        });
+
+        // Add Ebook Page 2 (Units 3-4)
+        items.push({
+            type: 'ebook',
+            id: 'ebook-61',
+            title: '自然3上電子書第3-4單元',
+            description: '康軒三年級上學期自然與生活科技電子書互動網頁（第3-4單元）。點擊下方按鈕將以新分頁開啟電子書。',
+            badge: '電子書',
+            originalUrl: 'https://digitalmaster.knsh.com.tw/ebooks/BookMain/Viewer_A/index.html?CUR_BOOK_URL=https://digitalmaster.knsh.com.tw/ebooks/%E5%9C%8B%E5%B0%8F/Books/113%E4%B8%8A/04_%E8%87%AA%E7%84%B6_nature/03_3%E5%B9%B4%E7%B4%9A/01_%E7%B6%B2%E9%A0%81%E9%9B%BB%E5%AD%90%E6%9B%B8/K11312Nature_3/Resource/SystemResource/knsh_book/&shortcode=x1q7n9t0n3q3x8w4t5z5l904m28txvlz&uuid=397e20c7-e380-40fc-bb3f-5b74329299e5&openby=knsh',
+            directUrl: 'https://digitalmaster.knsh.com.tw/ebooks/BookMain/Viewer_A/index.html?CUR_BOOK_URL=https://digitalmaster.knsh.com.tw/ebooks/%E5%9C%8B%E5%B0%8F/Books/113%E4%B8%8A/04_%E8%87%AA%E7%84%B6_nature/03_3%E5%B9%B4%E7%B4%9A/01_%E7%B6%B2%E9%A0%81%E9%9B%BB%E5%AD%90%E6%9B%B8/K11312Nature_3/Resource/SystemResource/knsh_book/&shortcode=x1q7n9t0n3q3x8w4t5z5l904m28txvlz&uuid=397e20c7-e380-40fc-bb3f-5b74329299e5&openby=knsh',
+            thumbUrl: 'https://placehold.co/200x150/065f46/ffffff?text=Ebook+3-4'
+        });
+
         let currentIndex = 0;
         let isDrawing = false;
         let doodleActive = false;
@@ -266,7 +302,7 @@
         let sidebarOpen = false;
 
         function initApp() {
-            document.getElementById('totalCountBadge').textContent = `共收錄 ${items.length} 項學習內容與測驗`;
+            document.getElementById('totalCountBadge').textContent = `共收錄 ${items.length} 項學習內容與資源`;
             renderImageList(items);
             renderThumbnailGrid(items);
             setupCanvas();
@@ -438,7 +474,7 @@
             grid.innerHTML = data.map((item, originalIndex) => {
                 return `
                     <div onclick="selectImage(${originalIndex})" class="thumb-card group relative rounded-lg overflow-hidden border-2 ${originalIndex === currentIndex ? 'border-emerald-600 shadow-md' : 'border-slate-200 hover:border-emerald-400'} cursor-pointer aspect-video bg-slate-100 transition">
-                        <img src="${item.thumbUrl}" alt="縮圖" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://placehold.co/200x150/10b981/ffffff?text=Image'">
+                        <img src="${item.thumbUrl}" alt="縮圖" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" onerror="this.src='https://placehold.co/200x150/10b981/ffffff?text=Item'">
                         <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-xs font-bold">
                             ${originalIndex + 1}
                         </div>
@@ -458,6 +494,7 @@
             const item = items[index];
             const imgEl = document.getElementById('mainImageView');
             const quizFrame = document.getElementById('quizFrame');
+            const ebookCard = document.getElementById('ebookCard');
             const spinner = document.getElementById('loadingSpinner');
             const fallbackNotice = document.getElementById('fallbackNotice');
 
@@ -467,17 +504,24 @@
             document.getElementById('imageCounter').textContent = `${index + 1} / ${items.length}`;
             document.getElementById('originalLink').href = item.originalUrl;
 
+            // Reset views
+            quizFrame.classList.add('hidden');
+            imgEl.classList.add('hidden');
+            ebookCard.classList.add('hidden');
+            spinner.style.display = 'none';
+            fallbackNotice.classList.add('hidden');
+
             if (item.type === 'quiz') {
-                spinner.style.display = 'none';
-                imgEl.classList.add('hidden');
                 quizFrame.classList.remove('hidden');
                 quizFrame.src = item.directUrl;
-                fallbackNotice.classList.add('hidden');
+            } else if (item.type === 'ebook') {
+                ebookCard.classList.remove('hidden');
+                document.getElementById('ebookCardTitle').textContent = item.title;
+                document.getElementById('ebookCardDesc').textContent = item.description;
+                document.getElementById('ebookOpenBtn').href = item.originalUrl;
             } else {
-                quizFrame.classList.add('hidden');
                 imgEl.classList.remove('hidden');
                 spinner.style.display = 'flex';
-                fallbackNotice.classList.add('hidden');
                 imgEl.src = item.directUrl;
             }
             setTimeout(redrawCanvas, 200);
