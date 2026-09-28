@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>康軒三上健體數位電子書</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0f172a;
+            user-select: none;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-slate-100">
+
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between z-20 shadow-md">
+        <div class="flex items-center space-x-3">
+            <button id="sidebar-toggle" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="目錄清單">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                康軒三上健體數位教材
+            </h1>
+        </div>
+
+        <div class="flex items-center space-x-2 md:space-x-4">
+            <div class="bg-slate-800 px-3 py-1.5 rounded-lg text-sm text-slate-300 font-medium">
+                頁碼: <span id="current-page-num" class="text-emerald-400 font-bold">1</span> / <span id="total-page-num">66</span>
+            </div>
+
+            <button id="fullscreen-btn" class="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="全螢幕模式">
+                <i class="fa-solid fa-expand text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex relative overflow-hidden">
+        
+        <aside id="sidebar" class="absolute inset-y-0 left-0 w-72 bg-slate-900/95 backdrop-blur-md border-r border-slate-800 flex flex-col z-30 transform -translate-x-full transition-transform duration-300 shadow-2xl">
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h2 class="font-bold text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-emerald-400"></i> 頁面縮圖索引
+                </h2>
+                <button id="sidebar-close" class="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div id="thumbnail-container" class="flex-1 overflow-y-auto p-3 space-y-3">
+                <!-- 縮圖動態注入 -->
+            </div>
+        </aside>
+
+        <div id="sidebar-backdrop" class="absolute inset-0 bg-black/50 z-20 hidden backdrop-blur-sm transition-opacity"></div>
+
+        <main class="flex-1 flex relative bg-slate-950 items-center justify-center p-2 md:p-6 pr-24">
+            
+            <div id="book-viewport" class="relative max-w-full max-h-full flex items-center justify-center shadow-2xl rounded-xl overflow-hidden bg-slate-900 border border-slate-800 group" style="width: calc(100% - 20px); height: calc(100vh - 100px);">
+                <img id="page-image" src="" alt="教材頁面" class="max-h-full max-w-full object-contain transition-opacity duration-300 absolute inset-auto" crossorigin="anonymous" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=Image+Load+Error'">
+                
+                <!-- 第 64 頁：健體測驗專區 -->
+                <div id="quiz-page" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 hidden z-10 text-center">
+                    <div class="max-w-md w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-8 shadow-2xl backdrop-blur-md space-y-6">
+                        <div class="w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner border border-emerald-500/30">
+                            <i class="fa-solid fa-clipboard-question"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <h2 class="text-2xl font-bold text-slate-100">健體測驗專區</h2>
+                            <p class="text-sm text-slate-400">點擊下方按鈕即可開啟康軒三上健體線上測驗題庫進行挑戰與複習！</p>
+                        </div>
+                        <a href="https://health-warrior-grade3.fortranlin.chatgpt.site" target="_blank" class="block w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-bold text-base shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> 開始健體測驗
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 第 65 頁：健體影音專區 -->
+                <div id="video-page" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 hidden z-10 text-center">
+                    <div class="max-w-md w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-8 shadow-2xl backdrop-blur-md space-y-6">
+                        <div class="w-20 h-20 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner border border-cyan-500/30">
+                            <i class="fa-solid fa-video"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <h2 class="text-2xl font-bold text-slate-100">健體影音資源專區</h2>
+                            <p class="text-sm text-slate-400">點擊下方按鈕觀賞對應的康軒健康與體育影音多媒體教材！</p>
+                        </div>
+                        <div class="space-y-3">
+                            <a href="https://digitalmaster.knsh.com.tw/all/video/e/health.html?l1=3%E4%B8%8A" target="_blank" class="block w-full py-3 px-5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-play-circle"></i> 健體影音高手一
+                            </a>
+                            <a href="https://www.youtube.com/@%E5%9C%8B%E5%B0%8F%E5%BA%B7%E8%BB%92%E5%81%A5%E5%BA%B7%E8%88%87%E9%AB%94-z7e" target="_blank" class="block w-full py-3 px-5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-bold text-sm shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                                <i class="fa-brands fa-youtube"></i> 健體影音頻道二
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 第 66 頁：健體影音電子書專區 -->
+                <div id="ebook-page" class="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center p-8 hidden z-10 text-center">
+                    <div class="max-w-md w-full bg-slate-800/80 border border-slate-700 rounded-2xl p-8 shadow-2xl backdrop-blur-md space-y-6">
+                        <div class="w-20 h-20 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner border border-indigo-500/30">
+                            <i class="fa-solid fa-book-bookmark"></i>
+                        </div>
+                        <div class="space-y-2">
+                            <h2 class="text-2xl font-bold text-slate-100">健體影音電子書</h2>
+                            <p class="text-sm text-slate-400">點擊下方按鈕即可開啟康軒三上健康與體育影音網頁電子書！</p>
+                        </div>
+                        <a href="https://digitalmaster.knsh.com.tw/ebooks/BookMain/Viewer_A/index.html?CUR_BOOK_URL=https://digitalmaster.knsh.com.tw/ebooks/%E5%9C%8B%E5%B0%8F/Books/113%E4%B8%8A/06_%E5%81%A5%E5%BA%B7%E8%88%87%E9%AB%94%E8%82%B2_ht/03_3%E5%B9%B4%E7%B4%9A/01_%E7%B6%B2%E9%A0%81%E9%9B%BB%E5%AD%90%E6%9B%B8/K1131HT_3/Resource/SystemResource/knsh_book/&shortcode=b1u7z9b086g1z738p6l829o646yte8p4&uuid=397e20c7-e380-40fc-bb3f-5b74329299e5&openby=knsh" target="_blank" class="block w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold text-base shadow-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> 開啟影音電子書
+                        </a>
+                    </div>
+                </div>
+
+                <canvas id="draw-canvas" class="absolute inset-0 pointer-events-none z-10 w-full h-full"></canvas>
+
+                <div id="loading-indicator" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 text-emerald-400 z-20">
+                    <i class="fa-solid fa-spinner fa-spin text-3xl"></i>
+                </div>
+            </div>
+
+            <div class="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col space-y-2 bg-slate-900/95 backdrop-blur-md border border-slate-800 p-2 rounded-2xl shadow-2xl z-30">
+                <button id="first-page-btn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 flex items-center justify-center transition shadow" title="第一頁">
+                    <i class="fa-solid fa-angles-up text-base"></i>
+                </button>
+                
+                <button id="prev-page-btn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition shadow" title="上一頁">
+                    <i class="fa-solid fa-chevron-up text-base"></i>
+                </button>
+
+                <div class="flex flex-col items-center justify-center bg-slate-950/80 border border-slate-800 rounded-xl py-1 px-1 shadow-inner">
+                    <span class="text-[9px] text-slate-400">跳至</span>
+                    <input type="number" id="jump-input" min="1" max="66" class="w-10 bg-slate-800 text-center text-emerald-400 font-bold text-xs rounded border border-slate-700 py-0.5 focus:outline-none focus:border-emerald-500 my-0.5">
+                    <span class="text-[9px] text-slate-500">頁</span>
+                </div>
+
+                <button id="next-page-btn" class="w-12 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center transition shadow" title="下一頁">
+                    <i class="fa-solid fa-chevron-down text-base"></i>
+                </button>
+
+                <button id="last-page-btn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 flex items-center justify-center transition shadow" title="最後一頁">
+                    <i class="fa-solid fa-angles-down text-base"></i>
+                </button>
+
+                <div class="h-px bg-slate-800 my-1"></div>
+
+                <button id="draw-toggle-btn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition shadow relative" title="畫筆與塗鴉">
+                    <i class="fa-solid fa-pen text-base"></i>
+                </button>
+
+                <button id="clear-draw-btn" class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-red-400 hover:text-red-300 flex items-center justify-center transition shadow" title="清除註解">
+                    <i class="fa-solid fa-eraser text-base"></i>
+                </button>
+            </div>
+
+            <div id="draw-toolbar" class="absolute right-20 top-1/2 -translate-y-1/2 bg-slate-900/95 border border-slate-700 p-2.5 rounded-xl shadow-2xl z-50 hidden flex-col space-y-2 backdrop-blur-md w-32">
+                <div class="text-[10px] font-bold text-slate-300 border-b border-slate-800 pb-1 flex justify-between items-center">
+                    <span>畫筆設定</span>
+                    <button id="close-draw-toolbar" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <div class="flex bg-slate-950 p-1 rounded-lg border border-slate-800 gap-1">
+                    <button id="mode-pen" class="flex-1 py-1 text-xs rounded bg-emerald-600 text-white transition flex items-center justify-center" title="一般畫筆">
+                        <i class="fa-solid fa-pen text-[10px]"></i>
+                    </button>
+                    <button id="mode-highlighter" class="flex-1 py-1 text-xs rounded text-slate-400 hover:text-white transition flex items-center justify-center" title="螢光筆 (20%)">
+                        <i class="fa-solid fa-highlighter text-[10px]"></i>
+                    </button>
+                </div>
+
+                <div class="flex flex-col space-y-1">
+                    <span class="text-[8px] text-slate-400">選擇顏色</span>
+                    
+                    <!-- 第一列：4 個顏色 -->
+                    <div class="grid grid-cols-4 gap-1 justify-items-center">
+                        <button class="color-btn w-4 h-4 rounded-full bg-red-500 ring-2 ring-white/50 transition transform hover:scale-110" data-color="#ef4444" title="紅色"></button>
+                        <button class="color-btn w-4 h-4 rounded-full bg-orange-500 transition transform hover:scale-110" data-color="#f97316" title="橘色"></button>
+                        <button class="color-btn w-4 h-4 rounded-full bg-yellow-400 transition transform hover:scale-110" data-color="#facc15" title="黃色"></button>
+                        <button class="color-btn w-4 h-4 rounded-full bg-emerald-500 transition transform hover:scale-110" data-color="#10b981" title="綠色"></button>
+                    </div>
+
+                    <!-- 第二列：3 個顏色 + 1 個自訂色彩選擇器 -->
+                    <div class="grid grid-cols-4 gap-1 justify-items-center items-center pt-0.5">
+                        <button class="color-btn w-4 h-4 rounded-full bg-blue-500 transition transform hover:scale-110" data-color="#3b82f6" title="藍色"></button>
+                        <button class="color-btn w-4 h-4 rounded-full bg-purple-500 transition transform hover:scale-110" data-color="#a855f7" title="紫色"></button>
+                        <button class="color-btn w-4 h-4 rounded-full bg-slate-950 border border-slate-700 transition transform hover:scale-110" data-color="#020617" title="黑色"></button>
+                        
+                        <div class="relative w-4 h-4 rounded-full overflow-hidden border border-slate-600 hover:border-emerald-400 transition cursor-pointer flex items-center justify-center bg-gradient-to-br from-red-500 via-green-500 to-blue-500" title="自訂色彩">
+                            <input type="color" id="custom-color-picker" value="#ef4444" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                            <i class="fa-solid fa-palette text-white text-[8px] drop-shadow pointer-events-none"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col space-y-0.5 pt-0.5">
+                    <div class="flex justify-between items-center text-[8px] text-slate-400">
+                        <span>筆畫粗細</span>
+                        <span id="brush-size-val" class="text-emerald-400 font-bold">4px</span>
+                    </div>
+                    <input type="range" id="brush-size" min="2" max="30" value="4" class="w-full accent-emerald-500">
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const imageUrls = [
+            "https://lh3.googleusercontent.com/d/1xFhvAYM6KWmOqp1enrSsJVM1nZfxhlLj",
+            "https://lh3.googleusercontent.com/d/1J7Bll2urme5M1MuHGHajR0_zGcmAYY2Q",
+            "https://lh3.googleusercontent.com/d/1d3MX53aJCbjqdHIhFzd17X1lNt5eFNeN",
+            "https://lh3.googleusercontent.com/d/16njw2_fakw5DkTRw1W_-ta5WcJ3xJzuz",
+            "https://lh3.googleusercontent.com/d/1TW2pjCdYnDu8wIy-k-3yUEn-7cVNvZ19",
+            "https://lh3.googleusercontent.com/d/1_ZjH--4Q9CEXJpEnyYmBxTPrfEdPfaN2",
+            "https://lh3.googleusercontent.com/d/1VcpdZ6nq7YTFxVSv5n3S3F2jYK3zHhLb",
+            "https://lh3.googleusercontent.com/d/1lQRAu4YApv1_2SSV_ynTddG04q_U_nwy",
+            "https://lh3.googleusercontent.com/d/1cEEJg-OmYeUpCyXYnauGsrNf4sN8m4-K",
+            "https://lh3.googleusercontent.com/d/1dLuqCkOxz9rajA4li2Xvo1x9ev3ROZxL",
+            "https://lh3.googleusercontent.com/d/1GYvIupRdH2jHRKDT2bytqoX9KKVND2pu",
+            "https://lh3.googleusercontent.com/d/1rrp-hib3arQ8eDs74ZrbENRRI_4FIl58",
+            "https://lh3.googleusercontent.com/d/11692ui7dg-MhNWRNXSjaAspEJ9__mP-p",
+            "https://lh3.googleusercontent.com/d/1LgiJzgBLwxGwx8SbFTT309tIxjv2bTZE",
+            "https://lh3.googleusercontent.com/d/1QlpAXx6kQyWG8s0VrJYxtBIWq73IpFGk",
+            "https://lh3.googleusercontent.com/d/1s6Zj5FG6wj73S4QrvqXSiSmKMSN5CknU",
+            "https://lh3.googleusercontent.com/d/1g7aPyefKW-TZ0k6K-5fvtZ8SBCm97St6",
+            "https://lh3.googleusercontent.com/d/1WVflGIQGHjOnUHhSpMhLpIKuW_7T9FBL",
+            "https://lh3.googleusercontent.com/d/1mN8cc3pMKEOuFAql-FJ4DleqOTEQPpPu",
+            "https://lh3.googleusercontent.com/d/1pUTiZnhmHdYKVx62BLlw9V_XH5KKmXm0",
+            "https://lh3.googleusercontent.com/d/1mr20xvzsDCElp_otNVAyq6FZfXDe2gyd",
+            "https://lh3.googleusercontent.com/d/1CLHz7AncUFYsJRsW6YLzD7ATR8KmyC5y",
+            "https://lh3.googleusercontent.com/d/1zUz-7uZXemPCg1r8xfZuBITVMZ2noGv1",
+            "https://lh3.googleusercontent.com/d/1rFAits7ebd-iw-7hEOX3ZTVD9C7XQQJy",
+            "https://lh3.googleusercontent.com/d/1b2dWycAeCy79ny6Ff4MaA5SUEEi3HUzi",
+            "https://lh3.googleusercontent.com/d/18v-oDR5Oue1EaOpvdk25XUb-zUQe9C_V",
+            "https://lh3.googleusercontent.com/d/1DwqF-5viJUObDaXFCPEsItEkBNbA3YUn",
+            "https://lh3.googleusercontent.com/d/1vPpBhtb83PUPpzVX4NQOoc0zgJBu5h3-",
+            "https://lh3.googleusercontent.com/d/1DUPiLe-x1Q1zIu4hPyFnQzk21_QHYswO",
+            "https://lh3.googleusercontent.com/d/1GcHI7aY5qBRwuWqhDXXcIJ6ORjSeS4b3",
+            "https://lh3.googleusercontent.com/d/1RGIa1McYoE_S_5Hp-WkGCVYweXdHbH6-",
+            "https://lh3.googleusercontent.com/d/1NdHSqU5r8RbzePP_KRHFDnJIgBhbdKHk",
+            "https://lh3.googleusercontent.com/d/1gCECbG7DfVM2vfbHADraMF6DBvflKFuI",
+            "https://lh3.googleusercontent.com/d/1eHq7hfhn31MhcRHusIp76k6KF90UwNqR",
+            "https://lh3.googleusercontent.com/d/1HXJC23Lb-r5fiSfs186yMXYbFpaEnY2N",
+            "https://lh3.googleusercontent.com/d/1Km74kEzJvudb9YL8ZvPbFXURDJyNjMhn",
+            "https://lh3.googleusercontent.com/d/1ur2MZrwgdQp1Qf3Vh29q5eQVBVgoukN5",
+            "https://lh3.googleusercontent.com/d/1buzDovBcHaExtuZ6c6pKrLgNFqSZwP-P",
+            "https://lh3.googleusercontent.com/d/1f7qRow5mipPwPv46KvmCJGN867bk-ps0",
+            "https://lh3.googleusercontent.com/d/14ugZUc_EsIDSw7_aDQkig21Na6XP2gYW",
+            "https://lh3.googleusercontent.com/d/1pZtVLXKZrbKZr_ZDUzM7t5KfjcLY6-s5",
+            "https://lh3.googleusercontent.com/d/1XdfR9Yl8HCfzaKQx2cqyIATg9tvHmj0G",
+            "https://lh3.googleusercontent.com/d/1Mv8ZzGJPess81gnHJN-YmZc_978-0ik3",
+            "https://lh3.googleusercontent.com/d/1go6Pq7ls8P8T3be9bhLrhWl1MBAKoJOl",
+            "https://lh3.googleusercontent.com/d/1k6EzIvEP2BriW3LgU7T1rj9adFKUwYdo",
+            "https://lh3.googleusercontent.com/d/1BPsZdb_c5horwQBkc0k4dyKXHAhc4BSC",
+            "https://lh3.googleusercontent.com/d/1UGTF5aQJvGnSbryFxvwoIIuKO3NNvdTJ",
+            "https://lh3.googleusercontent.com/d/1VlQgXC6Ppvbi_d2LV0U01bMy4y8bMDss",
+            "https://lh3.googleusercontent.com/d/1SgJ-b22tAP8UT_ch8uZsd1EVCldSoUlF",
+            "https://lh3.googleusercontent.com/d/1qB_DYZOLgEwUc7votrLLDqZwUtfPQL0F",
+            "https://lh3.googleusercontent.com/d/1oX7NnLJzKc1vWGB1219r787lFHiwOOs5",
+            "https://lh3.googleusercontent.com/d/1w8fdFgeIttibB3C7qiq3VOoACzdDPX4J",
+            "https://lh3.googleusercontent.com/d/1i0ApxPs8hnwB_QjLJP4VnRsT53BW5rDR",
+            "https://lh3.googleusercontent.com/d/1G_etZmU9jbxjE6rfCsCljyvsIBwwElKu",
+            "https://lh3.googleusercontent.com/d/161PPXnzJHEIUWOp0P0pCb704qfNbdsR1",
+            "https://lh3.googleusercontent.com/d/1Cazof-WOxS7YoNULFEXzv3efmkzUI-d1",
+            "https://lh3.googleusercontent.com/d/172hrCK5yZ_KNm8zdlkz5tEDE8ipvmGko",
+            "https://lh3.googleusercontent.com/d/18XiYnzcCfd8Z1id2LzFLaofv_PC2JwN_",
+            "https://lh3.googleusercontent.com/d/1oyzdE5oHZgz07uJhe0oqSKEQpFMHFnA4",
+            "https://lh3.googleusercontent.com/d/1GazG1yA4BT454TlKbeY4R5kMwtwC4Ek6",
+            "https://lh3.googleusercontent.com/d/1zNG1cqInu11QV89thSwvacEVnS6cDNuE",
+            "https://lh3.googleusercontent.com/d/1Cp4r7SNmENxHus_Qfx6xwbZYV05qSkC3",
+            "https://lh3.googleusercontent.com/d/1tzHu80NXRRqyVZC6Y6km5uXloxoinfOD"
+            // 第 64 頁：健體測驗
+            // 第 65 頁：健體影音
+            // 第 66 頁：健體影音電子書
+        ];
+
+        let currentIndex = 0;
+        const totalPages = 66;
+        const pageDrawings = {};
+
+        const pageImage = document.getElementById('page-image');
+        const quizPage = document.getElementById('quiz-page');
+        const videoPage = document.getElementById('video-page');
+        const ebookPage = document.getElementById('ebook-page');
+        const currentPageNum = document.getElementById('current-page-num');
+        const totalPageNum = document.getElementById('total-page-num');
+        const jumpInput = document.getElementById('jump-input');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        const prevBtn = document.getElementById('prev-page-btn');
+        const nextBtn = document.getElementById('next-page-btn');
+        const firstBtn = document.getElementById('first-page-btn');
+        const lastBtn = document.getElementById('last-page-btn');
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+        const thumbnailContainer = document.getElementById('thumbnail-container');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        const canvas = document.getElementById('draw-canvas');
+        const ctx = canvas.getContext('2d');
+        const drawToggleBtn = document.getElementById('draw-toggle-btn');
+        const clearDrawBtn = document.getElementById('clear-draw-btn');
+        const drawToolbar = document.getElementById('draw-toolbar');
+        const closeDrawToolbar = document.getElementById('close-draw-toolbar');
+        const brushSizeInput = document.getElementById('brush-size');
+        const brushSizeVal = document.getElementById('brush-size-val');
+        const colorBtns = document.querySelectorAll('.color-btn');
+        const customColorPicker = document.getElementById('custom-color-picker');
+        const modePenBtn = document.getElementById('mode-pen');
+        const modeHighlighterBtn = document.getElementById('mode-highlighter');
+
+        let isDrawingMode = false;
+        let isDrawing = false;
+        let brushColor = '#ef4444';
+        let brushSize = 4;
+        let isHighlighter = false;
+
+        let offscreenCanvas = document.createElement('canvas');
+        let offCtx = offscreenCanvas.getContext('2d');
+        let lastX = 0, lastY = 0;
+
+        totalPageNum.textContent = totalPages;
+        jumpInput.max = totalPages;
+
+        function saveCurrentCanvas() {
+            if (currentIndex < imageUrls.length && pageImage.naturalWidth) {
+                pageDrawings[currentIndex] = canvas.toDataURL();
+            }
+        }
+
+        function restoreCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (pageDrawings[currentIndex]) {
+                const img = new Image();
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = pageDrawings[currentIndex];
+            }
+        }
+
+        function resizeCanvasToImage() {
+            const rect = pageImage.getBoundingClientRect();
+            canvas.width = pageImage.naturalWidth || rect.width || 800;
+            canvas.height = pageImage.naturalHeight || rect.height || 600;
+            offscreenCanvas.width = canvas.width;
+            offscreenCanvas.height = canvas.height;
+            restoreCanvas();
+        }
+
+        function loadPage(index) {
+            saveCurrentCanvas();
+
+            if (index < 0) index = 0;
+            if (index >= totalPages) index = totalPages - 1;
+            
+            currentIndex = index;
+            currentPageNum.textContent = currentIndex + 1;
+            jumpInput.value = currentIndex + 1;
+
+            // 隱藏所有檢視層
+            pageImage.style.display = 'none';
+            quizPage.style.display = 'none';
+            videoPage.style.display = 'none';
+            ebookPage.style.display = 'none';
+            canvas.style.display = 'none';
+
+            if (currentIndex === imageUrls.length) {
+                // 第 64 頁：健體測驗
+                quizPage.style.display = 'flex';
+                loadingIndicator.style.display = 'none';
+            } else if (currentIndex === imageUrls.length + 1) {
+                // 第 65 頁：健體影音
+                videoPage.style.display = 'flex';
+                loadingIndicator.style.display = 'none';
+            } else if (currentIndex === imageUrls.length + 2) {
+                // 第 66 頁：健體影音電子書
+                ebookPage.style.display = 'flex';
+                loadingIndicator.style.display = 'none';
+            } else {
+                // 一般教材頁面 (1~63 頁)
+                pageImage.style.display = 'block';
+                canvas.style.display = 'block';
+                loadingIndicator.style.display = 'flex';
+                pageImage.style.opacity = '0.3';
+                pageImage.src = imageUrls[currentIndex];
+            }
+
+            document.querySelectorAll('.thumbnail-item').forEach((item, idx) => {
+                if (idx === currentIndex) {
+                    item.classList.add('border-emerald-500', 'bg-slate-800');
+                    item.classList.remove('border-slate-800');
+                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    item.classList.remove('border-emerald-500', 'bg-slate-800');
+                    item.classList.add('border-slate-800');
+                }
+            });
+
+            updateButtonStates();
+        }
+
+        pageImage.onload = () => {
+            loadingIndicator.style.display = 'none';
+            pageImage.style.opacity = '1';
+            resizeCanvasToImage();
+        };
+
+        window.addEventListener('resize', () => {
+            if (currentIndex < imageUrls.length) {
+                resizeCanvasToImage();
+            }
+        });
+
+        function updateButtonStates() {
+            prevBtn.disabled = currentIndex === 0;
+            prevBtn.style.opacity = currentIndex === 0 ? '0.4' : '1';
+            firstBtn.disabled = currentIndex === 0;
+            firstBtn.style.opacity = currentIndex === 0 ? '0.4' : '1';
+
+            nextBtn.disabled = currentIndex === totalPages - 1;
+            nextBtn.style.opacity = currentIndex === totalPages - 1 ? '0.4' : '1';
+            lastBtn.disabled = currentIndex === totalPages - 1;
+            lastBtn.style.opacity = currentIndex === totalPages - 1 ? '0.4' : '1';
+        }
+
+        function nextPage() {
+            if (currentIndex < totalPages - 1) loadPage(currentIndex + 1);
+        }
+
+        function prevPage() {
+            if (currentIndex > 0) loadPage(currentIndex - 1);
+        }
+
+        prevBtn.addEventListener('click', prevPage);
+        nextBtn.addEventListener('click', nextPage);
+        firstBtn.addEventListener('click', () => loadPage(0));
+        lastBtn.addEventListener('click', () => loadPage(totalPages - 1));
+
+        jumpInput.addEventListener('change', (e) => {
+            let val = parseInt(e.target.value) - 1;
+            if (!isNaN(val)) {
+                loadPage(val);
+            } else {
+                jumpInput.value = currentIndex + 1;
+            }
+        });
+
+        // 支援鍵盤左右方向鍵翻頁
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement === jumpInput) return;
+            if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === 'ArrowDown') {
+                nextPage();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'ArrowUp') {
+                prevPage();
+            }
+        });
+
+        drawToggleBtn.addEventListener('click', () => {
+            if (currentIndex >= imageUrls.length) return; // 特殊頁面不支援畫筆
+            isDrawingMode = !isDrawingMode;
+            if (isDrawingMode) {
+                drawToggleBtn.classList.add('bg-emerald-600', 'text-white');
+                drawToggleBtn.classList.remove('bg-slate-800', 'text-slate-300');
+                canvas.style.pointerEvents = 'auto';
+                drawToolbar.classList.remove('hidden');
+                drawToolbar.classList.add('flex');
+            } else {
+                exitDrawingMode();
+            }
+        });
+
+        function exitDrawingMode() {
+            isDrawingMode = false;
+            drawToggleBtn.classList.remove('bg-emerald-600', 'text-white');
+            drawToggleBtn.classList.add('bg-slate-800', 'text-slate-300');
+            canvas.style.pointerEvents = 'none';
+            drawToolbar.classList.add('hidden');
+            drawToolbar.classList.remove('flex');
+        }
+
+        closeDrawToolbar.addEventListener('click', exitDrawingMode);
+
+        clearDrawBtn.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            delete pageDrawings[currentIndex];
+        });
+
+        modePenBtn.addEventListener('click', () => {
+            isHighlighter = false;
+            modePenBtn.className = "flex-1 py-1 text-xs rounded bg-emerald-600 text-white transition flex items-center justify-center";
+            modeHighlighterBtn.className = "flex-1 py-1 text-xs rounded text-slate-400 hover:text-white transition flex items-center justify-center";
+        });
+
+        modeHighlighterBtn.addEventListener('click', () => {
+            isHighlighter = true;
+            modeHighlighterBtn.className = "flex-1 py-1 text-xs rounded bg-yellow-500 text-slate-950 font-bold transition flex items-center justify-center";
+            modePenBtn.className = "flex-1 py-1 text-xs rounded text-slate-400 hover:text-white transition flex items-center justify-center";
+        });
+
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                colorBtns.forEach(b => b.classList.remove('ring-2', 'ring-white/50'));
+                e.target.classList.add('ring-2', 'ring-white/50');
+                brushColor = e.target.getAttribute('data-color');
+            });
+        });
+
+        customColorPicker.addEventListener('input', (e) => {
+            brushColor = e.target.value;
+            colorBtns.forEach(b => b.classList.remove('ring-2', 'ring-white/50'));
+        });
+
+        brushSizeInput.addEventListener('input', (e) => {
+            brushSize = e.target.value;
+            brushSizeVal.textContent = brushSize + 'px';
+        });
+
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (evt.clientX - rect.left) * scaleX,
+                y: (evt.clientY - rect.top) * scaleY
+            };
+        }
+
+        function getTouchPos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (evt.touches[0].clientX - rect.left) * scaleX,
+                y: (evt.touches[0].clientY - rect.top) * scaleY
+            };
+        }
+
+        function startDrawing(pos) {
+            isDrawing = true;
+            lastX = pos.x;
+            lastY = pos.y;
+
+            if (isHighlighter) {
+                offCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+                offCtx.save();
+                offCtx.strokeStyle = brushColor;
+                offCtx.lineWidth = Math.max(brushSize, 14);
+                offCtx.lineCap = 'butt';
+                offCtx.lineJoin = 'miter';
+                offCtx.beginPath();
+                offCtx.moveTo(lastX, lastY);
+            } else {
+                ctx.save();
+                ctx.strokeStyle = brushColor;
+                ctx.lineWidth = brushSize;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 1.0;
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+            }
+        }
+
+        function drawMove(pos) {
+            if (!isDrawing) return;
+
+            if (isHighlighter) {
+                offCtx.lineTo(pos.x, pos.y);
+                offCtx.stroke();
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (pageDrawings[currentIndex]) {
+                    const img = new Image();
+                    img.src = pageDrawings[currentIndex];
+                    ctx.drawImage(img, 0, 0);
+                }
+                ctx.save();
+                ctx.globalAlpha = 0.20; // 固定的 20% 螢光濃度
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.drawImage(offscreenCanvas, 0, 0);
+                ctx.restore();
+            } else {
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+            }
+            lastX = pos.x;
+            lastY = pos.y;
+        }
+
+        function endDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+
+            if (isHighlighter) {
+                offCtx.restore();
+                ctx.save();
+                ctx.globalAlpha = 0.20;
+                ctx.globalCompositeOperation = 'multiply';
+                ctx.drawImage(offscreenCanvas, 0, 0);
+                ctx.restore();
+            } else {
+                ctx.restore();
+            }
+            saveCurrentCanvas();
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (!isDrawingMode) return;
+            startDrawing(getMousePos(e));
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing || !isDrawingMode) return;
+            drawMove(getMousePos(e));
+        });
+
+        window.addEventListener('mouseup', () => {
+            endDrawing();
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            if (!isDrawingMode) return;
+            startDrawing(getTouchPos(e));
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (!isDrawing || !isDrawingMode) return;
+            drawMove(getTouchPos(e));
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchend', () => {
+            endDrawing();
+        });
+
+        function buildThumbnails() {
+            thumbnailContainer.innerHTML = '';
+            
+            // 1~63 頁縮圖
+            imageUrls.forEach((url, idx) => {
+                const thumbDiv = document.createElement('div');
+                thumbDiv.className = `thumbnail-item flex items-center space-x-3 p-2 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-800 cursor-pointer transition`;
+                thumbDiv.innerHTML = `
+                    <div class="w-12 h-16 bg-slate-800 rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
+                        <img src="${url}" class="max-w-full max-h-full object-cover" loading="lazy" crossorigin="anonymous">
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-xs font-semibold text-slate-300">第 ${idx + 1} 頁</div>
+                        <div class="text-[10px] text-slate-500">康軒三上健體</div>
+                    </div>
+                `;
+                thumbDiv.addEventListener('click', () => {
+                    loadPage(idx);
+                    toggleSidebar(false);
+                });
+                thumbnailContainer.appendChild(thumbDiv);
+            });
+
+            // 第 64 頁：健體測驗縮圖
+            const quizThumbDiv = document.createElement('div');
+            quizThumbDiv.className = `thumbnail-item flex items-center space-x-3 p-2 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-800 cursor-pointer transition`;
+            quizThumbDiv.innerHTML = `
+                <div class="w-12 h-16 bg-emerald-900/50 border border-emerald-500/30 rounded overflow-hidden flex-shrink-0 flex items-center justify-center text-emerald-400">
+                    <i class="fa-solid fa-clipboard-question text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="text-xs font-semibold text-emerald-400">第 64 頁</div>
+                    <div class="text-[10px] text-slate-400">健體測驗專區</div>
+                </div>
+            `;
+            quizThumbDiv.addEventListener('click', () => {
+                loadPage(63);
+                toggleSidebar(false);
+            });
+            thumbnailContainer.appendChild(quizThumbDiv);
+
+            // 第 65 頁：健體影音縮圖
+            const videoThumbDiv = document.createElement('div');
+            videoThumbDiv.className = `thumbnail-item flex items-center space-x-3 p-2 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-800 cursor-pointer transition`;
+            videoThumbDiv.innerHTML = `
+                <div class="w-12 h-16 bg-cyan-900/50 border border-cyan-500/30 rounded overflow-hidden flex-shrink-0 flex items-center justify-center text-cyan-400">
+                    <i class="fa-solid fa-video text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="text-xs font-semibold text-cyan-400">第 65 頁</div>
+                    <div class="text-[10px] text-slate-400">健體影音專區</div>
+                </div>
+            `;
+            videoThumbDiv.addEventListener('click', () => {
+                loadPage(64);
+                toggleSidebar(false);
+            });
+            thumbnailContainer.appendChild(videoThumbDiv);
+
+            // 第 66 頁：健體影音電子書縮圖
+            const ebookThumbDiv = document.createElement('div');
+            ebookThumbDiv.className = `thumbnail-item flex items-center space-x-3 p-2 rounded-xl border border-slate-800 bg-slate-900/50 hover:bg-slate-800 cursor-pointer transition`;
+            ebookThumbDiv.innerHTML = `
+                <div class="w-12 h-16 bg-indigo-900/50 border border-indigo-500/30 rounded overflow-hidden flex-shrink-0 flex items-center justify-center text-indigo-400">
+                    <i class="fa-solid fa-book-bookmark text-xl"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="text-xs font-semibold text-indigo-400">第 66 頁</div>
+                    <div class="text-[10px] text-slate-400">健體影音電子書</div>
+                </div>
+            `;
+            ebookThumbDiv.addEventListener('click', () => {
+                loadPage(65);
+                toggleSidebar(false);
+            });
+            thumbnailContainer.appendChild(ebookThumbDiv);
+        }
+
+        function toggleSidebar(show) {
+            if (show) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebarBackdrop.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                sidebarBackdrop.classList.add('hidden');
+            }
+        }
+
+        sidebarToggle.addEventListener('click', () => toggleSidebar(sidebar.classList.contains('-translate-x-full')));
+        sidebarClose.addEventListener('click', () => toggleSidebar(false));
+        sidebarBackdrop.addEventListener('click', () => toggleSidebar(false));
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error("Error attempting to enable fullscreen:", err.message);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        window.onload = () => {
+            buildThumbnails();
+            loadPage(0);
+        };
+    </script>
+</body>
+</html>
