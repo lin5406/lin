@@ -13,7 +13,8 @@
             background-color: #f0f4f8;
         }
         .page-transition {
-            transition: all 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+            transform-origin: center center;
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -30,14 +31,14 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-        /* Glowing active state for pen main button */
+        /* Pen main button active glow & 3D styling */
         .pen-active-glow {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             border: 2px solid rgba(255, 255, 255, 0.9);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.5);
             transform: scale(1.05);
         }
-        /* Glowing active state for zoom button */
+        /* Zoom button active glow */
         .zoom-active-glow {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             border: 2px solid rgba(255, 255, 255, 0.9);
@@ -66,9 +67,9 @@
     <main class="flex-grow max-w-5xl w-full mx-auto p-4 flex flex-col items-center justify-center my-auto">
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden w-full flex flex-col border border-slate-100 relative group">
             
-            <!-- Image Viewport Container with vertical scroll support when zoomed -->
-            <div id="viewportContainer" class="relative w-full bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[550px] overflow-y-auto overflow-x-hidden select-none">
-                <div id="imageWrapper" class="relative flex items-center justify-center w-full py-6">
+            <!-- Image Viewport Container with scroll support -->
+            <div id="viewportContainer" class="relative w-full bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[550px] overflow-auto select-none">
+                <div id="imageWrapper" class="relative flex items-center justify-center w-full py-6 min-h-full">
                     <img id="mainImage" src="" alt="教材圖片" class="max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=載入圖片中或連結失效';">
                     
                     <!-- Drawing Canvas overlaid on top of image inside wrapper -->
@@ -88,7 +89,7 @@
                     <button onclick="firstPage()" class="bg-black/50 hover:bg-black/75 text-white w-10 h-10 rounded-full flex items-center justify-center text-xs transition backdrop-blur-sm shadow-lg focus:outline-none font-bold tracking-tighter" title="第一頁">
                         &lt;&lt;
                     </button>
-                    <!-- Zoom Toggle Button -->
+                    <!-- Zoom Toggle Button (3-stage cycle: 1.0 -> 1.25 -> 1.5 -> 1.0) -->
                     <button id="zoomToggleBtn" onclick="toggleZoom()" class="bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1" title="放大/縮小圖片">
                         <i class="fa-solid fa-search-plus" id="zoomIcon"></i>
                     </button>
@@ -103,7 +104,7 @@
                         &gt;&gt;
                     </button>
                     
-                    <!-- Main Pen Toggle Button -->
+                    <!-- Main Pen Toggle Button (Glowing 3D effect when active) -->
                     <button id="penToggleBtn" onclick="togglePenMode()" class="bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1" title="畫筆功能開關">
                         <i class="fa-solid fa-pen"></i>
                     </button>
@@ -192,7 +193,7 @@
         let currentIndex = 0;
         let isDrawingMode = false;
         let isSettingsOpen = false;
-        let isZoomed = false;
+        let zoomState = 0; // 0: 1.0x (normal), 1: 1.25x, 2: 1.5x
         let isDrawing = false;
         let pageDrawings = {}; 
 
@@ -256,21 +257,29 @@
         }
 
         function toggleZoom() {
-            isZoomed = !isZoomed;
+            zoomState = (zoomState + 1) % 3;
             const mainImg = document.getElementById('mainImage');
             const btn = document.getElementById('zoomToggleBtn');
             const icon = document.getElementById('zoomIcon');
 
-            if (isZoomed) {
-                mainImg.className = "max-h-[140vh] w-auto object-contain page-transition shadow-2xl pointer-events-none";
+            if (zoomState === 1) {
+                // 1.25x scale
+                mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-[1.25]";
                 btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none zoom-active-glow mt-1";
-                icon.className = "fa-solid fa-search-minus";
-                btn.title = "縮小圖片";
+                icon.className = "fa-solid fa-search-plus";
+                btn.title = "放大圖片 (1.5x)";
+            } else if (zoomState === 2) {
+                // 1.5x scale
+                mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-[1.5]";
+                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none zoom-active-glow mt-1";
+                icon.className = "fa-solid fa-search-plus";
+                btn.title = "恢復原尺寸";
             } else {
-                mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none";
+                // Normal scale (1.0x)
+                mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-100";
                 btn.className = "bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1";
                 icon.className = "fa-solid fa-search-plus";
-                btn.title = "放大圖片";
+                btn.title = "放大圖片 (1.25x)";
             }
             setTimeout(initCanvasSize, 150);
         }
@@ -329,7 +338,7 @@
             };
         }
 
-        // Prevent drawing over button areas on left and right
+        // Prevent drawing over button areas on right side
         function isOverButtonArea(pos) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
