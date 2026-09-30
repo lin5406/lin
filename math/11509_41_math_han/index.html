@@ -15,6 +15,7 @@
         .page-transition {
             transition: all 0.3s ease-in-out;
         }
+        /* Custom scrollbar */
         ::-webkit-scrollbar {
             height: 6px;
             width: 6px;
@@ -28,6 +29,20 @@
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
+        }
+        /* Glowing active state for pen main button */
+        .pen-active-glow {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+        /* Glowing active state for zoom button */
+        .zoom-active-glow {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -51,9 +66,9 @@
     <main class="flex-grow max-w-5xl w-full mx-auto p-4 flex flex-col items-center justify-center my-auto">
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden w-full flex flex-col border border-slate-100 relative group">
             
-            <!-- Image Viewport & Canvas Container -->
-            <div id="viewportContainer" class="relative w-full bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[550px] overflow-auto select-none">
-                <div id="imageWrapper" class="relative transition-transform duration-200 ease-out origin-center flex items-center justify-center w-full h-full">
+            <!-- Image Viewport Container with vertical scroll support when zoomed -->
+            <div id="viewportContainer" class="relative w-full bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[550px] overflow-y-auto overflow-x-hidden select-none">
+                <div id="imageWrapper" class="relative flex items-center justify-center w-full py-6">
                     <img id="mainImage" src="" alt="教材圖片" class="max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=載入圖片中或連結失效';">
                     
                     <!-- Drawing Canvas overlaid on top of image inside wrapper -->
@@ -61,10 +76,11 @@
                 </div>
 
                 <!-- Loading overlay indicator -->
-                <div id="loadingOverlay" class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 pointer-events-none transition-opacity z-20">
+                <div id="loadingOverlay" class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 pointer-events-none transition-opacity z-25">
                     <div class="animate-spin rounded-full h-10 w-10 border-4 border-white border-t-transparent"></div>
                 </div>
 
+                <!-- Left Navigation Controls & Zoom Button -->
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-40">
                     <button onclick="prevPage()" class="bg-black/50 hover:bg-black/75 text-white w-12 h-12 rounded-full flex items-center justify-center text-lg transition backdrop-blur-sm shadow-lg focus:outline-none" title="上一頁">
                         <i class="fa-solid fa-chevron-left"></i>
@@ -78,7 +94,8 @@
                     </button>
                 </div>
 
-                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-[60]">
+                <!-- Right Navigation Controls & Pen Toggle & Settings Gear -->
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-40">
                     <button onclick="nextPage()" class="bg-black/50 hover:bg-black/75 text-white w-12 h-12 rounded-full flex items-center justify-center text-lg transition backdrop-blur-sm shadow-lg focus:outline-none" title="下一頁">
                         <i class="fa-solid fa-chevron-right"></i>
                     </button>
@@ -86,17 +103,18 @@
                         &gt;&gt;
                     </button>
                     
-                    <!-- Main Pen Toggle Button (3D Neon Glow when active) -->
+                    <!-- Main Pen Toggle Button -->
                     <button id="penToggleBtn" onclick="togglePenMode()" class="bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1" title="畫筆功能開關">
                         <i class="fa-solid fa-pen"></i>
                     </button>
 
-                    <!-- Settings Cog Button (Placed immediately below pen button) -->
+                    <!-- Settings Gear Button (Placed immediately below pen button) -->
                     <button id="openSettingsBtn" onclick="togglePenSettings()" class="bg-indigo-600 hover:bg-indigo-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs shadow-xl transition hidden mt-1" title="開啟畫筆設定">
                         <i class="fa-solid fa-gear"></i>
                     </button>
                 </div>
 
+                <!-- Pen Toolbar Settings Popup -->
                 <div id="penToolbar" class="absolute bottom-6 right-20 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-200 flex items-center gap-3 z-[70] hidden transition-all">
                     <!-- Color Picker -->
                     <div class="flex items-center gap-1.5" title="選擇顏色">
@@ -215,9 +233,9 @@
         };
 
         function initCanvasSize() {
-            const container = document.getElementById('viewportContainer');
-            const w = container.clientWidth;
-            const h = container.clientHeight;
+            const mainImg = document.getElementById('mainImage');
+            const w = mainImg.clientWidth || document.getElementById('viewportContainer').clientWidth;
+            const h = mainImg.clientHeight || document.getElementById('viewportContainer').clientHeight;
             
             if (w === 0 || h === 0) return;
 
@@ -239,21 +257,22 @@
 
         function toggleZoom() {
             isZoomed = !isZoomed;
-            const wrapper = document.getElementById('imageWrapper');
+            const mainImg = document.getElementById('mainImage');
             const btn = document.getElementById('zoomToggleBtn');
             const icon = document.getElementById('zoomIcon');
 
             if (isZoomed) {
-                wrapper.style.transform = 'scale(1.5)';
-                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none bg-gradient-to-tr from-indigo-600 to-sky-400 text-white border-2 border-white/90 shadow-[0_0_20px_rgba(99,102,241,0.9)] scale-105 mt-1";
+                mainImg.className = "max-h-[140vh] w-auto object-contain page-transition shadow-2xl pointer-events-none";
+                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none zoom-active-glow mt-1";
                 icon.className = "fa-solid fa-search-minus";
                 btn.title = "縮小圖片";
             } else {
-                wrapper.style.transform = 'scale(1)';
+                mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none";
                 btn.className = "bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1";
                 icon.className = "fa-solid fa-search-plus";
                 btn.title = "放大圖片";
             }
+            setTimeout(initCanvasSize, 150);
         }
 
         function togglePenMode() {
@@ -263,7 +282,7 @@
             const openSettingsBtn = document.getElementById('openSettingsBtn');
 
             if (isDrawingMode) {
-                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none bg-gradient-to-tr from-indigo-600 to-sky-400 text-white border-2 border-white/90 shadow-[0_0_20px_rgba(99,102,241,0.9)] scale-105 mt-1";
+                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none pen-active-glow mt-1";
                 toolbar.classList.remove('hidden');
                 openSettingsBtn.classList.add('hidden');
                 isSettingsOpen = true;
@@ -310,11 +329,20 @@
             };
         }
 
-        // Prevent drawing over right button cluster
+        // Prevent drawing over button areas on left and right
         function isOverButtonArea(pos) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
-            return pos.x > (canvas.width - (80 * scaleX)) && (pos.y > (canvas.height / 2 - 180) && pos.y < (canvas.height / 2 + 180));
+            const scaleY = canvas.height / rect.height;
+            // Right buttons cluster guard
+            if (pos.x > (canvas.width - (80 * scaleX)) && (pos.y > (canvas.height / 2 - 200) && pos.y < (canvas.height / 2 + 200))) {
+                return true;
+            }
+            // Left buttons cluster guard
+            if (pos.x < (80 * scaleX) && (pos.y > (canvas.height / 2 - 200) && pos.y < (canvas.height / 2 + 200))) {
+                return true;
+            }
+            return false;
         }
 
         function startDrawing(e) {
@@ -415,11 +443,6 @@
             const pageIndicator = document.getElementById('pageIndicator');
             const loadingOverlay = document.getElementById('loadingOverlay');
 
-            // Reset zoom when changing pages
-            if (isZoomed) {
-                toggleZoom();
-            }
-
             loadingOverlay.classList.remove('opacity-0');
             mainImg.style.opacity = '0.3';
 
@@ -430,6 +453,7 @@
             mainImg.onload = function() {
                 mainImg.style.opacity = '1';
                 loadingOverlay.classList.add('opacity-0');
+                initCanvasSize();
                 
                 bufferCtx.clearRect(0, 0, bufferCanvas.width, bufferCanvas.height);
                 if (pageDrawings[currentIndex]) {
