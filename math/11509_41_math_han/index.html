@@ -49,22 +49,22 @@
     </header>
 
     <main class="flex-grow max-w-5xl w-full mx-auto p-4 flex flex-col items-center justify-center my-auto">
-        <!-- Main Viewer Card -->
         <div class="bg-white rounded-2xl shadow-xl overflow-hidden w-full flex flex-col border border-slate-100 relative group">
             
             <!-- Image Viewport & Canvas Container -->
-            <div id="viewportContainer" class="relative w-full bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[550px] overflow-hidden select-none">
-                <img id="mainImage" src="" alt="教材圖片" class="max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=載入圖片中或連結失效';">
-                
-                <!-- Drawing Canvas overlaid on top of image -->
-                <canvas id="drawCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+            <div id="viewportContainer" class="relative w-full bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[550px] overflow-auto select-none">
+                <div id="imageWrapper" class="relative transition-transform duration-200 ease-out origin-center flex items-center justify-center w-full h-full">
+                    <img id="mainImage" src="" alt="教材圖片" class="max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=載入圖片中或連結失效';">
+                    
+                    <!-- Drawing Canvas overlaid on top of image inside wrapper -->
+                    <canvas id="drawCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+                </div>
 
                 <!-- Loading overlay indicator -->
                 <div id="loadingOverlay" class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 pointer-events-none transition-opacity z-20">
                     <div class="animate-spin rounded-full h-10 w-10 border-4 border-white border-t-transparent"></div>
                 </div>
 
-                <!-- Left Navigation Cluster (<, <<) -->
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-40">
                     <button onclick="prevPage()" class="bg-black/50 hover:bg-black/75 text-white w-12 h-12 rounded-full flex items-center justify-center text-lg transition backdrop-blur-sm shadow-lg focus:outline-none" title="上一頁">
                         <i class="fa-solid fa-chevron-left"></i>
@@ -72,10 +72,12 @@
                     <button onclick="firstPage()" class="bg-black/50 hover:bg-black/75 text-white w-10 h-10 rounded-full flex items-center justify-center text-xs transition backdrop-blur-sm shadow-lg focus:outline-none font-bold tracking-tighter" title="第一頁">
                         &lt;&lt;
                     </button>
+                    <!-- Zoom Toggle Button -->
+                    <button id="zoomToggleBtn" onclick="toggleZoom()" class="bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1" title="放大/縮小圖片">
+                        <i class="fa-solid fa-search-plus" id="zoomIcon"></i>
+                    </button>
                 </div>
 
-                <!-- Right Navigation Cluster (>, >>, Pen Toggle, Settings Cog) -->
-                <!-- Set high z-index (60) so buttons always stay on top of canvas and never get covered by brush strokes -->
                 <div class="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-[60]">
                     <button onclick="nextPage()" class="bg-black/50 hover:bg-black/75 text-white w-12 h-12 rounded-full flex items-center justify-center text-lg transition backdrop-blur-sm shadow-lg focus:outline-none" title="下一頁">
                         <i class="fa-solid fa-chevron-right"></i>
@@ -84,18 +86,17 @@
                         &gt;&gt;
                     </button>
                     
-                    <!-- Main Pen Toggle Button (Starts inactive, 3D neon glow when active) -->
+                    <!-- Main Pen Toggle Button (3D Neon Glow when active) -->
                     <button id="penToggleBtn" onclick="togglePenMode()" class="bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1" title="畫筆功能開關">
                         <i class="fa-solid fa-pen"></i>
                     </button>
 
-                    <!-- Floating button to reopen settings panel (Placed immediately below pen button) -->
+                    <!-- Settings Cog Button (Placed immediately below pen button) -->
                     <button id="openSettingsBtn" onclick="togglePenSettings()" class="bg-indigo-600 hover:bg-indigo-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs shadow-xl transition hidden mt-1" title="開啟畫筆設定">
                         <i class="fa-solid fa-gear"></i>
                     </button>
                 </div>
 
-                <!-- Pen Toolbar Popup -->
                 <div id="penToolbar" class="absolute bottom-6 right-20 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-200 flex items-center gap-3 z-[70] hidden transition-all">
                     <!-- Color Picker -->
                     <div class="flex items-center gap-1.5" title="選擇顏色">
@@ -120,7 +121,7 @@
                     <button onclick="clearCanvas()" class="w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition" title="清除畫面">
                         <i class="fa-solid fa-trash-can text-xs"></i>
                     </button>
-                    <!-- Collapse Settings Popup Button (Keeps pen active & drawing mode ON, hides panel) -->
+                    <!-- Collapse Settings Popup Button (Keeps pen active, hides panel) -->
                     <button onclick="togglePenSettings()" class="w-8 h-8 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center shadow-md transition" title="收合設定選單（保持畫筆功能）">
                         <i class="fa-solid fa-check text-xs"></i>
                     </button>
@@ -128,7 +129,6 @@
 
             </div>
 
-            <!-- Image Caption Bar -->
             <div class="bg-white px-6 py-4 flex flex-col sm:flex-row justify-between items-center border-t border-slate-100 gap-3">
                 <div class="text-slate-600 font-medium text-sm md:text-base flex items-center gap-2">
                     <i class="fa-solid fa-book-open text-indigo-600"></i>
@@ -174,6 +174,7 @@
         let currentIndex = 0;
         let isDrawingMode = false;
         let isSettingsOpen = false;
+        let isZoomed = false;
         let isDrawing = false;
         let pageDrawings = {}; 
 
@@ -236,6 +237,25 @@
             redrawCanvas();
         }
 
+        function toggleZoom() {
+            isZoomed = !isZoomed;
+            const wrapper = document.getElementById('imageWrapper');
+            const btn = document.getElementById('zoomToggleBtn');
+            const icon = document.getElementById('zoomIcon');
+
+            if (isZoomed) {
+                wrapper.style.transform = 'scale(1.5)';
+                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none bg-gradient-to-tr from-indigo-600 to-sky-400 text-white border-2 border-white/90 shadow-[0_0_20px_rgba(99,102,241,0.9)] scale-105 mt-1";
+                icon.className = "fa-solid fa-search-minus";
+                btn.title = "縮小圖片";
+            } else {
+                wrapper.style.transform = 'scale(1)';
+                btn.className = "bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1";
+                icon.className = "fa-solid fa-search-plus";
+                btn.title = "放大圖片";
+            }
+        }
+
         function togglePenMode() {
             isDrawingMode = !isDrawingMode;
             const btn = document.getElementById('penToggleBtn');
@@ -243,14 +263,12 @@
             const openSettingsBtn = document.getElementById('openSettingsBtn');
 
             if (isDrawingMode) {
-                // Active 3D state with neon glowing frame & soft shadow
                 btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none bg-gradient-to-tr from-indigo-600 to-sky-400 text-white border-2 border-white/90 shadow-[0_0_20px_rgba(99,102,241,0.9)] scale-105 mt-1";
                 toolbar.classList.remove('hidden');
                 openSettingsBtn.classList.add('hidden');
                 isSettingsOpen = true;
                 canvas.style.pointerEvents = 'auto';
             } else {
-                // Normal inactive state
                 btn.className = "bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1";
                 toolbar.classList.add('hidden');
                 openSettingsBtn.classList.add('hidden');
@@ -282,15 +300,21 @@
                 clientX = e.touches[0].clientX;
                 clientY = e.touches[0].clientY;
             }
+            
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
             return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
             };
         }
 
-        // Prevent drawing over the right-side buttons cluster area so buttons remain clickable
+        // Prevent drawing over right button cluster
         function isOverButtonArea(pos) {
-            return pos.x > (canvas.width - 70) && (pos.y > (canvas.height / 2 - 160) && pos.y < (canvas.height / 2 + 160));
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            return pos.x > (canvas.width - (80 * scaleX)) && (pos.y > (canvas.height / 2 - 180) && pos.y < (canvas.height / 2 + 180));
         }
 
         function startDrawing(e) {
@@ -320,7 +344,7 @@
             bufferCtx.lineJoin = 'round';
 
             if (type === 'highlighter') {
-                bufferCtx.globalAlpha = 0.25; // Permanent 25% transparency for highlighter
+                bufferCtx.globalAlpha = 0.25; // 25% transparent highlighter
                 bufferCtx.strokeStyle = color;
             } else {
                 bufferCtx.globalAlpha = 1.0;
@@ -390,6 +414,11 @@
             const imgTitle = document.getElementById('imageTitle');
             const pageIndicator = document.getElementById('pageIndicator');
             const loadingOverlay = document.getElementById('loadingOverlay');
+
+            // Reset zoom when changing pages
+            if (isZoomed) {
+                toggleZoom();
+            }
 
             loadingOverlay.classList.remove('opacity-0');
             mainImg.style.opacity = '0.3';
