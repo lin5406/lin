@@ -31,15 +31,8 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-        /* Pen main button active glow & 3D styling */
+        /* Pen main active button 3D glow styling */
         .pen-active-glow {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            border: 2px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 0 25px rgba(59, 130, 246, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.5);
-            transform: scale(1.05);
-        }
-        /* Zoom button active glow */
-        .zoom-active-glow {
             background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
             border: 2px solid rgba(255, 255, 255, 0.9);
             box-shadow: 0 0 25px rgba(59, 130, 246, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.5);
@@ -56,7 +49,7 @@
                 <h1 class="text-lg md:text-xl font-bold tracking-wide">數學學習教材</h1>
             </div>
             <div class="flex items-center space-x-2 mt-2 sm:mt-0">
-                <span id="pageIndicator" class="bg-indigo-700 px-3 py-1 rounded-full text-sm font-medium">第 1 頁 / 共 10 頁</span>
+                <span id="pageIndicator" class="bg-indigo-700 px-3 py-1 rounded-full text-sm font-medium">第 1 頁 / 共 40 頁</span>
                 <button onclick="toggleFullscreen()" class="bg-indigo-500 hover:bg-indigo-400 p-2 rounded-lg text-white transition shadow" title="全螢幕模式">
                     <i class="fa-solid fa-expand"></i>
                 </button>
@@ -70,7 +63,7 @@
             <!-- Image Viewport Container with scroll support -->
             <div id="viewportContainer" class="relative w-full bg-slate-900 flex items-center justify-center min-h-[400px] md:min-h-[550px] overflow-auto select-none">
                 <div id="imageWrapper" class="relative flex items-center justify-center w-full py-6 min-h-full">
-                    <img id="mainImage" src="" alt="教材圖片" class="max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=載入圖片中或連結失效';">
+                    <img id="mainImage" src="" alt="教材圖片" class="max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-100" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=載入圖片中或連結失效';">
                     
                     <!-- Drawing Canvas overlaid on top of image inside wrapper -->
                     <canvas id="drawCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
@@ -81,7 +74,7 @@
                     <div class="animate-spin rounded-full h-10 w-10 border-4 border-white border-t-transparent"></div>
                 </div>
 
-                <!-- Left Navigation Controls & Zoom Button -->
+                <!-- Left Navigation Controls, First/Last Page & Zoom Toggle Button -->
                 <div class="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-40">
                     <button onclick="prevPage()" class="bg-black/50 hover:bg-black/75 text-white w-12 h-12 rounded-full flex items-center justify-center text-lg transition backdrop-blur-sm shadow-lg focus:outline-none" title="上一頁">
                         <i class="fa-solid fa-chevron-left"></i>
@@ -95,7 +88,7 @@
                     </button>
                 </div>
 
-                <!-- Right Navigation Controls & Pen Toggle & Settings Gear -->
+                <!-- Right Navigation Controls, Last Page, Pen Main Toggle & Settings Gear -->
                 <div class="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 z-40">
                     <button onclick="nextPage()" class="bg-black/50 hover:bg-black/75 text-white w-12 h-12 rounded-full flex items-center justify-center text-lg transition backdrop-blur-sm shadow-lg focus:outline-none" title="下一頁">
                         <i class="fa-solid fa-chevron-right"></i>
@@ -115,7 +108,6 @@
                     </button>
                 </div>
 
-                <!-- Pen Toolbar Settings Popup -->
                 <div id="penToolbar" class="absolute bottom-6 right-20 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-200 flex items-center gap-3 z-[70] hidden transition-all">
                     <!-- Color Picker -->
                     <div class="flex items-center gap-1.5" title="選擇顏色">
@@ -173,7 +165,7 @@
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500">
-        <p>翰林四上數學數位互動教材 &copy; 2026 | 依據雲端資料夾圖片順序建置</p>
+        <p>翰林四上數學數位互動教材 &copy; 2026 | 共 40 頁完整單元教材</p>
     </footer>
 
     <script>
@@ -187,13 +179,43 @@
             { url: "https://lh3.googleusercontent.com/d/1LO6y8d3idARPVRLqzeioQrjYQZ2SJGEo=s1600", title: "翰林四上數學 - 頁面 07" },
             { url: "https://lh3.googleusercontent.com/d/1ViZxRdBQIjWJtn8zAXwLw72AINVbdc27=s1600", title: "翰林四上數學 - 頁面 08" },
             { url: "https://lh3.googleusercontent.com/d/13P93Zxa-KLcj79oJbx8CHQLqKUKj7kjd=s1600", title: "翰林四上數學 - 頁面 09" },
-            { url: "https://lh3.googleusercontent.com/d/1vtrg_zH1Lm3KnQRFZaXKHKCNFNlysYp0=s1600", title: "翰林四上數學 - 頁面 10" }
+            { url: "https://lh3.googleusercontent.com/d/1vtrg_zH1Lm3KnQRFZaXKHKCNFNlysYp0=s1600", title: "翰林四上數學 - 頁面 10" },
+            { url: "https://lh3.googleusercontent.com/d/1F0d8rsJ2Ry6yCaHnNui4KvSDDPRGPtmx=s1600", title: "翰林四上數學 - 頁面 11" },
+            { url: "https://lh3.googleusercontent.com/d/1dCyXlbzXvaE-AHQVQaz4t5FQXZEzlRc9=s1600", title: "翰林四上數學 - 頁面 12" },
+            { url: "https://lh3.googleusercontent.com/d/1jQmla1tnA9FQe7hzTHRo0kcLt__oHI4J=s1600", title: "翰林四上數學 - 頁面 13" },
+            { url: "https://lh3.googleusercontent.com/d/1llDYIfxn4677At6so_smbRP1cESRDwID=s1600", title: "翰林四上數學 - 頁面 14" },
+            { url: "https://lh3.googleusercontent.com/d/1WBX72Evbge1q1lFNNVblq4aUQhYVnH4L=s1600", title: "翰林四上數學 - 頁面 15" },
+            { url: "https://lh3.googleusercontent.com/d/17hUKt0HZNYu1IEQxVZeeiw-G_-KVlHXu=s1600", title: "翰林四上數學 - 頁面 16" },
+            { url: "https://lh3.googleusercontent.com/d/1YtYGYCYuQh5nv6rz7UQnCyTZSlT4CBBY=s1600", title: "翰林四上數學 - 頁面 17" },
+            { url: "https://lh3.googleusercontent.com/d/1uX6CrNogxWgIIXlFctTC0gNvHdAbbaxY=s1600", title: "翰林四上數學 - 頁面 18" },
+            { url: "https://lh3.googleusercontent.com/d/1mZNziLqdpoaC7Kozi1DHumVDo-CTLxxi=s1600", title: "翰林四上數學 - 頁面 19" },
+            { url: "https://lh3.googleusercontent.com/d/1khhnN2SHVRCjgkP3hfNNCKYkDGIJnXH_=s1600", title: "翰林四上數學 - 頁面 20" },
+            { url: "https://lh3.googleusercontent.com/d/1jJm9ljvd3pBKdRyK_HoQ-yoL2LJAZ8fK=s1600", title: "翰林四上數學 - 頁面 21" },
+            { url: "https://lh3.googleusercontent.com/d/1My2IsXt1spc_m2ao9Am_OgIMsDPxZafo=s1600", title: "翰林四上數學 - 頁面 22" },
+            { url: "https://lh3.googleusercontent.com/d/1sAFmAEKe5GeK-8oEzCaL1QiII85Q3QFM=s1600", title: "翰林四上數學 - 頁面 23" },
+            { url: "https://lh3.googleusercontent.com/d/1uPsfTqpOwomHJdUMjQZpxY0BA39R7eiI=s1600", title: "翰林四上數學 - 頁面 24" },
+            { url: "https://lh3.googleusercontent.com/d/1qT2C0dnHiEa_-EEtUceNlxHM9A70tF-F=s1600", title: "翰林四上數學 - 頁面 25" },
+            { url: "https://lh3.googleusercontent.com/d/12SuwCxeGfgsBueZx_Mg-KRcMu4CRSx71=s1600", title: "翰林四上數學 - 頁面 26" },
+            { url: "https://lh3.googleusercontent.com/d/1S1umn2KZ3LAe9oJOZ2IZUb-2rP0wjFNT=s1600", title: "翰林四上數學 - 頁面 27" },
+            { url: "https://lh3.googleusercontent.com/d/10a-He3n7KjJHnx538EdX41UIsObtQ0Ss=s1600", title: "翰林四上數學 - 頁面 28" },
+            { url: "https://lh3.googleusercontent.com/d/1zmMleJQpCLNPDWchYtlDaHGr8C6I9La5=s1600", title: "翰林四上數學 - 頁面 29" },
+            { url: "https://lh3.googleusercontent.com/d/1fJj1v39jlwviCcsX4bBfLoUyfhP6TFPw=s1600", title: "翰林四上數學 - 頁面 30" },
+            { url: "https://lh3.googleusercontent.com/d/1VuQPuaOQ6uNlH7O7cV2ahde8cNwS8Yjc=s1600", title: "翰林四上數學 - 頁面 31" },
+            { url: "https://lh3.googleusercontent.com/d/1WA-U9AXsr1amnfQRUVTBiviJOF0adGlE=s1600", title: "翰林四上數學 - 頁面 32" },
+            { url: "https://lh3.googleusercontent.com/d/1ZjY5A_j8xjEkGRePLVuqJRKqB5GcaRUM=s1600", title: "翰林四上數學 - 頁面 33" },
+            { url: "https://lh3.googleusercontent.com/d/1pt41GZ5xZzwQjfQ8JmdpYyvksr9qimPO=s1600", title: "翰林四上數學 - 頁面 34" },
+            { url: "https://lh3.googleusercontent.com/d/1CLGT87CX-o4L3r0hJwHkeByv1UWo6VFh=s1600", title: "翰林四上數學 - 頁面 35" },
+            { url: "https://lh3.googleusercontent.com/d/1snylYuUFZEOLm0Biiz83Wqq9sNBVhHC_=s1600", title: "翰林四上數學 - 頁面 36" },
+            { url: "https://lh3.googleusercontent.com/d/1yGe9-S-F5i7-YfQdbjhIDR9Es0FIfr1Z=s1600", title: "翰林四上數學 - 頁面 37" },
+            { url: "https://lh3.googleusercontent.com/d/1tGkd5hrKaazNTDnkMwl__rdl--GyZOrt=s1600", title: "翰林四上數學 - 頁面 38" },
+            { url: "https://lh3.googleusercontent.com/d/1_CgvhJEGcVU9Ope4CoSBclWKAs5qTPpP=s1600", title: "翰林四上數學 - 頁面 39" },
+            { url: "https://lh3.googleusercontent.com/d/1DOSOVf1F6cxIUhxkSAdpZFEg4RrNWovS=s1600", title: "翰林四上數學 - 頁面 40" }
         ];
 
         let currentIndex = 0;
         let isDrawingMode = false;
         let isSettingsOpen = false;
-        let zoomState = 0; // 0: 1.0x (normal), 1: 1.25x, 2: 1.5x
+        let zoomState = 0; // 0: 1.0x, 1: 1.25x, 2: 1.5x
         let isDrawing = false;
         let pageDrawings = {}; 
 
@@ -265,15 +287,15 @@
             if (zoomState === 1) {
                 // 1.25x scale
                 mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-[1.25]";
-                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none zoom-active-glow mt-1";
+                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none pen-active-glow mt-1";
                 icon.className = "fa-solid fa-search-plus";
                 btn.title = "放大圖片 (1.5x)";
             } else if (zoomState === 2) {
                 // 1.5x scale
                 mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-[1.5]";
-                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none zoom-active-glow mt-1";
+                btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none pen-active-glow mt-1";
                 icon.className = "fa-solid fa-search-plus";
-                btn.title = "恢復原尺寸";
+                btn.title = "恢復原尺寸 (1.0x)";
             } else {
                 // Normal scale (1.0x)
                 mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-100";
@@ -338,7 +360,7 @@
             };
         }
 
-        // Prevent drawing over button areas on right side
+        // Prevent drawing over button areas on right side & left side
         function isOverButtonArea(pos) {
             const rect = canvas.getBoundingClientRect();
             const scaleX = canvas.width / rect.width;
