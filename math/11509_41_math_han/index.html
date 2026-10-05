@@ -51,13 +51,12 @@
                 <h1 class="text-lg md:text-xl font-bold tracking-wide hidden sm:inline">數學學習教材</h1>
             </div>
             <div class="flex items-center space-x-2 mt-2 sm:mt-0">
-                <span id="pageIndicator" class="bg-indigo-700 px-3 py-1 rounded-full text-sm font-medium">第 1 頁 / 共 198 頁</span>
+                <span id="pageIndicator" class="bg-indigo-700 px-3 py-1 rounded-full text-sm font-medium">第 1 頁 / 共 205 頁</span>
                 <button onclick="toggleFullscreen()" class="bg-indigo-500 hover:bg-indigo-400 p-2 rounded-lg text-white transition shadow" title="全螢幕模式">
                     <i class="fa-solid fa-expand"></i>
                 </button>
             </div>
 
-            <!-- Floating Collapsible Chapter Menu Dropdown -->
             <div id="floatingChapterMenu" class="absolute top-14 left-4 bg-white text-slate-800 w-80 max-h-[70vh] overflow-y-auto rounded-2xl shadow-2xl border border-slate-200 z-50 hidden p-3 transition-all">
                 <div class="flex justify-between items-center mb-2 px-2 border-b border-slate-100 pb-2">
                     <span class="font-bold text-sm text-indigo-600 flex items-center gap-1.5">
@@ -81,6 +80,19 @@
                 <div id="imageWrapper" class="relative flex items-center justify-center w-full py-6 min-h-full">
                     <img id="mainImage" src="" alt="教材圖片" class="max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-100" onerror="this.src='https://placehold.co/800x600/1e293b/ffffff?text=載入圖片中或連結失效';">
                     
+                    <div id="quizOverlayView" class="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 flex flex-col items-center justify-center p-6 text-white hidden z-15">
+                        <div class="max-w-md w-full bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl text-center">
+                            <div class="w-20 h-20 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg mb-6 text-3xl">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <h2 class="text-2xl font-bold mb-3 tracking-wide">翰林四上數學 - 線上測驗</h2>
+                            <p class="text-indigo-200 text-sm mb-8 leading-relaxed">點擊下方按鈕將開啟全新的互動測驗視窗，檢測本學期學習成果！</p>
+                            <a href="https://math-four-quest-115.fortranlin.chatgpt.site/" target="_blank" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-4 px-6 rounded-2xl shadow-xl transition transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-base">
+                                <i class="fa-solid fa-rocket"></i> 開始數學測驗
+                            </a>
+                        </div>
+                    </div>
+
                     <canvas id="drawCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
                 </div>
 
@@ -117,7 +129,6 @@
                     </button>
                 </div>
 
-                <!-- Pen Tool Floating Toolbar -->
                 <div id="penToolbar" class="absolute bottom-6 right-20 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-200 flex items-center gap-3 z-[60] hidden transition-all">
                     <div class="flex items-center gap-1.5" title="選擇顏色">
                         <input type="color" id="penColor" value="#ef4444" class="w-7 h-7 rounded border border-slate-300 cursor-pointer p-0 bg-transparent">
@@ -170,7 +181,7 @@
     </main>
 
     <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500">
-        <p>翰林四上數學數位互動教材 &copy; 2026 | 共 198 頁完整單元教材</p>
+        <p>翰林四上數學數位互動教材 &copy; 2026 | 共 205 頁完整單元教材與線上測驗</p>
     </footer>
 
     <script>
@@ -291,88 +302,89 @@
             { url: "https://lh3.googleusercontent.com/d/1t1DbAzRLfSb7OvSjjM6QnBO98LB9NnD5=s1600", title: "翰林四上數學 - 頁面 114" },
             { url: "https://lh3.googleusercontent.com/d/17brlXfA-_XZAC76kfGWCTx8-hp_ULSIF=s1600", title: "翰林四上數學 - 頁面 115" },
             { url: "https://lh3.googleusercontent.com/d/1dZQVpGyjSp4UtS51W4qPs_TfYW1t1wmX=s1600", title: "6-4 P115" },
-            { url: "https://lh3.googleusercontent.com/d/18IiBj5sESjxQfrfmymOtiKj_dXsMeTgO=s1600", title: "翰林四上數學 - 頁面 118" },
-            { url: "https://lh3.googleusercontent.com/d/1gFN4MQ2ni8J8tltsPTgial9vmO1n5-Da=s1600", title: "翰林四上數學 - 頁面 119" },
-            { url: "https://lh3.googleusercontent.com/d/1C8tjxxskXEwkD8_iLkwgJOISqUCaUra8=s1600", title: "翰林四上數學 - 頁面 120" },
-            { url: "https://lh3.googleusercontent.com/d/18ymn1vlLLueI1aAiKfNflj03VgidGBO-=s1600", title: "翰林四上數學 - 頁面 121" },
+            { url: "https://lh3.googleusercontent.com/d/18IiBj5sESjxQfrfmymOtiKj_dXsMeTgO=s1600", title: "翰林四上數學 - 頁面 117" },
+            { url: "https://lh3.googleusercontent.com/d/1gFN4MQ2ni8J8tltsPTgial9vmO1n5-Da=s1600", title: "翰林四上數學 - 頁面 118" },
+            { url: "https://lh3.googleusercontent.com/d/1C8tjxxskXEwkD8_iLkwgJOISqUCaUra8=s1600", title: "翰林四上數學 - 頁面 119" },
+            { url: "https://lh3.googleusercontent.com/d/18ymn1vlLLueI1aAiKfNflj03VgidGBO-=s1600", title: "翰林四上數學 - 頁面 120" },
             { url: "https://lh3.googleusercontent.com/d/1m8r3FaOeDghlTPg3EwJ_kH-n9n0t-ckP=s1600", title: "7-1 P120" },
-            { url: "https://lh3.googleusercontent.com/d/1YFJgjeDXSOySnh5ehft-iKDxrNu9a7Lm=s1600", title: "翰林四上數學 - 頁面 123" },
-            { url: "https://lh3.googleusercontent.com/d/1RCuotox_RqUnI6NzKCvRpya3iRs0RHG4=s1600", title: "翰林四上數學 - 頁面 124" },
-            { url: "https://lh3.googleusercontent.com/d/1WMrSDFDRneA_2j7RaKwJ5bPaO3YO-mcM=s1600", title: "翰林四上數學 - 頁面 125" },
-            { url: "https://lh3.googleusercontent.com/d/18MD9Yl7rttB57QbhrSBr79iq3g9_87A3=s1600", title: "翰林四上數學 - 頁面 126" },
-            { url: "https://lh3.googleusercontent.com/d/1ScFpzEPVu-34-VrIIrKrSb7nHmw97-um=s1600", title: "翰林四上數學 - 頁面 127" },
-            { url: "https://lh3.googleusercontent.com/d/1M2T0daYCFzNCWpJRPMFZ-q7e9hk_D69H=s1600", title: "翰林四上數學 - 頁面 128" },
+            { url: "https://lh3.googleusercontent.com/d/1YFJgjeDXSOySnh5ehft-iKDxrNu9a7Lm=s1600", title: "翰林四上數學 - 頁面 122" },
+            { url: "https://lh3.googleusercontent.com/d/1RCuotox_RqUnI6NzKCvRpya3iRs0RHG4=s1600", title: "翰林四上數學 - 頁面 123" },
+            { url: "https://lh3.googleusercontent.com/d/1WMrSDFDRneA_2j7RaKwJ5bPaO3YO-mcM=s1600", title: "翰林四上數學 - 頁面 124" },
+            { url: "https://lh3.googleusercontent.com/d/18MD9Yl7rttB57QbhrSBr79iq3g9_87A3=s1600", title: "翰林四上數學 - 頁面 125" },
+            { url: "https://lh3.googleusercontent.com/d/1ScFpzEPVu-34-VrIIrKrSb7nHmw97-um=s1600", title: "翰林四上數學 - 頁面 126" },
+            { url: "https://lh3.googleusercontent.com/d/1M2T0daYCFzNCWpJRPMFZ-q7e9hk_D69H=s1600", title: "翰林四上數學 - 頁面 127" },
             { url: "https://lh3.googleusercontent.com/d/1-Ds2150pbseIaElA0XkyKDbSMfPxzg0Z=s1600", title: "7-2 P127" },
-            { url: "https://lh3.googleusercontent.com/d/1q-roTUafZm9TGitfU_sEenl5t7fI2QXu=s1600", title: "翰林四上數學 - 頁面 130" },
-            { url: "https://lh3.googleusercontent.com/d/1slx4jSCYa0QiU6XaPILPOE_uDWxYuyVA=s1600", title: "翰林四上數學 - 頁面 131" },
-            { url: "https://lh3.googleusercontent.com/d/1jrasp2qVXEkqD0D9iU5OSnZiE_o34Jkb=s1600", title: "翰林四上數學 - 頁面 132" },
+            { url: "https://lh3.googleusercontent.com/d/1q-roTUafZm9TGitfU_sEenl5t7fI2QXu=s1600", title: "翰林四上數學 - 頁面 129" },
+            { url: "https://lh3.googleusercontent.com/d/1slx4jSCYa0QiU6XaPILPOE_uDWxYuyVA=s1600", title: "翰林四上數學 - 頁面 130" },
+            { url: "https://lh3.googleusercontent.com/d/1jrasp2qVXEkqD0D9iU5OSnZiE_o34Jkb=s1600", title: "翰林四上數學 - 頁面 131" },
             { url: "https://lh3.googleusercontent.com/d/13Yuf3lGuLtdpt2lIorWt7mnMNK7xKAwP=s1600", title: "7-3 P131" },
-            { url: "https://lh3.googleusercontent.com/d/1ItCQNTEofsI4P_ZjokKx4RMjglGtKIJy=s1600", title: "翰林四上數學 - 頁面 134" },
-            { url: "https://lh3.googleusercontent.com/d/1RHkKq4HfwY4W-qkrQSk-8LUlDacs7Qu_=s1600", title: "翰林四上數學 - 頁面 135" },
-            { url: "https://lh3.googleusercontent.com/d/1R4JpfIUBQiI_lId7Ld1cx2quW_OvG_i6=s1600", title: "翰林四上數學 - 頁面 136" },
-            { url: "https://lh3.googleusercontent.com/d/1pMFrwzb1J99R3lfKQ6DxWc-qNoZuj_dX=s1600", title: "翰林四上數學 - 頁面 137" },
-            { url: "https://lh3.googleusercontent.com/d/11JEwGTgh5A89QbbKKeHAACQFVE8KH583=s1600", title: "翰林四上數學 - 頁面 138" },
-            { url: "https://lh3.googleusercontent.com/d/1wYxFOjaIRT2y5LxtsAZZzGtZxa_4yGWm=s1600", title: "翰林四上數學 - 頁面 139" },
+            { url: "https://lh3.googleusercontent.com/d/1ItCQNTEofsI4P_ZjokKx4RMjglGtKIJy=s1600", title: "翰林四上數學 - 頁面 133" },
+            { url: "https://lh3.googleusercontent.com/d/1RHkKq4HfwY4W-qkrQSk-8LUlDacs7Qu_=s1600", title: "翰林四上數學 - 頁面 134" },
+            { url: "https://lh3.googleusercontent.com/d/1R4JpfIUBQiI_lId7Ld1cx2quW_OvG_i6=s1600", title: "翰林四上數學 - 頁面 135" },
+            { url: "https://lh3.googleusercontent.com/d/1pMFrwzb1J99R3lfKQ6DxWc-qNoZuj_dX=s1600", title: "翰林四上數學 - 頁面 136" },
+            { url: "https://lh3.googleusercontent.com/d/11JEwGTgh5A89QbbKKeHAACQFVE8KH583=s1600", title: "翰林四上數學 - 頁面 137" },
+            { url: "https://lh3.googleusercontent.com/d/1wYxFOjaIRT2y5LxtsAZZzGtZxa_4yGWm=s1600", title: "翰林四上數學 - 頁面 138" },
             { url: "https://lh3.googleusercontent.com/d/1dvcMsNmc4OT6tbXbJQXiiMFwQBx-HVg3=s1600", title: "8-1 P138" },
-            { url: "https://lh3.googleusercontent.com/d/1Z6vrlPA0U2Kau5BrtvF0EwMP_lXyIs3p=s1600", title: "翰林四上數學 - 頁面 141" },
-            { url: "https://lh3.googleusercontent.com/d/1CvKVihBDTzzOXL5CFPRTu8dwen_CCmC4=s1600", title: "翰林四上數學 - 頁面 142" },
-            { url: "https://lh3.googleusercontent.com/d/1VDBCN3upZR9HjWuOsaN_D6wc0gLUCBPL=s1600", title: "翰林四上數學 - 頁面 143" },
-            { url: "https://lh3.googleusercontent.com/d/1qleW14Acz6-EuC-w4Fg84UJrns-mhoAr=s1600", title: "翰林四上數學 - 頁面 144" },
+            { url: "https://lh3.googleusercontent.com/d/1Z6vrlPA0U2Kau5BrtvF0EwMP_lXyIs3p=s1600", title: "翰林四上數學 - 頁面 140" },
+            { url: "https://lh3.googleusercontent.com/d/1CvKVihBDTzzOXL5CFPRTu8dwen_CCmC4=s1600", title: "翰林四上數學 - 頁面 141" },
+            { url: "https://lh3.googleusercontent.com/d/1VDBCN3upZR9HjWuOsaN_D6wc0gLUCBPL=s1600", title: "翰林四上數學 - 頁面 142" },
+            { url: "https://lh3.googleusercontent.com/d/1qleW14Acz6-EuC-w4Fg84UJrns-mhoAr=s1600", title: "翰林四上數學 - 頁面 143" },
             { url: "https://lh3.googleusercontent.com/d/10pTojZ8C6lrUL1mMiRr8juqg5MjUR44I=s1600", title: "8-2 P143" },
-            { url: "https://lh3.googleusercontent.com/d/1k-olKI3ur8_A14NKWSdCFe0K91cOV5Bf=s1600", title: "翰林四上數學 - 頁面 146" },
-            { url: "https://lh3.googleusercontent.com/d/1_ZkUZ3UGGZxcO3Z2KiojZH_GkWq_Osb-=s1600", title: "翰林四上數學 - 頁面 147" },
-            { url: "https://lh3.googleusercontent.com/d/1le7dtV68QSvn287dvWlfqS5uSqfMqwwt=s1600", title: "翰林四上數學 - 頁面 148" },
-            { url: "https://lh3.googleusercontent.com/d/1bcpsB945_5nV58JJ2qG1YUBc0B6ujjg0=s1600", title: "翰林四上數學 - 頁面 149" },
-            { url: "https://lh3.googleusercontent.com/d/11Fls-RI2GEOKBy_MtAtQJE_fOmjmVdYd=s1600", title: "翰林四上數學 - 頁面 150" },
-            { url: "https://lh3.googleusercontent.com/d/1CKmboQhilCHY3IKcEr08EdSWRwP7qna7=s1600", title: "8-3 P148" },
-            { url: "https://lh3.googleusercontent.com/d/1Wgauh1vTlhoLOAlWDe33GWlKqZPxmN6h=s1600", title: "翰林四上數學 - 頁面 152" },
-            { url: "https://lh3.googleusercontent.com/d/1ckt6vDsqUkH1TGsF3FtZgdMaG6kC7lTC=s1600", title: "翰林四上數學 - 頁面 153" },
-            { url: "https://lh3.googleusercontent.com/d/1Wk242DqoJ3DELYq8UcRAQ63boFvL08SZ=s1600", title: "翰林四上數學 - 頁面 154" },
-            { url: "https://lh3.googleusercontent.com/d/1NsLlvoC2N_QWQ5I50lvhjknecbKgWSz-=s1600", title: "翰林四上數學 - 頁面 155" },
-            { url: "https://lh3.googleusercontent.com/d/13M9M527Q8PicpWHyKo3pkZfRVofz6doU=s1600", title: "翰林四上數學 - 頁面 156" },
+            { url: "https://lh3.googleusercontent.com/d/1k-olKI3ur8_A14NKWSdCFe0K91cOV5Bf=s1600", title: "翰林四上數學 - 頁面 145" },
+            { url: "https://lh3.googleusercontent.com/d/1_ZkUZ3UGGZxcO3Z2KiojZH_GkWq_Osb-=s1600", title: "翰林四上數學 - 頁面 146" },
+            { url: "https://lh3.googleusercontent.com/d/1le7dtV68QSvn287dvWlfqS5uSqfMqwwt=s1600", title: "翰林四上數學 - 頁面 147" },
+            { url: "https://lh3.googleusercontent.com/d/1bcpsB945_5nV58JJ2qG1YUBc0B6ujjg0=s1600", title: "翰林四上數學 - 頁面 148" },
+            { url: "https://lh3.googleusercontent.com/d/11Fls-RI2GEOKBy_MtAtQJE_fOmjmVdYd=s1600", title: "8-3 P148" },
+            { url: "https://lh3.googleusercontent.com/d/1CKmboQhilCHY3IKcEr08EdSWRwP7qna7=s1600", title: "翰林四上數學 - 頁面 150" },
+            { url: "https://lh3.googleusercontent.com/d/1Wgauh1vTlhoLOAlWDe33GWlKqZPxmN6h=s1600", title: "翰林四上數學 - 頁面 151" },
+            { url: "https://lh3.googleusercontent.com/d/1ckt6vDsqUkH1TGsF3FtZgdMaG6kC7lTC=s1600", title: "翰林四上數學 - 頁面 152" },
+            { url: "https://lh3.googleusercontent.com/d/1Wk242DqoJ3DELYq8UcRAQ63boFvL08SZ=s1600", title: "翰林四上數學 - 頁面 153" },
+            { url: "https://lh3.googleusercontent.com/d/1NsLlvoC2N_QWQ5I50lvhjknecbKgWSz-=s1600", title: "翰林四上數學 - 頁面 154" },
+            { url: "https://lh3.googleusercontent.com/d/13M9M527Q8PicpWHyKo3pkZfRVofz6doU=s1600", title: "翰林四上數學 - 頁面 155" },
             { url: "https://lh3.googleusercontent.com/d/1B2ojoaOi0PMFUe6i7IiaeB7uGwjoq1rF=s1600", title: "9-1 P155" },
-            { url: "https://lh3.googleusercontent.com/d/1M_yOS_MX7VAqArWh5f2sLSH1GwTnrVFH=s1600", title: "翰林四上數學 - 頁面 158" },
-            { url: "https://lh3.googleusercontent.com/d/16EnUtyke-Ef4YfSbPvsum4H_26QQhNWs=s1600", title: "翰林四上數學 - 頁面 159" },
-            { url: "https://lh3.googleusercontent.com/d/1Y6IMXPIITdSl-UQkDd3oDNdZnSpwDROd=s1600", title: "翰林四上數學 - 頁面 160" },
+            { url: "https://lh3.googleusercontent.com/d/1M_yOS_MX7VAqArWh5f2sLSH1GwTnrVFH=s1600", title: "翰林四上數學 - 頁面 157" },
+            { url: "https://lh3.googleusercontent.com/d/16EnUtyke-Ef4YfSbPvsum4H_26QQhNWs=s1600", title: "翰林四上數學 - 頁面 158" },
+            { url: "https://lh3.googleusercontent.com/d/1Y6IMXPIITdSl-UQkDd3oDNdZnSpwDROd=s1600", title: "翰林四上數學 - 頁面 159" },
             { url: "https://lh3.googleusercontent.com/d/1WcGtn5gLSuf_IEo_uTvIQXDAlEdvmkbw=s1600", title: "9-2 P159" },
-            { url: "https://lh3.googleusercontent.com/d/1fqRS6ImujTX8JKyq54zhAaX9BTDJ4u9v=s1600", title: "翰林四上數學 - 頁面 162" },
-            { url: "https://lh3.googleusercontent.com/d/1eqkIc4fIIieSjW3tzQen4m8wby0-yHyl=s1600", title: "9-3 P163" },
-            { url: "https://lh3.googleusercontent.com/d/1vV3ZkuwlKqQICBthgnUz3nEf6Nwwil7z=s1600", title: "翰林四上數學 - 頁面 165" },
-            { url: "https://lh3.googleusercontent.com/d/1TmuiBhHwBbKoexsrR3L8JkBmI-ppgIY6=s1600", title: "9-4 P167" },
-            { url: "https://lh3.googleusercontent.com/d/1LNcf8FmbH8M6P7Ukd9u66gmsnExjY3zP=s1600", title: "翰林四上數學 - 頁面 169" },
-            { url: "https://lh3.googleusercontent.com/d/1qkc1tfVefmmN_Pbaxg2bRaa1eTFAMzpt=s1600", title: "翰林四上數學 - 頁面 170" },
-            { url: "https://lh3.googleusercontent.com/d/1prAo2TuBPGJFVBWRcyFdyV8ymx4bmSyN=s1600", title: "翰林四上數學 - 頁面 171" },
-            { url: "https://lh3.googleusercontent.com/d/1a-l9zHtPnNxHjLlX-GuQfXFm6Vk-GAMp=s1600", title: "翰林四上數學 - 頁面 172" },
-            { url: "https://lh3.googleusercontent.com/d/1-UoxhClxjZx1iLEp4XaAVR9WTBGCaAi8=s1600", title: "翰林四上數學 - 頁面 173" },
-            { url: "https://lh3.googleusercontent.com/d/1E3UA-X7ll5RigrpVr8Aj_WXaP6A1E0BC=s1600", title: "翰林四上數學 - 頁面 175" },
-            { url: "https://lh3.googleusercontent.com/d/1H000D5CpWkvb8Tg0k_PIyJqnv9ws6XBf=s1600", title: "翰林四上數學 - 頁面 176" },
-            { url: "https://lh3.googleusercontent.com/d/1sO6qN_Qd0_bi10w6eo3QR2jDZ-f0qQr6=s1600", title: "翰林四上數學 - 頁面 177" },
-            { url: "https://lh3.googleusercontent.com/d/1ddaxHX2frqMdq6ErJf7sT6_vRL5unsa7=s1600", title: "10-2 P178" },
+            { url: "https://lh3.googleusercontent.com/d/1fqRS6ImujTX8JKyq54zhAaX9BTDJ4u9v=s1600", title: "翰林四上數學 - 頁面 160" },
+            { url: "https://lh3.googleusercontent.com/d/1eqkIc4fIIieSjW3tzQen4m8wby0-yHyl=s1600", title: "翰林四上數學 - 頁面 161" },
+            { url: "https://lh3.googleusercontent.com/d/1vV3ZkuwlKqQICBthgnUz3nEf6Nwwil7z=s1600", title: "翰林四上數學 - 頁面 162" },
+            { url: "https://lh3.googleusercontent.com/d/1TmuiBhHwBbKoexsrR3L8JkBmI-ppgIY6=s1600", title: "9-3 P163" },
+            { url: "https://lh3.googleusercontent.com/d/1LNcf8FmbH8M6P7Ukd9u66gmsnExjY3zP=s1600", title: "翰林四上數學 - 頁面 165" },
+            { url: "https://lh3.googleusercontent.com/d/1qkc1tfVefmmN_Pbaxg2bRaa1eTFAMzpt=s1600", title: "翰林四上數學 - 頁面 166" },
+            { url: "https://lh3.googleusercontent.com/d/1prAo2TuBPGJFVBWRcyFdyV8ymx4bmSyN=s1600", title: "翰林四上數學 - 頁面 167" },
+            { url: "https://lh3.googleusercontent.com/d/1a-l9zHtPnNxHjLlX-GuQfXFm6Vk-GAMp=s1600", title: "9-4 P167" },
+            { url: "https://lh3.googleusercontent.com/d/1-UoxhClxjZx1iLEp4XaAVR9WTBGCaAi8=s1600", title: "翰林四上數學 - 頁面 169" },
+            { url: "https://lh3.googleusercontent.com/d/1E3UA-X7ll5RigrpVr8Aj_WXaP6A1E0BC=s1600", title: "翰林四上數學 - 頁面 170" },
+            { url: "https://lh3.googleusercontent.com/d/1H000D5CpWkvb8Tg0k_PIyJqnv9ws6XBf=s1600", title: "翰林四上數學 - 頁面 171" },
+            { url: "https://lh3.googleusercontent.com/d/1sO6qN_Qd0_bi10w6eo3QR2jDZ-f0qQr6=s1600", title: "翰林四上數學 - 頁面 172" },
+            { url: "https://lh3.googleusercontent.com/d/1ddaxHX2frqMdq6ErJf7sT6_vRL5unsa7=s1600", title: "翰林四上數學 - 頁面 173" },
             { url: "https://lh3.googleusercontent.com/d/1p5lTl1OxCoydLr8XVLpPSI6UYVsr_L-l=s1600", title: "10-1 P173" },
-            { url: "https://lh3.googleusercontent.com/d/1KhQmcHQWHzBoea8wre-OIPJ8wjHye-_x=s1600", title: "翰林四上數學 - 頁面 180" },
-            { url: "https://lh3.googleusercontent.com/d/146jFlEgLUUz9MifxrnIV3Vc7HNOrPAbq=s1600", title: "翰林四上數學 - 頁面 181" },
-            { url: "https://lh3.googleusercontent.com/d/1aUWHpolcnnrRCTDgAKhEu2oxxOeO3lbW=s1600", title: "翰林四上數學 - 頁面 182" },
-            { url: "https://lh3.googleusercontent.com/d/1pXpeG0ysnFZgfHeSXfNOZyjAxfkTyLFn=s1600", title: "翰林四上數學 - 頁面 185" },
-            { url: "https://lh3.googleusercontent.com/d/1clCZzyhsQjmbvxjWKOe8g2MHIfxkotkd=s1600", title: "翰林四上數學 - 頁面 186" },
-            { url: "https://lh3.googleusercontent.com/d/12fUUTYCd0Yh2Uz9UnNq0Z4LIWsHfw0h3=s1600", title: "翰林四上數學 - 頁面 187" },
-            { url: "https://lh3.googleusercontent.com/d/1Hsn9CoNy1LwIKT-_pYW_GmlZIFEKvEUh=s1600", title: "翰林四上數學 - 頁面 188" },
-            { url: "https://lh3.googleusercontent.com/d/1vClxtjwVWuaEEquUQPzkWoxKsnG0PaCz=s1600", title: "翰林四上數學 - 頁面 189" },
+            { url: "https://lh3.googleusercontent.com/d/1KhQmcHQWHzBoea8wre-OIPJ8wjHye-_x=s1600", title: "翰林四上數學 - 頁面 175" },
+            { url: "https://lh3.googleusercontent.com/d/146jFlEgLUUz9MifxrnIV3Vc7HNOrPAbq=s1600", title: "翰林四上數學 - 頁面 176" },
+            { url: "https://lh3.googleusercontent.com/d/1aUWHpolcnnrRCTDgAKhEu2oxxOeO3lbW=s1600", title: "翰林四上數學 - 頁面 177" },
+            { url: "https://lh3.googleusercontent.com/d/1pXpeG0ysnFZgfHeSXfNOZyjAxfkTyLFn=s1600", title: "翰林四上數學 - 頁面 178" },
+            { url: "https://lh3.googleusercontent.com/d/1clCZzyhsQjmbvxjWKOe8g2MHIfxkotkd=s1600", title: "10-2 P178" },
+            { url: "https://lh3.googleusercontent.com/d/12fUUTYCd0Yh2Uz9UnNq0Z4LIWsHfw0h3=s1600", title: "翰林四上數學 - 頁面 180" },
+            { url: "https://lh3.googleusercontent.com/d/1Hsn9CoNy1LwIKT-_pYW_GmlZIFEKvEUh=s1600", title: "翰林四上數學 - 頁面 181" },
+            { url: "https://lh3.googleusercontent.com/d/1vClxtjwVWuaEEquUQPzkWoxKsnG0PaCz=s1600", title: "翰林四上數學 - 頁面 182" },
             { url: "https://lh3.googleusercontent.com/d/1Id6DzAamV9SVfpO9tsGVbvMMGO4Spd4O=s1600", title: "10-3 P183" },
-            { url: "https://lh3.googleusercontent.com/d/14bz1kQt7ycrLDbtDdXQsj4jdq3jx2N7a=s1600", title: "翰林四上數學 - 頁面 190" },
-            { url: "https://lh3.googleusercontent.com/d/1GuxzI68Sd2-TNPvXqm63uIG7_eg9g7kG=s1600", title: "翰林四上數學 - 頁面 191" },
-            { url: "https://lh3.googleusercontent.com/d/1_mQmMmahBpo-yP7WzCWDzWLTpw6CgZTI=s1600", title: "翰林四上數學 - 頁面 192" },
-            { url: "https://lh3.googleusercontent.com/d/144F3fEsTx619R4zJtwl6fmoLcmBmwUdU=s1600", title: "翰林四上數學 - 頁面 193" },
-            { url: "https://lh3.googleusercontent.com/d/1yJWni0SX5hDkDs4DEHK4QOagzzw2ZtEa=s1600", title: "翰林四上數學 - 頁面 195" },
-            { url: "https://lh3.googleusercontent.com/d/1k2o7db6X0iHhfyp00peKNMS3qsm2kS7J=s1600", title: "翰林四上數學 - 頁面 196" },
-            { url: "https://lh3.googleusercontent.com/d/1cpgOST4DnSf9cjSexpHz3ewWplvAx9NL=s1600", title: "翰林四上數學 - 頁面 197" },
-            { url: "https://lh3.googleusercontent.com/d/1OAwb_UgmLzVLel8s_v7BQ9KRaNS3m8DZ=s1600", title: "翰林四上數學 - 頁面 198" },
-            { url: "https://lh3.googleusercontent.com/d/1ssFcn_9X5JsDhX-KoTRgc0vhjYsFkQ7c=s1600", title: "翰林四上數學 - 頁面 199" },
-            { url: "https://lh3.googleusercontent.com/d/1bodSD3HOkj2422JUkpnca8Ms-Ms8w-oH=s1600", title: "翰林四上數學 - 頁面 200" },
-            { url: "https://lh3.googleusercontent.com/d/10AXzTLU_11bKEmxkG84Oyq1N3Ck3ptAF=s1600", title: "翰林四上數學 - 頁面 201" },
-            { url: "https://lh3.googleusercontent.com/d/1jJAuISb94pAjQvdD3fDeMsdEA9SZURgw=s1600", title: "番外海報 P194" },
-            { url: "https://lh3.googleusercontent.com/d/157hBThiSP83JoDaAavNLZHiHdoMEZ7BG=s1600", title: "翰林四上數學 - 頁面 203" },
-            { url: "https://lh3.googleusercontent.com/d/1iEAweXSsEj5aNrhdHV855lDDBONyUBAi=s1600", title: "翰林四上數學 - 頁面 204" },
-            { url: "https://lh3.googleusercontent.com/d/1o9ikrI9-uUQuv2IHCp94TbwiSnamjkos=s1600", title: "翰林四上數學 - 頁面 205" }
+            { url: "https://lh3.googleusercontent.com/d/14bz1kQt7ycrLDbtDdXQsj4jdq3jx2N7a=s1600", title: "翰林四上數學 - 頁面 184" },
+            { url: "https://lh3.googleusercontent.com/d/1GuxzI68Sd2-TNPvXqm63uIG7_eg9g7kG=s1600", title: "翰林四上數學 - 頁面 185" },
+            { url: "https://lh3.googleusercontent.com/d/1_mQmMmahBpo-yP7WzCWDzWLTpw6CgZTI=s1600", title: "翰林四上數學 - 頁面 186" },
+            { url: "https://lh3.googleusercontent.com/d/144F3fEsTx619R4zJtwl6fmoLcmBmwUdU=s1600", title: "翰林四上數學 - 頁面 187" },
+            { url: "https://lh3.googleusercontent.com/d/1yJWni0SX5hDkDs4DEHK4QOagzzw2ZtEa=s1600", title: "翰林四上數學 - 頁面 188" },
+            { url: "https://lh3.googleusercontent.com/d/1k2o7db6X0iHhfyp00peKNMS3qsm2kS7J=s1600", title: "翰林四上數學 - 頁面 189" },
+            { url: "https://lh3.googleusercontent.com/d/1cpgOST4DnSf9cjSexpHz3ewWplvAx9NL=s1600", title: "翰林四上數學 - 頁面 190" },
+            { url: "https://lh3.googleusercontent.com/d/1OAwb_UgmLzVLel8s_v7BQ9KRaNS3m8DZ=s1600", title: "翰林四上數學 - 頁面 191" },
+            { url: "https://lh3.googleusercontent.com/d/1ssFcn_9X5JsDhX-KoTRgc0vhjYsFkQ7c=s1600", title: "翰林四上數學 - 頁面 192" },
+            { url: "https://lh3.googleusercontent.com/d/1bodSD3HOkj2422JUkpnca8Ms-Ms8w-oH=s1600", title: "翰林四上數學 - 頁面 193" },
+            { url: "https://lh3.googleusercontent.com/d/10AXzTLU_11bKEmxkG84Oyq1N3Ck3ptAF=s1600", title: "翰林四上數學 - 頁面 194" },
+            { url: "https://lh3.googleusercontent.com/d/1jJAuISb94pAjQvdD3fDeMsdEA9SZURgw=s1600", title: "番外海報 " },
+            { url: "https://lh3.googleusercontent.com/d/157hBThiSP83JoDaAavNLZHiHdoMEZ7BG=s1600", title: "翰林四上數學 - 頁面 196" },
+            { url: "https://lh3.googleusercontent.com/d/1iEAweXSsEj5aNrhdHV855lDDBONyUBAi=s1600", title: "翰林四上數學 - 頁面 197" },
+            { url: "https://lh3.googleusercontent.com/d/1o9ikrI9-uUQuv2IHCp94TbwiSnamjkos=s1600", title: "翰林四上數學 - 頁面 198" },
+            { url: "https://lh3.googleusercontent.com/d/1o9ikrI9-uUQuv2IHCp94TbwiSnamjkos=s1600", title: "翰林四上數學 - 頁面 198", isQuiz: true }
         ];
 
         const chapterList = [
@@ -411,7 +423,8 @@
             { name: "10-1 P173", url: "https://lh3.googleusercontent.com/d/1p5lTl1OxCoydLr8XVLpPSI6UYVsr_L-l=s1600" },
             { name: "10-2 P178", url: "https://lh3.googleusercontent.com/d/1clCZzyhsQjmbvxjWKOe8g2MHIfxkotkd=s1600" },
             { name: "10-3 P183", url: "https://lh3.googleusercontent.com/d/1Id6DzAamV9SVfpO9tsGVbvMMGO4Spd4O=s1600" },
-            { name: "番外海報 P194", url: "https://lh3.googleusercontent.com/d/1jJAuISb94pAjQvdD3fDeMsdEA9SZURgw=s1600" }
+            { name: "番外海報 P194", url: "https://lh3.googleusercontent.com/d/1jJAuISb94pAjQvdD3fDeMsdEA9SZURgw=s1600" },
+            { name: "數學測驗", url: "https://lh3.googleusercontent.com/d/1o9ikrI9-uUQuv2IHCp94TbwiSnamjkos=s1600", isQuiz: true }
         ];
 
         let currentIndex = 0;
@@ -476,8 +489,8 @@
             chapterList.forEach(item => {
                 const btn = document.createElement('button');
                 btn.className = "w-full text-left px-3 py-2 rounded-xl text-xs md:text-sm font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition flex justify-between items-center";
-                btn.innerHTML = `<span>${item.name}</span> <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>`;
                 
+                btn.innerHTML = `<span>${item.name}</span> <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>`;
                 btn.onclick = () => {
                     const foundIdx = images.findIndex(img => img.url === item.url);
                     if (foundIdx !== -1) {
@@ -525,17 +538,17 @@
                 mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-[1.25]";
                 btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none pen-active-glow mt-1";
                 icon.className = "fa-solid fa-search-plus";
-                btn.title = "放大圖片 (1.5x)";
+                btn.title = "放大圖片 (1.25x)";
             } else if (zoomState === 2) {
                 mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-[1.5]";
                 btn.className = "w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-xl focus:outline-none pen-active-glow mt-1";
                 icon.className = "fa-solid fa-search-plus";
-                btn.title = "恢復原尺寸 (1.0x)";
+                btn.title = "放大圖片 (1.5x)";
             } else {
                 mainImg.className = "max-h-[75vh] w-auto object-contain page-transition shadow-2xl pointer-events-none scale-100";
                 btn.className = "bg-black/50 hover:bg-black/75 text-slate-300 w-10 h-10 rounded-full flex items-center justify-center text-sm transition backdrop-blur-sm shadow-lg focus:outline-none border border-transparent mt-1";
                 icon.className = "fa-solid fa-search-plus";
-                btn.title = "放大圖片 (1.25x)";
+                btn.title = "恢復原尺寸 (1.0x)";
             }
             setTimeout(initCanvasSize, 150);
         }
@@ -692,7 +705,7 @@
                 thumbDiv.onclick = () => goToPage(idx);
 
                 thumbDiv.innerHTML = `
-                    <img src="${img.url}" alt="縮圖 ${idx + 1}" class="w-full h-full object-cover">
+                    <img src="${img.url}" alt="縮圖 ${idx + 1}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/96x80/1e293b/ffffff?text=P${idx+1}';">
                     <div class="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">${idx + 1}</div>
                 `;
                 container.appendChild(thumbDiv);
@@ -700,16 +713,26 @@
         }
 
         function updateView() {
+            const currentItem = images[currentIndex];
             const mainImg = document.getElementById('mainImage');
+            const quizOverlay = document.getElementById('quizOverlayView');
             const imgTitle = document.getElementById('imageTitle');
             const pageIndicator = document.getElementById('pageIndicator');
             const loadingOverlay = document.getElementById('loadingOverlay');
 
+            if (currentItem.isQuiz) {
+                quizOverlay.classList.remove('hidden');
+                mainImg.classList.add('hidden');
+            } else {
+                quizOverlay.classList.add('hidden');
+                mainImg.classList.remove('hidden');
+            }
+
             loadingOverlay.classList.remove('opacity-0');
             mainImg.style.opacity = '0.3';
 
-            mainImg.src = images[currentIndex].url;
-            imgTitle.textContent = images[currentIndex].title;
+            mainImg.src = currentItem.url;
+            imgTitle.textContent = currentItem.title;
             pageIndicator.textContent = `第 ${currentIndex + 1} 頁 / 共 ${images.length} 頁`;
 
             mainImg.onload = function() {
@@ -729,6 +752,11 @@
                     redrawCanvas();
                 }
             };
+
+            if (currentItem.isQuiz) {
+                mainImg.style.opacity = '1';
+                loadingOverlay.classList.add('opacity-0');
+            }
 
             const thumbnails = document.getElementById('thumbnailContainer').children;
             for (let i = 0; i < thumbnails.length; i++) {
