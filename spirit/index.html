@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心情小棧｜我的解憂雜貨店</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#FDFBF7',
+                        lake: '#4A7C59',
+                        lakeDark: '#3A6347',
+                        apricot: '#E07A5F',
+                        apricotDark: '#C96549',
+                        softYellow: '#F4F1DE',
+                        cardBg: '#FFFFFF',
+                        warmText: '#2B3A42'
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', '"Microsoft JhengHei"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FDFBF7;
+            color: #2B3A42;
+            font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+            transition: background 0.5s ease;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(74, 124, 89, 0.08), 0 8px 10px -6px rgba(74, 124, 89, 0.05);
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F4F1DE;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4A7C59;
+            border-radius: 4px;
+        }
+
+        @keyframes dopamineFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body id="appBody" class="min-h-screen flex flex-col selection:bg-lake selection:text-white relative">
+
+    <!-- ================= 右側浮動多巴胺漸層控制面板 (6個主題) ================= -->
+    <div id="dopamineFloatingPanel" class="fixed right-0 top-1/3 z-50 flex items-center translate-x-[calc(100%-40px)] transition-transform duration-300">
+        <!-- 展開/收合觸發按鈕 -->
+        <button onclick="toggleDopaminePanel()" class="bg-gradient-to-r from-apricot to-pink-500 text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 hover:brightness-115 transition">
+            <i class="fa-solid fa-wand-magic-sparkles text-lg animate-bounce"></i>
+            <span class="text-[10px] font-bold [writing-mode:vertical-lr] tracking-widest">多巴胺漸層</span>
+        </button>
+        <!-- 控制面板內容 -->
+        <div class="bg-cardBg/95 backdrop-blur-md p-4 rounded-l-3xl card-shadow border border-lake/20 w-68 space-y-3">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                <h4 class="font-bold text-lakeDark text-sm flex items-center">
+                    <i class="fa-solid fa-bolt text-apricot mr-1.5"></i> 能量多巴胺背景
+                </h4>
+                <button onclick="toggleDopaminePanel()" class="text-gray-400 hover:text-warmText"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-xs text-gray-500">點擊下方主題，背景即時切換流動漸層！</p>
+            <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                <button onclick="setDopamineTheme('off')" class="w-full py-2 px-3 rounded-xl border border-gray-200 text-xs font-medium text-warmText hover:bg-gray-50 transition flex items-center justify-between">
+                    <span>🌱 關閉 (經典奶油白)</span>
+                    <span id="check-off" class="text-lake font-bold">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode1')" class="w-full py-2 px-3 rounded-xl border border-pink-200 text-xs font-medium text-pink-700 bg-pink-50 hover:bg-pink-100 transition flex items-center justify-between">
+                    <span>🌸 甜美粉藍夢幻流光</span>
+                    <span id="check-mode1" class="text-pink-600 hidden">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode2')" class="w-full py-2 px-3 rounded-xl border border-yellow-200 text-xs font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 transition flex items-center justify-between">
+                    <span>⚡ 活力能量彩虹交織</span>
+                    <span id="check-mode2" class="text-amber-600 hidden">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode3')" class="w-full py-2 px-3 rounded-xl border border-teal-200 text-xs font-medium text-teal-800 bg-teal-50 hover:bg-teal-100 transition flex items-center justify-between">
+                    <span>🌊 療癒薄荷夕陽流動</span>
+                    <span id="check-mode3" class="text-teal-600 hidden">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode4')" class="w-full py-2 px-3 rounded-xl border border-orange-200 text-xs font-medium text-orange-800 bg-orange-50 hover:bg-orange-100 transition flex items-center justify-between">
+                    <span>☀️ 晨曦暖黃微光</span>
+                    <span id="check-mode4" class="text-orange-600 hidden">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode5')" class="w-full py-2 px-3 rounded-xl border border-indigo-200 text-xs font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 transition flex items-center justify-between">
+                    <span>🌌 寧靜星空紫夜</span>
+                    <span id="check-mode5" class="text-indigo-600 hidden">✓</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頂部導覽列 -->
+    <header class="bg-cardBg/90 backdrop-blur-md border-b border-lake/10 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-10 h-10 rounded-full bg-apricot/20 flex items-center justify-center text-apricot text-xl font-bold">
+                    <i class="fa-solid fa-mug-hot"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-lakeDark leading-tight">心情小棧</h1>
+                    <p class="text-xs text-gray-500">我的解憂雜貨店</p>
+                </div>
+            </div>
+            <!-- 導覽按鈕 (電腦版) -->
+            <nav class="hidden md:flex items-center space-x-1">
+                <button onclick="switchTab('home')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="home">
+                    <i class="fa-solid fa-house mr-1"></i> 首頁
+                </button>
+                <button onclick="switchTab('checkin')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="checkin">
+                    <i class="fa-solid fa-seedling mr-1"></i> 記下心情
+                </button>
+                <button onclick="switchTab('chat')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="chat">
+                    <i class="fa-solid fa-comments mr-1"></i> 聊聊煩惱
+                </button>
+                <button onclick="switchTab('quiz')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="quiz">
+                    <i class="fa-solid fa-clipboard-question mr-1"></i> 心靈測驗
+                </button>
+                <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie mr-1"></i> 心情儀表板
+                </button>
+                <button onclick="switchTab('toolbox')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="toolbox">
+                    <i class="fa-solid fa-box-open mr-1"></i> 放鬆工具箱
+                </button>
+                <button onclick="switchTab('privacy')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="privacy">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> 紀錄與隱私
+                </button>
+            </nav>
+            <!-- 手機版選單切換按鈕 -->
+            <button onclick="toggleMobileMenu()" class="md:hidden text-lakeDark text-xl p-2 rounded-lg hover:bg-softYellow">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+        <!-- 手機版下拉選單 -->
+        <div id="mobileMenu" class="hidden md:hidden bg-cardBg border-t border-lake/10 px-4 py-3 space-y-2 shadow-lg">
+            <button onclick="switchTab('home'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">首頁</button>
+            <button onclick="switchTab('checkin'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">記下心情</button>
+            <button onclick="switchTab('chat'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">聊聊煩惱 (AI 解憂)</button>
+            <button onclick="switchTab('quiz'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">心靈測驗</button>
+            <button onclick="switchTab('dashboard'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">心情儀表板</button>
+            <button onclick="switchTab('toolbox'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">放鬆工具箱</button>
+            <button onclick="switchTab('privacy'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">紀錄與隱私</button>
+        </div>
+    </header>
+
+    <!-- 主要內容區 -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
+
+        <!-- ================= 1. 首頁 (Home) ================= -->
+        <section id="tab-home" class="space-y-8">
+            <div class="bg-cardBg/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 card-shadow border border-lake/10 relative overflow-hidden">
+                <div class="max-w-2xl relative z-10 space-y-4">
+                    <span class="inline-block bg-lake text-white text-xs px-3 py-1 rounded-full font-medium tracking-wide">溫暖陪伴・隨時傾聽</span>
+                    <h2 class="text-3xl md:text-4xl font-bold text-lakeDark leading-tight">歡迎來到<br>心情小棧｜我的解憂雜貨店</h2>
+                    <p class="text-gray-600 text-base md:text-lg leading-relaxed">
+                        這裡是一個專屬於你的溫柔避風港。不論是日常的碎碎念、沉重的煩惱，或是需要一點靜心放鬆，雜貨店的大門永遠為你敞開。
+                    </p>
+                    <div class="pt-2 flex flex-wrap gap-4">
+                        <button onclick="switchTab('checkin')" class="bg-lake hover:bg-lakeDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md flex items-center space-x-2">
+                            <i class="fa-solid fa-seedling"></i>
+                            <span>立即記下心情</span>
+                        </button>
+                        <button onclick="switchTab('chat')" class="bg-apricot hover:bg-apricotDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md flex items-center space-x-2">
+                            <i class="fa-solid fa-comments"></i>
+                            <span>聊聊煩惱 (AI 解憂)</span>
+                        </button>
+                        <button onclick="switchTab('toolbox')" class="bg-softYellow hover:bg-amber-200 text-lakeDark px-6 py-3 rounded-2xl font-medium transition shadow-sm flex items-center space-x-2 border border-lake/20">
+                            <i class="fa-solid fa-mug-hot"></i>
+                            <span>讓自己放鬆一下</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 四大核心入口卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div onclick="switchTab('checkin')" class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/10 hover:border-lake/30 transition cursor-pointer group flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-lake/10 text-lake flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-seedling"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-lakeDark mb-2">1. 記下心情</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">選擇目前情緒、困擾程度與原因，獲取專屬溫柔回饋與小步驟。</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-lake font-medium text-sm">
+                        <span>開始打卡</span>
+                        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('chat')" class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-apricot/10 hover:border-apricot/30 transition cursor-pointer group flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-apricot/10 text-apricot flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-apricotDark mb-2">2. 聊聊煩惱</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">與四大原創夥伴或 19 位名人專家 AI 進行深度解憂對話。</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-apricot font-medium text-sm">
+                        <span>進入對話</span>
+                        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('quiz')" class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/15 hover:border-lake/40 transition cursor-pointer group flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-softYellow text-lakeDark flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-clipboard-question"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-lakeDark mb-2">3. 心靈小測驗</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">透過情境題探索內心狀態，找出與你契合的解憂夥伴。</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-lakeDark font-medium text-sm">
+                        <span>開始測驗</span>
+                        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('dashboard')" class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-apricot/15 hover:border-apricot/40 transition cursor-pointer group flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 rounded-2xl bg-apricot/10 text-apricot flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-chart-pie"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-apricotDark mb-2">4. 心情儀表板</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">檢視歷史打卡記錄、情緒分佈比例圖表與壓力趨勢。</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-apricot font-medium text-sm">
+                        <span>查看儀表板</span>
+                        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/10 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-softYellow text-lake flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid fa-school"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-lakeDark text-base">需要將心情與求助轉達給師長嗎？</h4>
+                        <p class="text-gray-500 text-sm">我們提供「準備給老師的求助卡」預覽與下載，方便您安全傳遞心聲。</p>
+                    </div>
+                </div>
+                <button onclick="openHelpCardModal()" class="bg-lake/10 hover:bg-lake/20 text-lakeDark px-5 py-2.5 rounded-xl font-medium text-sm transition whitespace-nowrap">
+                    查看求助卡
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= 2. 記下心情 (Check-in) ================= -->
+        <section id="tab-checkin" class="hidden space-y-6">
+            <div class="bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 max-w-2xl mx-auto space-y-6">
+                <div>
+                    <span class="text-xs font-semibold text-lake bg-lake/10 px-3 py-1 rounded-full">每日自我覺察</span>
+                    <h2 class="text-2xl font-bold text-lakeDark mt-2">今天的心情怎麼樣？</h2>
+                    <p class="text-gray-500 text-sm mt-1">這是一項日常自我覺察記錄，不冒充正式心理量表或醫療診斷。</p>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-warmText">1. 選擇你目前的主要情緒：</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <button type="button" onclick="selectMood('平靜', this)" class="mood-btn p-3 rounded-2xl border-2 border-lake bg-lake/5 text-center transition flex flex-col items-center space-y-1 bg-white">
+                            <span class="text-2xl">🌱</span>
+                            <span class="text-sm font-medium">平靜</span>
+                        </button>
+                        <button type="button" onclick="selectMood('開心', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                            <span class="text-2xl">✨</span>
+                            <span class="text-sm font-medium">開心</span>
+                        </button>
+                        <button type="button" onclick="selectMood('焦慮', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                            <span class="text-2xl">🌊</span>
+                            <span class="text-sm font-medium">焦慮</span>
+                        </button>
+                        <button type="button" onclick="selectMood('疲憊', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                            <span class="text-2xl">☁️</span>
+                            <span class="text-sm font-medium">疲憊</span>
+                        </button>
+                        <button type="button" onclick="selectMood('低落', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                            <span class="text-2xl">🌧️</span>
+                            <span class="text-sm font-medium">低落</span>
+                        </button>
+                        <button type="button" onclick="selectMood('迷茫', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                            <span class="text-2xl">🧭</span>
+                            <span class="text-sm font-medium">迷茫</span>
+                        </button>
+                        <button type="button" onclick="selectMood('生氣', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                            <span class="text-2xl">🔥</span>
+                            <span class="text-sm font-medium">生氣</span>
+                        </button>
+                        <button type="button" onclick="selectMood('感激', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                            <span class="text-2xl">💖</span>
+                            <span class="text-sm font-medium">感激</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-warmText">2. 目前感受到的困擾或壓力程度：<span id="levelText" class="text-lake font-bold">3 / 5 (普通)</span></label>
+                    <input type="range" id="stressLevel" min="1" max="5" value="3" class="w-full accent-lake cursor-pointer" oninput="updateStressLabel(this.value)">
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>1 (很輕微)</span>
+                        <span>3 (普通)</span>
+                        <span>5 (非常沉重)</span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-warmText" for="moodReason">3. 想簡單說說發生了什麼事嗎？（選填）</label>
+                    <textarea id="moodReason" rows="3" class="w-full rounded-2xl border border-gray-200 p-3 text-sm focus:outline-none focus:border-lake bg-white" placeholder="例如：最近課業或工作有點多，覺得時間不夠用..."></textarea>
+                </div>
+
+                <button onclick="submitCheckin()" class="w-full bg-lake hover:bg-lakeDark text-white py-3.5 rounded-2xl font-medium transition shadow-md flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>完成今日打卡</span>
+                </button>
+            </div>
+
+            <div id="checkinResultCard" class="hidden bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/20 max-w-2xl mx-auto space-y-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full bg-lake/10 text-lake flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-lakeDark">小棧的溫柔回饋</h3>
+                        <p class="text-xs text-gray-400" id="resultTimestamp">2026-10-15</p>
+                    </div>
+                </div>
+                <div id="resultFeedbackContent" class="text-gray-700 text-sm leading-relaxed bg-softYellow/50 p-4 rounded-2xl">
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button onclick="switchTab('dashboard')" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-chart-pie"></i>
+                        <span>查看心情儀表板</span>
+                    </button>
+                    <button onclick="switchTab('chat')" class="flex-1 bg-apricot hover:bg-apricotDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-comments"></i>
+                        <span>找解憂夥伴深聊</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 3. 聊聊煩惱 (AI Chat) ================= -->
+        <section id="tab-chat" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-1 space-y-4">
+                    <div class="bg-cardBg/90 backdrop-blur-sm p-5 rounded-3xl card-shadow border border-lake/10 space-y-3">
+                        <h3 class="font-bold text-lakeDark text-sm flex items-center">
+                            <i class="fa-solid fa-user-friends mr-2 text-lake"></i> 原創解憂夥伴
+                        </h3>
+                        <div class="space-y-2">
+                            <button onclick="selectPersona('otter')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-lake bg-lake/5 transition flex items-center space-x-3" data-id="otter">
+                                <span class="text-2xl">🦦</span>
+                                <div>
+                                    <div class="font-bold text-sm text-lakeDark">小獺暖暖</div>
+                                    <div class="text-xs text-gray-500">溫柔傾聽與同理</div>
+                                </div>
+                            </button>
+                            <button onclick="selectPersona('owl')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white" data-id="owl">
+                                <span class="text-2xl">🦉</span>
+                                <div>
+                                    <div class="font-bold text-sm text-lakeDark">貓頭鷹想想</div>
+                                    <div class="text-xs text-gray-500">協助拆解問題</div>
+                                </div>
+                            </button>
+                            <button onclick="selectPersona('bear')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white" data-id="bear">
+                                <span class="text-2xl">🐻</span>
+                                <div>
+                                    <div class="font-bold text-sm text-lakeDark">小熊勇勇</div>
+                                    <div class="text-xs text-gray-500">鼓勵可行小行動</div>
+                                </div>
+                            </button>
+                            <button onclick="selectPersona('rabbit')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white" data-id="rabbit">
+                                <span class="text-2xl">🐰</span>
+                                <div>
+                                    <div class="font-bold text-sm text-lakeDark">兔子彩彩</div>
+                                    <div class="text-xs text-gray-500">故事與想像整理</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-cardBg/90 backdrop-blur-sm p-5 rounded-3xl card-shadow border border-apricot/20 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-apricotDark text-sm flex items-center">
+                                <i class="fa-solid fa-lightbulb mr-2 text-apricot"></i> 名人與專家靈感
+                            </h3>
+                            <span class="text-[10px] bg-apricot/10 text-apricot px-2 py-0.5 rounded-full font-medium">AI 模擬</span>
+                        </div>
+                        <p class="text-[11px] text-gray-500">以公開形象或專業特質提供原創回應，非本人。</p>
+                        <select id="celebritySelect" onchange="onCelebrityChange(this.value)" class="w-full rounded-xl border border-gray-200 p-2 text-xs focus:outline-none focus:border-apricot bg-white transition">
+                            <option value="">-- 請選擇名人或專家 (選用) --</option>
+                            <option value="村上春樹">村上春樹 (Haruki Murakami)</option>
+                            <option value="伊隆·馬斯克">伊隆·馬斯克 (Elon Musk)</option>
+                            <option value="唐納·約翰·川普">唐納·約翰·川普 (Donald John Trump)</option>
+                            <option value="宮崎駿">宮崎駿 (みやざきはやお)</option>
+                            <option value="黃仁勳">黃仁勳 (Jensen Jen-hsun Huang)</option>
+                            <option value="莎士比亞">莎士比亞 (William Shakespeare)</option>
+                            <option value="賈伯斯">賈伯斯 (Steve Jobs)</option>
+                            <option value="歐普拉">歐普拉 (Oprah Winfrey)</option>
+                            <option value="愛因斯坦">愛因斯坦 (Albert Einstein)</option>
+                            <option value="馬克·祖克柏">馬克·祖克柏 (Mark Zuckerberg)</option>
+                            <option value="泰勒絲">泰勒絲 (Taylor Swift)</option>
+                            <option value="李安">李安 (Ang Lee)</option>
+                            <option value="張忠謀">張忠謀 (Morris Chang)</option>
+                            <option value="比爾·蓋茲">比爾·蓋茲 (Bill Gates)</option>
+                            <option value="孔子">孔子</option>
+                            <option value="老子">老子</option>
+                            <option value="海倫凱勒">海倫凱勒</option>
+                            <option value="楊俐容">楊俐容 (心理教育專家)</option>
+                            <option value="陳志恆">陳志恆 (諮商心理師)</option>
+                        </select>
+                    </div>
+
+                    <div class="bg-cardBg/90 backdrop-blur-sm p-5 rounded-3xl card-shadow border border-lake/10 space-y-3">
+                        <h3 class="font-bold text-lakeDark text-sm flex items-center">
+                            <i class="fa-solid fa-sliders mr-2 text-lake"></i> 風格偏好
+                        </h3>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setStylePref('simple')" class="style-btn py-2 px-1 text-xs rounded-xl border border-lake bg-lake/10 text-lakeDark font-medium transition text-center" data-style="simple">簡單易懂</button>
+                            <button onclick="setStylePref('warm')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white" data-style="warm">溫柔陪伴</button>
+                            <button onclick="setStylePref('action')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white" data-style="action">一起想辦法</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-3 bg-cardBg/95 backdrop-blur-sm rounded-3xl card-shadow border border-lake/10 flex flex-col h-[650px]">
+                    <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <span id="activePersonaEmoji" class="text-2xl">🦦</span>
+                            <div>
+                                <h4 id="activePersonaName" class="font-bold text-lakeDark text-sm">小獺暖暖</h4>
+                                <p id="activePersonaDesc" class="text-xs text-gray-400">溫柔傾聽與同理你的感受</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="clearChatHistory()" class="text-xs text-gray-400 hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition" title="清除對話紀錄">
+                                <i class="fa-solid fa-trash-can mr-1"></i> 清除對話
+                            </button>
+                            <button onclick="downloadChatTxt()" class="text-xs text-lake hover:bg-lake/10 px-3 py-1.5 rounded-lg transition" title="下載對話 TXT">
+                                <i class="fa-solid fa-download mr-1"></i> 下載紀錄
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="chatMessages" class="flex-grow p-4 overflow-y-auto space-y-4 bg-cream/30">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-lake/10 text-lake flex items-center justify-center text-lg flex-shrink-0">
+                                <span id="chatAvatarEmoji">🦦</span>
+                            </div>
+                            <div class="bg-cardBg p-4 rounded-2xl rounded-tl-none card-shadow border border-lake/10 max-w-xl text-sm text-warmText space-y-2">
+                                <p>嗨！我是小獺暖暖。今天過得怎麼樣？有什麼想跟小棧聊聊的煩惱或心情，都可以告訴我喔！</p>
+                                <p class="text-xs text-gray-400 pt-1 border-t border-gray-100">💡 回覆架構：理解感受 ➔ 一個實際方法 ➔ 一個簡短追問</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="chatLoading" class="hidden px-4 py-2 bg-cream/50 flex items-center space-x-2 text-xs text-lake font-medium">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span id="loadingStatusText">AI 正在溫柔思考中...</span>
+                    </div>
+
+                    <div class="p-4 border-t border-gray-100 bg-cardBg rounded-b-3xl space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <button id="speechInputBtn" onclick="toggleSpeechInput()" class="w-10 h-10 rounded-xl bg-softYellow hover:bg-lake/20 text-lakeDark flex items-center justify-center transition flex-shrink-0" title="語音輸入">
+                                <i class="fa-solid fa-microphone"></i>
+                            </button>
+                            <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="輸入你想說的話或煩惱..." class="flex-grow rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:border-lake bg-white transition">
+                            <button onclick="sendChatMessage()" class="bg-lake hover:bg-lakeDark text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                <span class="hidden sm:inline">送出</span>
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-gray-400 px-1">
+                            <span id="speechStatusHint">語音輸入：點擊麥克風即可開始語音轉文字（需瀏覽器支援）</span>
+                            <span>支援語音朗讀與多輪對話</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 4. 心靈小測驗 (Quiz) ================= -->
+        <section id="tab-quiz" class="hidden space-y-6">
+            <div class="max-w-2xl mx-auto bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 space-y-6">
+                <div class="text-center space-y-2">
+                    <span class="text-xs font-semibold text-apricot bg-apricot/10 px-3 py-1 rounded-full">自我覺察心靈小測驗</span>
+                    <h2 class="text-2xl font-bold text-lakeDark">測測你目前的內心能量狀態</h2>
+                    <p class="text-gray-500 text-sm">透過 4 個溫馨情境題，找出最適合陪伴你的解憂小夥伴與溫柔指引。</p>
+                </div>
+
+                <div id="quizContainer" class="space-y-6">
+                    <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                        <div id="quizProgressBar" class="bg-lake h-2.5 rounded-full transition-all duration-300" style="width: 25%;"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span id="quizStepIndicator">第 1 題 / 共 4 題</span>
+                        <span class="text-lake font-medium">心靈測驗進行中</span>
+                    </div>
+
+                    <div class="bg-softYellow/40 p-5 md:p-6 rounded-2xl border border-lake/10 space-y-4">
+                        <h3 id="quizQuestionTitle" class="font-bold text-lakeDark text-base md:text-lg">
+                            1. 當你最近感到疲憊或壓力來襲時，你的第一反應通常是？
+                        </h3>
+                        <div id="quizOptionsList" class="space-y-3">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quizResultContainer" class="hidden space-y-6">
+                    <div class="bg-gradient-to-br from-lake/10 to-softYellow p-6 md:p-8 rounded-3xl border border-lake/20 text-center space-y-4">
+                        <div id="resultRoleEmoji" class="text-5xl">🦦</div>
+                        <div>
+                            <span class="text-xs bg-lake text-white px-3 py-1 rounded-full font-medium">測驗結果分析</span>
+                            <h3 id="resultRoleTitle" class="text-2xl font-bold text-lakeDark mt-2">最適合你的解憂夥伴是：小獺暖暖</h3>
+                        </div>
+                        <p id="resultRoleDesc" class="text-gray-700 text-sm leading-relaxed text-left bg-white/80 p-4 rounded-2xl shadow-sm">
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                        <button onclick="jumpToChatWithPersona()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-comments"></i>
+                            <span id="jumpChatBtnText">找小獺暖暖聊聊心事</span>
+                        </button>
+                        <button onclick="resetQuiz()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-6 py-3.5 rounded-xl text-sm font-medium transition">
+                            重新測驗
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 5. 心情儀表板 (Dashboard) ================= -->
+        <section id="tab-dashboard" class="hidden space-y-6">
+            <div class="bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+                    <div>
+                        <span class="text-xs font-semibold text-lake bg-lake/10 px-3 py-1 rounded-full">數據與自我覺察</span>
+                        <h2 class="text-2xl font-bold text-lakeDark mt-2">心情儀表板 (Mood Dashboard)</h2>
+                        <p class="text-gray-500 text-sm">檢視你最近的心情打卡統計、情緒分佈與壓力趨勢。</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="exportDashboardData()" class="bg-lake/10 hover:bg-lake/20 text-lakeDark px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-1">
+                            <i class="fa-solid fa-download"></i>
+                            <span>匯出記錄</span>
+                        </button>
+                        <button onclick="loadDashboardData()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-1">
+                            <i class="fa-solid fa-rotate-right"></i>
+                            <span>重新整理</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-softYellow/50 p-5 rounded-2xl border border-lake/10 text-center space-y-1">
+                        <div class="text-xs text-gray-500">累計打卡次數</div>
+                        <div id="statTotalCount" class="text-3xl font-bold text-lakeDark">0 次</div>
+                    </div>
+                    <div class="bg-softYellow/50 p-5 rounded-2xl border border-lake/10 text-center space-y-1">
+                        <div class="text-xs text-gray-500">平均困擾程度</div>
+                        <div id="statAvgStress" class="text-3xl font-bold text-apricot">0.0 / 5</div>
+                    </div>
+                    <div class="bg-softYellow/50 p-5 rounded-2xl border border-lake/10 text-center space-y-1">
+                        <div class="text-xs text-gray-500">最常出現情緒</div>
+                        <div id="statTopMood" class="text-3xl font-bold text-lakeDark">尚無資料</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                    <div class="bg-cardBg p-6 rounded-2xl border border-gray-100 card-shadow space-y-4">
+                        <h3 class="font-bold text-lakeDark text-base flex items-center">
+                            <i class="fa-solid fa-chart-pie mr-2 text-lake"></i> 情緒分佈統計
+                        </h3>
+                        <div id="moodDistributionContainer" class="space-y-3">
+                        </div>
+                    </div>
+
+                    <div class="bg-cardBg p-6 rounded-2xl border border-gray-100 card-shadow space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-lakeDark text-base flex items-center">
+                                <i class="fa-solid fa-clock-rotate-left mr-2 text-lake"></i> 近期打卡記錄
+                            </h3>
+                            <span class="text-xs text-gray-400">依時間排序</span>
+                        </div>
+                        <div id="historyRecordsList" class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                            <div class="text-center py-8 text-gray-400 text-sm">
+                                目前尚無打卡記錄。請前往「記下心情」建立第一筆記錄！
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 6. 放鬆工具箱 (Toolbox) ================= -->
+        <section id="tab-toolbox" class="hidden space-y-6">
+            <div>
+                <span class="text-xs font-semibold text-lake bg-lake/10 px-3 py-1 rounded-full">療癒角落</span>
+                <h2 class="text-2xl font-bold text-lakeDark mt-2">解憂工具箱</h2>
+                <p class="text-gray-500 text-sm mt-1">挑選一項適合你的小工具，讓身心稍微喘口氣。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-cardBg/95 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-lake/10 text-lake flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-lungs"></i>
+                            </div>
+                            <h3 class="font-bold text-lakeDark text-lg">4-7-8 呼吸引導器</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-6">隨著圓圈縮放調整呼吸節奏，幫助大腦與身體放鬆。</p>
+                        
+                        <div class="flex flex-col items-center justify-center py-6">
+                            <div id="breathCircle" class="w-36 h-36 rounded-full bg-lake/20 flex items-center justify-center transition-all duration-1000 shadow-inner">
+                                <span id="breathText" class="font-bold text-lakeDark text-sm">準備開始</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-3 pt-4 border-t border-gray-100">
+                        <button onclick="startBreathing()" id="breathStartBtn" class="flex-1 bg-lake hover:bg-lakeDark text-white py-2.5 rounded-xl text-sm font-medium transition">開始呼吸</button>
+                        <button onclick="stopBreathing()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2.5 rounded-xl text-sm font-medium transition">暫停</button>
+                    </div>
+                </div>
+
+                <div class="bg-cardBg/95 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-apricot/15 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-apricot/10 text-apricot flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-palette"></i>
+                            </div>
+                            <h3 class="font-bold text-apricotDark text-lg">心情畫板 (隨手塗鴉)</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">把雜亂的思緒或色彩隨性畫在畫布上，釋放壓力。</p>
+                        
+                        <div class="border border-gray-200 rounded-2xl overflow-hidden bg-white">
+                            <canvas id="moodCanvas" width="400" height="180" class="w-full cursor-crosshair"></canvas>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-100 mt-4">
+                        <div class="flex space-x-2">
+                            <button onclick="setBrushColor('#4A7C59')" class="w-6 h-6 rounded-full bg-lake border-2 border-white shadow"></button>
+                            <button onclick="setBrushColor('#E07A5F')" class="w-6 h-6 rounded-full bg-apricot border-2 border-white shadow"></button>
+                            <button onclick="setBrushColor('#2B3A42')" class="w-6 h-6 rounded-full bg-warmText border-2 border-white shadow"></button>
+                        </div>
+                        <button onclick="clearCanvas()" class="text-xs bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl transition">清除畫布</button>
+                    </div>
+                </div>
+
+                <div class="bg-cardBg/95 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-softYellow text-lakeDark flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-list-check"></i>
+                            </div>
+                            <h3 class="font-bold text-lakeDark text-lg">煩惱拆解卡</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">釐清這件事是你可以掌控的嗎？幫大腦做個分類。</p>
+                        
+                        <div class="space-y-3">
+                            <input type="text" id="worryInput" placeholder="寫下一件煩惱的事..." class="w-full rounded-xl border border-gray-200 p-2.5 text-sm focus:outline-none focus:border-lake bg-white">
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="categorizeWorry('controllable')" class="bg-lake/10 hover:bg-lake/20 text-lakeDark p-2.5 rounded-xl text-xs font-medium transition text-center">可以掌控/改變</button>
+                                <button onclick="categorizeWorry('uncontrollable')" class="bg-apricot/10 hover:bg-apricot/20 text-apricotDark p-2.5 rounded-xl text-xs font-medium transition text-center">無法掌控 (學會放下)</button>
+                            </div>
+                        </div>
+                        <div id="worryResultBox" class="mt-4 p-3 bg-cream rounded-xl text-xs text-gray-600 min-h-[40px] flex items-center justify-center text-center">
+                            輸入煩惱並點選分類，小棧幫你整理。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-cardBg/95 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-lake/10 text-lake flex items-center justify-center text-lg">
+                                <i class="fa-solid fa-comment-dots"></i>
+                            </div>
+                            <h3 class="font-bold text-lakeDark text-lg">開口求助句型練習</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">不知如何向信任的人開口？參考以下溫和表達範本：</p>
+                        
+                        <div class="space-y-2 text-xs">
+                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition" onclick="copyPhrase(this)">
+                                「最近心裡有點壓力，不知道你有沒有空聽我聊聊幾分鐘？」
+                            </div>
+                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition" onclick="copyPhrase(this)">
+                                「這陣子狀況比較多，我覺得有點負荷不過來，想跟你商量一下...」
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-gray-100 text-[11px] text-gray-400 text-center">
+                        點擊上方任一句子即可複製到剪貼簿
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= 7. 紀錄與隱私 (Privacy) ================= -->
+        <section id="tab-privacy" class="hidden space-y-6">
+            <div class="bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 max-w-2xl mx-auto space-y-6">
+                <div>
+                    <span class="text-xs font-semibold text-lake bg-lake/10 px-3 py-1 rounded-full">資料安全與隱私</span>
+                    <h2 class="text-2xl font-bold text-lakeDark mt-2">紀錄與隱私設定</h2>
+                    <p class="text-gray-500 text-sm mt-1">我們高度重視您的隱私。資料預設僅在當次記憶體保留，您可以自主決定是否存入本機裝置。</p>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="block text-sm font-semibold text-warmText">1. 使用模式與身份設定：</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="setUsageMode('general')" id="modeGeneralBtn" class="p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white">
+                            <div class="font-bold text-sm text-lakeDark">一般模式</div>
+                            <div class="text-xs text-gray-500 mt-1">可輸入自訂暱稱</div>
+                        </button>
+                        <button onclick="setUsageMode('campus')" id="modeCampusBtn" class="p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white">
+                            <div class="font-bold text-sm text-lakeDark">校園模式</div>
+                            <div class="text-xs text-gray-500 mt-1">可輸入班級與座號</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="generalInputGroup" class="space-y-2">
+                    <label class="block text-sm font-semibold text-warmText" for="userNameInput">您的暱稱：</label>
+                    <input type="text" id="userNameInput" placeholder="例如：小晴、匿名訪客" class="w-full rounded-xl border border-gray-200 p-3 text-sm focus:outline-none focus:border-lake bg-white">
+                </div>
+                <div id="campusInputGroup" class="hidden space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-warmText mb-1" for="classNameInput">班級：</label>
+                            <input type="text" id="classNameInput" placeholder="例如：高一孝" class="w-full rounded-xl border border-gray-200 p-2.5 text-sm focus:outline-none focus:border-lake bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-warmText mb-1" for="seatNoInput">座號：</label>
+                            <input type="text" id="seatNoInput" placeholder="例如：15" class="w-full rounded-xl border border-gray-200 p-2.5 text-sm focus:outline-none focus:border-lake bg-white">
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-amber-600 bg-amber-50 p-2 rounded-xl">⚠️ 提示：班級與座號僅供求助卡辨識或本機對照使用，不是身分驗證，亦無法用來查閱他人的紀錄。</p>
+                </div>
+
+                <div class="p-4 bg-softYellow/60 rounded-2xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-sm text-lakeDark">在這台裝置保存紀錄</h4>
+                            <p class="text-xs text-gray-600">啟用後，打卡與對話紀錄將存於此瀏覽器的 LocalStorage 中。</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="saveToggle" onchange="toggleSavePreference(this.checked)" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-lake"></div>
+                        </label>
+                    </div>
+                    <p class="text-[11px] text-gray-500 font-medium">🔒 聲明：資料僅存於這台裝置，沒有跨裝置同步功能。</p>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-gray-100">
+                    <div class="flex gap-3">
+                        <button onclick="clearAllDataPrompt()" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>清除全部紀錄</span>
+                        </button>
+                        <button onclick="endSessionAction()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-warmText py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>結束使用 (清空暫存)</span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-center text-gray-400">若使用共用電腦或平板，請記得在離開前點擊「結束使用」。</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= Modal: 校園求助卡預覽與下載 ================= -->
+    <div id="helpCardModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg rounded-3xl card-shadow max-w-md w-full p-6 space-y-4 border border-lake/20 relative animate-fade-in">
+            <button onclick="closeHelpCardModal()" class="absolute top-4 right-4 text-gray-400 hover:text-warmText text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="text-center space-y-1">
+                <span class="text-xs bg-lake/10 text-lake px-3 py-1 rounded-full font-medium">校園關懷特區</span>
+                <h3 class="text-xl font-bold text-lakeDark mt-1">準備給老師的求助卡</h3>
+                <p class="text-xs text-gray-500">您可以預覽並下載此卡片，交給信任的輔導老師或導師。</p>
+            </div>
+
+            <div id="helpCardPrintArea" class="bg-softYellow/50 border-2 border-dashed border-lake/30 rounded-2xl p-5 space-y-3 text-sm text-warmText">
+                <div class="flex justify-between items-center border-b border-lake/10 pb-2">
+                    <span class="font-bold text-lakeDark">🌱 心情小棧求助便條</span>
+                    <span id="helpCardDate" class="text-xs text-gray-400">2026-10-15</span>
+                </div>
+                <div class="space-y-1 text-xs">
+                    <p><strong>填卡人/身分：</strong> <span id="cardUserIdentifier">一般訪客 (未具名)</span></p>
+                    <p><strong>近期狀態/心情：</strong> <span id="cardUserMoodSummary">尚無打卡記錄</span></p>
+                </div>
+                <div class="bg-white p-3 rounded-xl text-xs space-y-1 border border-lake/10">
+                    <p class="font-bold text-lakeDark">給老師的話：</p>
+                    <p id="cardUserNote" class="text-gray-600">老師您好，我最近在生活或心情上遇到了一些壓力與困擾，希望能跟您聊聊，尋求一些協助與建議。謝謝老師！</p>
+                </div>
+                <div class="text-[10px] text-gray-400 text-center pt-1">
+                    * 註：本系統無自動連線後端伺服器，請將卡片截圖或下載後交給師長。
+                </div>
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button onclick="downloadHelpCardTxt()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-download"></i>
+                    <span>下載求助卡文字</span>
+                </button>
+                <button onclick="closeHelpCardModal()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-5 py-3 rounded-xl text-sm font-medium transition">
+                    關閉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="bg-cardBg/90 backdrop-blur-md border-t border-lake/10 py-6 mt-12 text-center text-xs text-gray-500 space-y-2">
+        <p>心情小棧｜我的解憂雜貨店 © 2026 溫暖陪伴守護您的每一天</p>
+        <p class="text-amber-700 font-medium">
+            ⚠️ 重要提醒：若您或身邊的人正面臨嚴重危機、極度憂鬱或安全顧慮，請立即尋求專業真人協助：
+            <span class="underline">安心專線 1925</span> ｜ <span class="underline">張老師專線 1980</span> ｜ <span class="underline">生命線 1995</span>
+        </p>
+    </footer>
+
+    <!-- ================= STREAMING_CHUNK:Initializing JavaScript Application Logic... ================= -->
+    <script>
+        let currentTab = 'home';
+        let selectedMood = '平靜';
+        let stressLevelVal = 3;
+        let currentPersona = 'otter';
+        let celebrityName = '';
+        let stylePref = 'simple';
+        let chatHistory = [];
+        let checkinRecords = [];
+        let isSavingEnabled = false;
+        let usageMode = 'general';
+        let recognition = null;
+        let isRecording = false;
+        let isDopaminePanelOpen = false;
+
+        let currentQuizQuestion = 0;
+        let quizScores = { otter: 0, owl: 0, bear: 0, rabbit: 0 };
+        const quizQuestions = [
+            {
+                title: "1. 當你最近感到疲憊或壓力來襲時，你的第一反應通常是？",
+                options: [
+                    { text: "默默自己吸收，希望有人能默默陪在我身邊就好", type: "otter" },
+                    { text: "腦袋轉個不停，想找出問題到底出在哪裡", type: "owl" },
+                    { text: "雖然很想放棄，但還是咬緊牙關想把事情做完", type: "bear" },
+                    { text: "心思開始飄到遠方，靠聽音樂或幻想來逃離現實", type: "rabbit" }
+                ]
+            },
+            {
+                title: "2. 你目前最希望從「解憂雜貨店」得到什麼幫助？",
+                options: [
+                    { text: "純粹的同理與溫柔的擁抱，被好好接住", type: "otter" },
+                    { text: "具體的邏輯分析，幫我把雜亂的思緒條理化", type: "owl" },
+                    { text: "一句振奮人心的鼓勵，給我跨出下一步的勇氣", type: "bear" },
+                    { text: "一個好聽的故事或新奇的視角，轉換心情", type: "rabbit" }
+                ]
+            },
+            {
+                title: "3. 想像你在一個森林裡散步，突然起霧了，你心裡的第一個念頭是？",
+                options: [
+                    { text: "有點不安，希望能遇到一隻溫暖的小動物陪我", type: "otter" },
+                    { text: "冷靜觀察地圖或方向，找出走出去的方法", type: "owl" },
+                    { text: "沒關係，就算慢慢走我也能走回家的", type: "bear" },
+                    { text: "哇，這片霧好美，說不定會遇到什麼神祕的奇遇呢", type: "rabbit" }
+                ]
+            },
+            {
+                title: "4. 平常面對壓力時，你最常出現的身體或心理訊號是什麼？",
+                options: [
+                    { text: "覺得心裡悶悶的，容易嘆氣或想哭", type: "otter" },
+                    { text: "思考速度變慢，或者過度思考導致失眠", type: "owl" },
+                    { text: "肩膀僵硬、身體緊繃，覺得好累", type: "bear" },
+                    { text: "注意力無法集中，只想放空發呆", type: "rabbit" }
+                ]
+            }
+        ];
+
+        const personas = {
+            otter: { name: '小獺暖暖', emoji: '🦦', desc: '溫柔傾聽與同理你的感受' },
+            owl: { name: '貓頭鷹想想', emoji: '🦉', desc: '協助拆解問題與理性分析' },
+            bear: { name: '小熊勇勇', emoji: '🐻', desc: '給予溫暖鼓勵與可行小行動' },
+            rabbit: { name: '兔子彩彩', emoji: '🐰', desc: '透過故事與想像整理心情' }
+        };
+
+        window.onload = function() {
+            initCanvas();
+            initSpeechRecognition();
+            loadSettingsFromStorage();
+            initQuiz();
+            loadDashboardData();
+        };
+
+        // ================= 強效多巴胺漸層控制 (6個主題) =================
+        function toggleDopaminePanel() {
+            isDopaminePanelOpen = !isDopaminePanelOpen;
+            const panel = document.getElementById('dopamineFloatingPanel');
+            if (isDopaminePanelOpen) {
+                panel.classList.remove('translate-x-[calc(100%-40px)]');
+                panel.classList.add('translate-x-0');
+            } else {
+                panel.classList.remove('translate-x-0');
+                panel.classList.add('translate-x-[calc(100%-40px)]');
+            }
+        }
+
+        function setDopamineTheme(theme) {
+            const body = document.getElementById('appBody');
+
+            ['off', 'mode1', 'mode2', 'mode3', 'mode4', 'mode5'].forEach(t => {
+                const checkEl = document.getElementById(`check-${t}`);
+                if (checkEl) checkEl.classList.add('hidden');
+            });
+
+            const activeCheck = document.getElementById(`check-${theme}`);
+            if (activeCheck) activeCheck.classList.remove('hidden');
+
+            if (theme === 'off') {
+                body.style.background = '#FDFBF7';
+            } else if (theme === 'mode1') {
+                body.style.background = 'linear-gradient(-45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb)';
+                body.style.backgroundSize = '400% 400%';
+                body.style.animation = 'dopamineFlow 10s ease infinite';
+            } else if (theme === 'mode2') {
+                body.style.background = 'linear-gradient(-45deg, #fbc531, #e84118, #9c88ff, #4cd137, #00a8ff)';
+                body.style.backgroundSize = '400% 400%';
+                body.style.animation = 'dopamineFlow 8s ease infinite';
+            } else if (theme === 'mode3') {
+                body.style.background = 'linear-gradient(-45deg, #ff7675, #fab1a0, #ffeaa7, #55efc4, #81ecec)';
+                body.style.backgroundSize = '400% 400%';
+                body.style.animation = 'dopamineFlow 12s ease infinite';
+            } else if (theme === 'mode4') {
+                body.style.background = 'linear-gradient(-45deg, #f6d365, #fda085, #ffecd2, #fcb69f)';
+                body.style.backgroundSize = '400% 400%';
+                body.style.animation = 'dopamineFlow 10s ease infinite';
+            } else if (theme === 'mode5') {
+                body.style.background = 'linear-gradient(-45deg, #2c3e50, #4ca1af, #2c3e50, #3498db)';
+                body.style.backgroundSize = '400% 400%';
+                body.style.animation = 'dopamineFlow 14s ease infinite';
+            }
+        }
+
+        // ================= 頁籤切換 =================
+        function switchTab(tabId) {
+            currentTab = tabId;
+            const tabs = ['home', 'checkin', 'chat', 'quiz', 'dashboard', 'toolbox', 'privacy'];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if (el) {
+                    if (t === tabId) {
+                        el.classList.remove('hidden');
+                        if (t === 'dashboard') {
+                            renderDashboard();
+                        }
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+            });
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.dataset.tab === tabId) {
+                    btn.classList.add('bg-softYellow', 'text-lakeDark', 'font-bold');
+                } else {
+                    btn.classList.remove('bg-softYellow', 'text-lakeDark', 'font-bold');
+                }
+            });
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // ================= 心情打卡邏輯 =================
+        function selectMood(mood, btnEl) {
+            selectedMood = mood;
+            document.querySelectorAll('.mood-btn').forEach(b => {
+                b.classList.remove('border-lake', 'bg-lake/5');
+            });
+            btnEl.classList.add('border-lake', 'bg-lake/5');
+        }
+
+        function updateStressLabel(val) {
+            stressLevelVal = val;
+            let label = '普通';
+            if (val == 1) label = '很輕微';
+            else if (val == 2) label = '輕微';
+            else if (val == 3) label = '普通';
+            else if (val == 4) label = '有些沈重';
+            else if (val == 5) label = '非常沉重';
+            document.getElementById('levelText').innerText = `${val} / 5 (${label})`;
+        }
+
+        function submitCheckin() {
+            const reason = document.getElementById('moodReason').value.trim();
+            const dateStr = new Date().toLocaleDateString('zh-TW');
+            document.getElementById('resultTimestamp').innerText = dateStr;
+
+            let feedback = `今天你選擇了心情<strong>「${selectedMood}」</strong>，壓力指數評估為 <strong>${stressLevelVal}/5</strong>。<br><br>`;
+            
+            if (stressLevelVal >= 4) {
+                feedback += `看起來最近承受了比較大的重量呢。請記得，允許自己疲憊、允許事情慢慢來是沒問題的。<br><br>`;
+                feedback += `<strong>溫柔小步驟：</strong>先給自己倒一杯溫水，走到窗邊深呼吸三次，今天只要照顧好當下的自己就好。`;
+            } else {
+                feedback += `謝謝你願意停下來花幾分鐘做自我覺察。保持對自己的覺察就是最好的照顧。<br><br>`;
+                feedback += `<strong>溫柔小步驟：</strong>今天對自己說一句辛苦了，挑一件能讓自己微笑的小事（聽一首歌或吃點喜歡的點心）。`;
+            }
+
+            document.getElementById('resultFeedbackContent').innerHTML = feedback;
+            document.getElementById('checkinResultCard').classList.remove('hidden');
+            document.getElementById('checkinResultCard').scrollIntoView({ behavior: 'smooth' });
+
+            const newRecord = { type: 'checkin', mood: selectedMood, level: stressLevelVal, reason, date: dateStr };
+            checkinRecords.push(newRecord);
+
+            if (isSavingEnabled) {
+                saveToLocalStorage('checkinRecords', checkinRecords);
+            }
+        }
+
+        // ================= AI 解憂對話 (Gemini API) =================
+        function selectPersona(id) {
+            currentPersona = id;
+            celebrityName = '';
+            document.getElementById('celebritySelect').value = '';
+
+            document.querySelectorAll('.persona-btn').forEach(b => {
+                b.classList.remove('border-lake', 'bg-lake/5');
+                b.classList.add('border-gray-100');
+            });
+            const activeBtn = document.querySelector(`[data-id="${id}"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('border-gray-100');
+                activeBtn.classList.add('border-lake', 'bg-lake/5');
+            }
+
+            const p = personas[id];
+            document.getElementById('activePersonaEmoji').innerText = p.emoji;
+            document.getElementById('activePersonaName').innerText = p.name;
+            document.getElementById('activePersonaDesc').innerText = p.desc;
+            document.getElementById('chatAvatarEmoji').innerText = p.emoji;
+        }
+
+        function onCelebrityChange(val) {
+            celebrityName = val;
+            if (val) {
+                document.getElementById('activePersonaEmoji').innerText = '💡';
+                document.getElementById('activePersonaName').innerText = `${val} (AI 模擬靈感)`;
+                document.getElementById('activePersonaDesc').innerText = '以公開形象與專業特質提供原創回應，非本人';
+                document.getElementById('chatAvatarEmoji').innerText = '💡';
+            } else {
+                selectPersona(currentPersona);
+            }
+        }
+
+        function setStylePref(style) {
+            stylePref = style;
+            document.querySelectorAll('.style-btn').forEach(b => {
+                b.classList.remove('border-lake', 'bg-lake/10', 'text-lakeDark', 'font-bold');
+                b.classList.add('border-gray-200', 'text-warmText');
+                if (b.dataset.style === style) {
+                    b.classList.add('border-lake', 'bg-lake/10', 'text-lakeDark', 'font-bold');
+                    b.classList.remove('border-gray-200', 'text-warmText');
+                }
+            });
+        }
+
+        async function sendChatMessage() {
+            const inputEl = document.getElementById('chatInput');
+            const userText = inputEl.value.trim();
+            if (!userText) return;
+
+            inputEl.value = '';
+            appendMessage('user', userText);
+            chatHistory.push({ role: 'user', parts: [{ text: userText }] });
+
+            if (checkCrisisKeywords(userText)) {
+                appendCrisisResponse();
+                return;
+            }
+
+            document.getElementById('chatLoading').classList.remove('hidden');
+            document.getElementById('loadingStatusText').innerText = celebrityName ? `正在召喚 ${celebrityName} 的靈感回覆...` : `${personas[currentPersona].name} 正在溫柔思考中...`;
+
+            try {
+                const aiReply = await callGeminiAPI(userText);
+                document.getElementById('chatLoading').classList.add('hidden');
+                appendMessage('model', aiReply);
+                chatHistory.push({ role: 'model', parts: [{ text: aiReply }] });
+
+                if (isSavingEnabled) {
+                    saveToLocalStorage('chat', chatHistory);
+                }
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                document.getElementById('chatLoading').classList.add('hidden');
+                appendMessage('model', '哎呀，小棧的連線好像稍微晃動了一下。請稍後再試一次喔！');
+            }
+        }
+
+        function checkCrisisKeywords(text) {
+            const keywords = ['不想活', '想死', '自殺', '自殘', '結束生命', '走絕路', '好想消失'];
+            return keywords.some(kw => text.includes(kw));
+        }
+
+        function appendCrisisResponse() {
+            document.getElementById('chatLoading').classList.add('hidden');
+            const crisisHtml = `
+                <div class="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-800 text-sm space-y-2">
+                    <p class="font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 聽到你這麼說，小棧非常關心你的安全與感受。</p>
+                    <p>請記得，你絕對不是孤單一個人，這世界上有許多專業且願意接住你的人。請立刻聯繫以下免費真人協助專線：</p>
+                    <ul class="list-disc pl-5 font-semibold space-y-1">
+                        <li>安心專線：1925 (依舊愛我) - 24小時免付費</li>
+                        <li>張老師專線：1980 - 陪伴你度過低潮</li>
+                        <li>生命線專線：1995</li>
+                    </ul>
+                    <p class="text-xs pt-1">如果你在校園中，也可以直接尋找信任的輔導老師或導師聊聊。</p>
+                </div>
+            `;
+            appendMessageHTML('model', crisisHtml);
+        }
+
+        async function callGeminiAPI(promptText) {
+            let personaPrompt = `你現在是心靈雜貨店的溫柔解憂夥伴「${personas[currentPersona].name}」，角色特質：${personas[currentPersona].desc}。`;
+            if (celebrityName) {
+                personaPrompt = `你現在以「${celebrityName}」的公開形象或專業特質（非本人背書）來給予溫暖與啟發。`;
+            }
+            
+            let styleInstruction = "請用簡單易懂、溫柔親切的繁體中文回覆。";
+            if (stylePref === 'warm') styleInstruction = "請用極度溫柔、同理與充滿陪伴感的繁體中文回覆。";
+            if (stylePref === 'action') styleInstruction = "請在同理後，著重於提供具體、可執行的小步驟建議。";
+
+            const systemPrompt = `${personaPrompt} ${styleInstruction} 
+            請務必遵守以下回覆結構：
+            1. 理解感受：同理對方的處境與心情。
+            2. 一個實際方法：提供一個具體且做得到的方向。
+            3. 一個簡短追問：溫柔地問一個能引導對方思考或舒緩的問題。`;
+
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [
+                    { role: 'user', parts: [{ text: systemPrompt + "\n\n使用者說：" + promptText }] }
+                ]
+            };
+
+            let retries = 3;
+            let delay = 1000;
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    }
+                } catch (e) {
+                    if (i === retries - 1) throw e;
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+            throw new Error("API 呼叫失敗");
+        }
+
+        function appendMessage(role, text) {
+            const container = document.getElementById('chatMessages');
+            const isUser = role === 'user';
+            const avatar = isUser ? '<i class="fa-solid fa-user"></i>' : (celebrityName ? '💡' : personas[currentPersona].emoji);
+            const bgClass = isUser ? 'bg-lake text-white ml-auto rounded-tr-none' : 'bg-cardBg text-warmText border border-lake/15 card-shadow rounded-tl-none';
+            
+            const html = `
+                <div class="flex items-start space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}">
+                    <div class="w-10 h-10 rounded-full ${isUser ? 'bg-apricot/20 text-apricot' : 'bg-lake/10 text-lake'} flex items-center justify-center text-lg flex-shrink-0">
+                        ${avatar}
+                    </div>
+                    <div class="${bgClass} p-4 rounded-2xl max-w-xl text-sm space-y-2">
+                        <p class="whitespace-pre-wrap leading-relaxed">${escapeHtml(text)}</p>
+                        ${!isUser ? `
+                            <div class="flex items-center space-x-3 pt-2 border-t border-gray-100 text-xs">
+                                <button onclick="speakText(this)" class="text-gray-500 hover:text-lake transition"><i class="fa-solid fa-volume-high mr-1"></i>朗讀</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendMessageHTML(role, htmlContent) {
+            const container = document.getElementById('chatMessages');
+            const html = `
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-lg flex-shrink-0">
+                        <i class="fa-solid fa-heart-pulse"></i>
+                    </div>
+                    <div class="max-w-xl text-sm">${htmlContent}</div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearChatHistory() {
+            chatHistory = [];
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-lake/10 text-lake flex items-center justify-center text-lg flex-shrink-0">
+                        <span id="chatAvatarEmoji">${personas[currentPersona].emoji}</span>
+                    </div>
+                    <div class="bg-cardBg p-4 rounded-2xl rounded-tl-none card-shadow border border-lake/10 max-w-xl text-sm text-warmText space-y-2">
+                        <p>對話已重新開始。今天還有什麼想聊聊的嗎？</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadChatTxt() {
+            if (chatHistory.length === 0) {
+                alertBox("目前尚無對話紀錄可供下載。");
+                return;
+            }
+            let content = "--- 心情小棧｜解憂對話紀錄 ---\n\n";
+            chatHistory.forEach(turn => {
+                const roleName = turn.role === 'user' ? '我' : (celebrityName || personas[currentPersona].name);
+                content += `${roleName}：\n${turn.parts[0].text}\n\n`;
+            });
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `心情小棧_對話紀錄_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ================= 心靈測驗邏輯 (Quiz) =================
+        function initQuiz() {
+            currentQuizQuestion = 0;
+            quizScores = { otter: 0, owl: 0, bear: 0, rabbit: 0 };
+            document.getElementById('quizContainer').classList.remove('hidden');
+            document.getElementById('quizResultContainer').classList.add('hidden');
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const q = quizQuestions[currentQuizQuestion];
+            document.getElementById('quizQuestionTitle').innerText = q.title;
+            document.getElementById('quizStepIndicator').innerText = `第 ${currentQuizQuestion + 1} 題 / 共 4 題`;
+            const progressPercent = ((currentQuizQuestion + 1) / 4) * 100;
+            document.getElementById('quizProgressBar').style.width = `${progressPercent}%`;
+
+            const listEl = document.getElementById('quizOptionsList');
+            listEl.innerHTML = '';
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-2xl bg-white hover:bg-lake/5 border border-gray-200 hover:border-lake text-sm font-medium text-warmText transition flex items-center space-x-3 shadow-sm";
+                btn.innerHTML = `<span class="w-7 h-7 rounded-full bg-lake/10 text-lake flex items-center justify-center text-xs font-bold flex-shrink-0">${String.fromCharCode(65 + idx)}</span><span>${opt.text}</span>`;
+                btn.onclick = () => answerQuiz(opt.type);
+                listEl.appendChild(btn);
+            });
+        }
+
+        function answerQuiz(type) {
+            quizScores[type]++;
+            currentQuizQuestion++;
+            if (currentQuizQuestion < quizQuestions.length) {
+                renderQuizQuestion();
+            } else {
+                showQuizResult();
+            }
+        }
+
+        function showQuizResult() {
+            document.getElementById('quizContainer').classList.add('hidden');
+            document.getElementById('quizResultContainer').classList.remove('hidden');
+
+            let bestType = 'otter';
+            let maxScore = -1;
+            for (let t in quizScores) {
+                if (quizScores[t] > maxScore) {
+                    maxScore = quizScores[t];
+                    bestType = t;
+                }
+            }
+
+            currentPersona = bestType;
+            const p = personas[bestType];
+            document.getElementById('resultRoleEmoji').innerText = p.emoji;
+            document.getElementById('resultRoleTitle').innerText = `最適合你的解憂夥伴是：${p.name}`;
+            
+            let descText = "";
+            if (bestType === 'otter') {
+                descText = "你近期內心累積了不少需要被溫柔接住的情緒。你渴望被理解、被傾聽，不需要急著給出解答，只要有人靜靜陪在身邊就好。「小獺暖暖」最懂你的柔軟，會給你滿滿的安全感。";
+            } else if (bestType === 'owl') {
+                descText = "面對生活中的壓力，你習慣用理性去抽絲剝繭。雖然有時會感到腦袋過載，但你具備很棒的洞察力。「貓頭鷹想想」可以協助你把複雜的思緒梳理清楚，找到下一步的邏輯方向。";
+            } else if (bestType === 'bear') {
+                descText = "你是一個很有韌性、默默扛下許多責任的人。即使疲憊也咬緊牙關。「小熊勇勇」要告訴你：你已經做得很好了！讓勇勇陪你建立一個做得到的小行動，重新找回力量。";
+            } else if (bestType === 'rabbit') {
+                descText = "你的內心保有豐富的想像力與對美的敏感度。當壓力太大時，你需要跳脫框架、轉換視角。「兔子彩彩」將帶你用故事與想像力放鬆心情，找回內心的自在與微笑。";
+            }
+
+            document.getElementById('resultRoleDesc').innerText = descText;
+            document.getElementById('jumpChatBtnText').innerText = `找 ${p.name} 聊聊心事`;
+        }
+
+        function jumpToChatWithPersona() {
+            selectPersona(currentPersona);
+            switchTab('chat');
+        }
+
+        function resetQuiz() {
+            initQuiz();
+        }
+
+        // ================= 心情儀表板 (Dashboard) =================
+        function loadDashboardData() {
+            try {
+                const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
+                if (stored.checkinRecords && Array.isArray(stored.checkinRecords)) {
+                    checkinRecords = stored.checkinRecords;
+                } else if (stored.checkin) {
+                    checkinRecords = [stored.checkin];
+                }
+            } catch (e) {
+                checkinRecords = [];
+            }
+            if (currentTab === 'dashboard') {
+                renderDashboard();
+            }
+        }
+
+        function renderDashboard() {
+            const totalCount = checkinRecords.length;
+            document.getElementById('statTotalCount').innerText = `${totalCount} 次`;
+
+            if (totalCount === 0) {
+                document.getElementById('statAvgStress').innerText = '0.0 / 5';
+                document.getElementById('statTopMood').innerText = '尚無資料';
+                document.getElementById('moodDistributionContainer').innerHTML = `<div class="text-center py-6 text-gray-400 text-sm">尚無心情打卡統計資料</div>`;
+                document.getElementById('historyRecordsList').innerHTML = `<div class="text-center py-8 text-gray-400 text-sm">目前尚無打卡記錄。請前往「記下心情」建立第一筆記錄！</div>`;
+                return;
+            }
+
+            const sumStress = checkinRecords.reduce((acc, curr) => acc + Number(curr.level || 3), 0);
+            const avgStress = (sumStress / totalCount).toFixed(1);
+            document.getElementById('statAvgStress').innerText = `${avgStress} / 5`;
+
+            const moodCounts = {};
+            checkinRecords.forEach(r => {
+                const m = r.mood || '平靜';
+                moodCounts[m] = (moodCounts[m] || 0) + 1;
+            });
+
+            let topMood = '平靜';
+            let maxCount = -1;
+            for (let m in moodCounts) {
+                if (moodCounts[m] > maxCount) {
+                    maxCount = moodCounts[m];
+                    topMood = m;
+                }
+            }
+            document.getElementById('statTopMood').innerText = topMood;
+
+            const distContainer = document.getElementById('moodDistributionContainer');
+            distContainer.innerHTML = '';
+            for (let m in moodCounts) {
+                const count = moodCounts[m];
+                const pct = Math.round((count / totalCount) * 100);
+                const barHtml = `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-medium text-warmText">
+                            <span>${m}</span>
+                            <span class="text-gray-500">${count} 次 (${pct}%)</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                            <div class="bg-lake h-2.5 rounded-full transition-all duration-500" style="width: ${pct}%;"></div>
+                        </div>
+                    </div>
+                `;
+                distContainer.insertAdjacentHTML('beforeend', barHtml);
+            }
+
+            const historyList = document.getElementById('historyRecordsList');
+            historyList.innerHTML = '';
+            const sortedRecords = [...checkinRecords].reverse();
+            sortedRecords.forEach((rec, idx) => {
+                const itemHtml = `
+                    <div class="p-3 bg-softYellow/30 rounded-xl border border-lake/10 flex items-center justify-between text-xs">
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-lakeDark flex items-center space-x-2">
+                                <span class="text-sm">🌱</span>
+                                <span>心情：${rec.mood}</span>
+                                <span class="text-gray-400 font-normal">| 壓力指數：${rec.level}/5</span>
+                            </div>
+                            <p class="text-gray-600 truncate max-w-xs">${rec.reason ? rec.reason : '（未填寫原因）'}</p>
+                        </div>
+                        <div class="text-right text-gray-400">
+                            <div>${rec.date}</div>
+                        </div>
+                    </div>
+                `;
+                historyList.insertAdjacentHTML('beforeend', itemHtml);
+            });
+        }
+
+        function exportDashboardData() {
+            if (checkinRecords.length === 0) {
+                alertBox("目前尚無打卡記錄可供匯出。");
+                return;
+            }
+            let content = "--- 心情小棧｜心情打卡與儀表板記錄 ---\n\n";
+            checkinRecords.forEach((r, i) => {
+                content += `記錄 #${i+1}\n日期：${r.date}\n情緒：${r.mood}\n壓力等級：${r.level}/5\n原因：${r.reason || '無'}\n\n`;
+            });
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `心情小棧_儀表板記錄_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ================= 語音辨識與朗讀 =================
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'zh-TW';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    document.getElementById('chatInput').value = speechResult;
+                    document.getElementById('speechStatusHint').innerText = '語音辨識完成！你可以修改文字後送出。';
+                    stopSpeechRecordingUI();
+                };
+
+                recognition.onerror = () => {
+                    document.getElementById('speechStatusHint').innerText = '語音辨識發生錯誤，請改用文字輸入。';
+                    stopSpeechRecordingUI();
+                };
+
+                recognition.onend = () => {
+                    stopSpeechRecordingUI();
+                };
+            } else {
+                document.getElementById('speechStatusHint').innerText = '提示：此瀏覽器不支援語音辨識，請使用文字輸入。';
+                document.getElementById('speechInputBtn').style.opacity = '0.5';
+            }
+        }
+
+        function toggleSpeechInput() {
+            if (!recognition) {
+                alertBox("您的裝置或瀏覽器不支援語音辨識功能。");
+                return;
+            }
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+                isRecording = true;
+                document.getElementById('speechInputBtn').classList.add('bg-apricot', 'text-white');
+                document.getElementById('speechStatusHint').innerText = '正在聆聽中... 請說話...';
+            }
+        }
+
+        function stopSpeechRecordingUI() {
+            isRecording = false;
+            const btn = document.getElementById('speechInputBtn');
+            if (btn) {
+                btn.classList.remove('bg-apricot', 'text-white');
+            }
+        }
+
+        function speakText(btnEl) {
+            if (!('speechSynthesis' in window)) {
+                alertBox("您的瀏覽器不支援語音朗讀功能。");
+                return;
+            }
+            const textBlock = btnEl.closest('.space-y-2').querySelector('p').innerText;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(textBlock);
+            utterance.lang = 'zh-TW';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // ================= 放鬆工具箱 =================
+        let breathTimer = null;
+        function startBreathing() {
+            const circle = document.getElementById('breathCircle');
+            const text = document.getElementById('breathText');
+            
+            clearInterval(breathTimer);
+            function runCycle() {
+                text.innerText = "吸氣 (4s)";
+                circle.className = "w-48 h-48 rounded-full bg-lake/40 flex items-center justify-center transition-all duration-4000 shadow-inner scale-125";
+                
+                setTimeout(() => {
+                    text.innerText = "憋氣 (7s)";
+                }, 4000);
+
+                setTimeout(() => {
+                    text.innerText = "吐氣 (8s)";
+                    circle.className = "w-36 h-36 rounded-full bg-lake/20 flex items-center justify-center transition-all duration-8000 shadow-inner scale-100";
+                }, 11000);
+            }
+
+            runCycle();
+            breathTimer = setInterval(runCycle, 19000);
+        }
+
+        function stopBreathing() {
+            clearInterval(breathTimer);
+            const circle = document.getElementById('breathCircle');
+            const text = document.getElementById('breathText');
+            circle.className = "w-36 h-36 rounded-full bg-lake/20 flex items-center justify-center transition-all duration-1000 shadow-inner scale-100";
+            text.innerText = "準備開始";
+        }
+
+        let canvas, ctx, isDrawing = false;
+        function initCanvas() {
+            canvas = document.getElementById('moodCanvas');
+            if (!canvas) return;
+            ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#4A7C59';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDraw);
+            canvas.addEventListener('mouseleave', stopDraw);
+
+            canvas.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+                e.preventDefault();
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+                e.preventDefault();
+            });
+            canvas.addEventListener('touchend', () => {
+                canvas.dispatchEvent(new MouseEvent('mouseup', {}));
+            });
+        }
+
+        function startDraw(e) {
+            isDrawing = true;
+            ctx.beginPath();
+            const rect = canvas.getBoundingClientRect();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function stopDraw() {
+            isDrawing = false;
+        }
+
+        function setBrushColor(color) {
+            if (ctx) ctx.strokeStyle = color;
+        }
+
+        function clearCanvas() {
+            if (ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function categorizeWorry(type) {
+            const input = document.getElementById('worryInput').value.trim();
+            const box = document.getElementById('worryResultBox');
+            if (!input) {
+                box.innerText = "請先在上方的輸入框寫下你的煩惱。";
+                return;
+            }
+            if (type === 'controllable') {
+                box.innerHTML = `<strong>「${escapeHtml(input)}」</strong><br>既然這是可以掌控的，我們可以把它拆解成 2 個小步驟，一次專注解決一個！`;
+            } else {
+                box.innerHTML = `<strong>「${escapeHtml(input)}」</strong><br>這超出了我們的控制範圍。練習對自己說：「我已經盡力了，剩下的就讓它去吧。」`;
+            }
+        }
+
+        function copyPhrase(el) {
+            const text = el.innerText;
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alertBox("已成功複製句子到剪貼簿！");
+        }
+
+        // ================= 隱私與紀錄 =================
+        function setUsageMode(mode) {
+            usageMode = mode;
+            const genBtn = document.getElementById('modeGeneralBtn');
+            const camBtn = document.getElementById('modeCampusBtn');
+            const genGroup = document.getElementById('generalInputGroup');
+            const camGroup = document.getElementById('campusInputGroup');
+
+            if (mode === 'general') {
+                genBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white";
+                camBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white";
+                genGroup.classList.remove('hidden');
+                camGroup.classList.add('hidden');
+            } else {
+                camBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white";
+                genBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white";
+                camGroup.classList.remove('hidden');
+                genGroup.classList.add('hidden');
+            }
+        }
+
+        function toggleSavePreference(checked) {
+            isSavingEnabled = checked;
+            if (checked) {
+                saveToLocalStorage('checkinRecords', checkinRecords);
+                alertBox("已啟用本機儲存功能。紀錄將僅存於此瀏覽器的 LocalStorage 中。");
+            } else {
+                localStorage.removeItem('mood_station_data');
+                alertBox("已關閉本機儲存，並清空已保存紀錄。");
+            }
+        }
+
+        function saveToLocalStorage(key, data) {
+            try {
+                const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
+                stored[key] = data;
+                localStorage.setItem('mood_station_data', JSON.stringify(stored));
+            } catch (e) {
+                console.error("Storage error", e);
+            }
+        }
+
+        function loadSettingsFromStorage() {
+            try {
+                const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
+                if (stored.checkinRecords) {
+                    checkinRecords = stored.checkinRecords;
+                    document.getElementById('saveToggle').checked = true;
+                    isSavingEnabled = true;
+                }
+            } catch (e) {}
+        }
+
+        function clearAllDataPrompt() {
+            if (confirm("確定要清除本機的所有紀錄嗎？此動作無法復原。")) {
+                localStorage.removeItem('mood_station_data');
+                checkinRecords = [];
+                chatHistory = [];
+                document.getElementById('saveToggle').checked = false;
+                isSavingEnabled = false;
+                alertBox("已清除所有本機紀錄。");
+                renderDashboard();
+            }
+        }
+
+        function endSessionAction() {
+            if (confirm("即將結束使用並清空當次記憶體與暫存。若這是共用裝置，建議您確認已關閉分頁。")) {
+                chatHistory = [];
+                checkinRecords = [];
+                location.reload();
+            }
+        }
+
+        // ================= 校園求助卡 =================
+        function openHelpCardModal() {
+            const dateStr = new Date().toLocaleDateString('zh-TW');
+            document.getElementById('helpCardDate').innerText = dateStr;
+
+            let identifier = "一般訪客 (未具名)";
+            if (usageMode === 'campus') {
+                const cls = document.getElementById('classNameInput').value.trim();
+                const seat = document.getElementById('seatNoInput').value.trim();
+                if (cls || seat) {
+                    identifier = `班級：${cls || '未填'} / 座號：${seat || '未填'}`;
+                }
+            } else {
+                const name = document.getElementById('userNameInput').value.trim();
+                if (name) identifier = `暱稱：${name}`;
+            }
+            document.getElementById('cardUserIdentifier').innerText = identifier;
+            document.getElementById('cardUserMoodSummary').innerText = `最近打卡心情：${selectedMood} (壓力級別 ${stressLevelVal}/5)`;
+
+            document.getElementById('helpCardModal').classList.remove('hidden');
+        }
+
+        function closeHelpCardModal() {
+            document.getElementById('helpCardModal').classList.add('hidden');
+        }
+
+        function downloadHelpCardTxt() {
+            const content = `--- 心情小棧｜準備給老師的求助卡 ---\n日期：${new Date().toLocaleDateString('zh-TW')}\n身份：${document.getElementById('cardUserIdentifier').innerText}\n狀態：${document.getElementById('cardUserMoodSummary').innerText}\n\n內容：\n${document.getElementById('cardUserNote').innerText}\n\n* 註：請將此卡片交給信任的輔導老師或導師。`;
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `求助卡_${new Date().toISOString().slice(0,10)}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function alertBox(msg) {
+            alert(msg);
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+    </script>
+</body>
+</html>
