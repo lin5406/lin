@@ -36,27 +36,23 @@
             background-color: #FDFBF7;
             color: #2B3A42;
             font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
-            transition: background 0.5s ease;
         }
         .card-shadow {
-            box-shadow: 0 10px 25px -5px rgba(74, 124, 89, 0.08), 0 8px 10px -6px rgba(74, 124, 89, 0.05);
+            box-shadow: 0 4px 15px -3px rgba(74, 124, 89, 0.08);
         }
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         ::-webkit-scrollbar-track {
             background: #F4F1DE;
-            border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
             background: #4A7C59;
-            border-radius: 4px;
+            border-radius: 3px;
         }
-
-        @keyframes dopamineFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* 優化手機點擊無延遲 */
+        button, a, input, select, textarea {
+            touch-action: manipulation;
         }
     </style>
 </head>
@@ -66,26 +62,26 @@
     <div class="fixed right-0 top-1/4 z-50 flex flex-col space-y-3 items-end">
         
         <!-- 1. API Key 浮動按鈕 -->
-        <button onclick="toggleApiKeyModal(true)" class="bg-gradient-to-r from-amber-500 to-apricot text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 hover:brightness-110 transition group">
-            <i class="fa-solid fa-key text-lg group-hover:rotate-45 transition-transform"></i>
+        <button onclick="toggleApiKeyModal(true)" class="bg-gradient-to-r from-amber-500 to-apricot text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition">
+            <i class="fa-solid fa-key text-lg"></i>
             <span class="text-[10px] font-bold [writing-mode:vertical-lr] tracking-widest">API 設定</span>
         </button>
 
         <!-- 2. 多巴胺面板按鈕與面板 -->
         <div id="dopamineFloatingPanel" class="flex items-center translate-x-[calc(100%-40px)] transition-transform duration-300">
-            <button onclick="toggleDopaminePanel()" class="bg-gradient-to-r from-apricot to-pink-500 text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 hover:brightness-115 transition">
-                <i class="fa-solid fa-wand-magic-sparkles text-lg animate-bounce"></i>
+            <button onclick="toggleDopaminePanel()" class="bg-gradient-to-r from-apricot to-pink-500 text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
                 <span class="text-[10px] font-bold [writing-mode:vertical-lr] tracking-widest">多巴胺漸層</span>
             </button>
-            <div class="bg-cardBg/95 backdrop-blur-md p-4 rounded-l-3xl card-shadow border border-lake/20 w-68 space-y-3">
+            <div class="bg-cardBg p-4 rounded-l-3xl card-shadow border border-lake/20 w-64 space-y-3">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-2">
                     <h4 class="font-bold text-lakeDark text-sm flex items-center">
                         <i class="fa-solid fa-bolt text-apricot mr-1.5"></i> 能量多巴胺背景
                     </h4>
-                    <button onclick="toggleDopaminePanel()" class="text-gray-400 hover:text-warmText"><i class="fa-solid fa-xmark"></i></button>
+                    <button onclick="toggleDopaminePanel()" class="text-gray-400 hover:text-warmText p-1"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <p class="text-xs text-gray-500">點擊下方主題，背景即時切換流動漸層！</p>
-                <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
                     <button onclick="setDopamineTheme('off')" class="w-full py-2 px-3 rounded-xl border border-gray-200 text-xs font-medium text-warmText hover:bg-gray-50 transition flex items-center justify-between">
                         <span>🌱 關閉 (經典奶油白)</span>
                         <span id="check-off" class="text-lake font-bold">✓</span>
@@ -117,9 +113,9 @@
     </div>
 
     <!-- ================= API Key 設定與教學互動彈窗 ================= -->
-    <div id="apiKeyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-cardBg rounded-3xl card-shadow max-w-lg w-full p-6 md:p-8 space-y-6 border border-lake/20 relative animate-fade-in max-h-[90vh] overflow-y-auto">
-            <button onclick="toggleApiKeyModal(false)" class="absolute top-5 right-5 text-gray-400 hover:text-warmText text-lg">
+    <div id="apiKeyModal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg rounded-3xl card-shadow max-w-lg w-full p-6 md:p-8 space-y-6 border border-lake/20 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleApiKeyModal(false)" class="absolute top-5 right-5 text-gray-400 hover:text-warmText text-lg p-2">
                 <i class="fa-solid fa-xmark"></i>
             </button>
 
@@ -129,18 +125,18 @@
                 <p class="text-xs text-gray-500">當您將網頁部署至 GitHub Pages 等個人網域時，需填入 API Key 才能正常與 AI 夥伴對話。</p>
             </div>
 
-            <!-- 輸入框區塊 (不儲存至本機，每次打開皆為空白) -->
+            <!-- 輸入框區塊 (每次打開皆為空白，絕不儲存) -->
             <div class="space-y-2 bg-softYellow/40 p-4 rounded-2xl border border-lake/15">
                 <label class="block text-xs font-bold text-lakeDark" for="floatingApiKeyInput">
                     <i class="fa-solid fa-key mr-1 text-apricot"></i> 輸入您的 Gemini API Key
                 </label>
                 <div class="flex space-x-2">
                     <input type="password" id="floatingApiKeyInput" placeholder="請貼上您的 AIzaSy... 金鑰" class="flex-grow rounded-xl border border-gray-200 p-2.5 text-xs focus:outline-none focus:border-lake bg-white">
-                    <button onclick="saveFloatingApiKey()" class="bg-lake hover:bg-lakeDark text-white px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap">
+                    <button onclick="saveFloatingApiKey()" class="bg-lake hover:bg-lakeDark text-white px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap active:scale-95">
                         暫存並套用
                     </button>
                 </div>
-                <p class="text-[10px] text-gray-500">🔒 基於安全考量，金鑰絕不儲存於本機裝置。每次重新整理或離開頁面即自動清除，防止被盜用。</p>
+                <p class="text-[10px] text-gray-500">🔒 基於安全考量，金鑰絕不儲存於本機裝置。每次離開頁面即自動清除，防止被盜用。</p>
             </div>
 
             <!-- 教學與說明區塊 -->
@@ -158,7 +154,7 @@
             </div>
 
             <div class="flex justify-end pt-2">
-                <button onclick="toggleApiKeyModal(false)" class="bg-gray-100 hover:bg-gray-200 text-warmText px-5 py-2.5 rounded-xl text-xs font-medium transition">
+                <button onclick="toggleApiKeyModal(false)" class="bg-gray-100 hover:bg-gray-200 text-warmText px-5 py-2.5 rounded-xl text-xs font-medium transition active:scale-95">
                     關閉視窗
                 </button>
             </div>
@@ -166,7 +162,7 @@
     </div>
 
     <!-- 頂部導覽列 -->
-    <header class="bg-cardBg/90 backdrop-blur-md border-b border-lake/10 sticky top-0 z-40 shadow-sm">
+    <header class="bg-cardBg border-b border-lake/10 sticky top-0 z-40 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
                 <div class="w-10 h-10 rounded-full bg-apricot/20 flex items-center justify-center text-apricot text-xl font-bold">
@@ -223,7 +219,7 @@
 
         <!-- ================= 1. 首頁 (Home) ================= -->
         <section id="tab-home" class="space-y-8">
-            <div class="bg-cardBg/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 card-shadow border border-lake/10 relative overflow-hidden">
+            <div class="bg-cardBg rounded-3xl p-6 md:p-12 card-shadow border border-lake/10 relative overflow-hidden">
                 <div class="max-w-2xl relative z-10 space-y-4">
                     <span class="inline-block bg-lake text-white text-xs px-3 py-1 rounded-full font-medium tracking-wide">溫暖陪伴・隨時傾聽</span>
                     <h2 class="text-3xl md:text-4xl font-bold text-lakeDark leading-tight">歡迎來到<br>心情小棧｜我的解憂雜貨店</h2>
@@ -231,15 +227,15 @@
                         這裡是一個專屬於你的溫柔避風港。不論是日常的碎碎念、沉重的煩惱，或是需要一點靜心放鬆，雜貨店的大門永遠為你敞開。
                     </p>
                     <div class="pt-2 flex flex-wrap gap-4">
-                        <button onclick="switchTab('checkin')" class="bg-lake hover:bg-lakeDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md flex items-center space-x-2">
+                        <button onclick="switchTab('checkin')" class="bg-lake hover:bg-lakeDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md active:scale-95 flex items-center space-x-2">
                             <i class="fa-solid fa-seedling"></i>
                             <span>立即記下心情</span>
                         </button>
-                        <button onclick="switchTab('chat')" class="bg-apricot hover:bg-apricotDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md flex items-center space-x-2">
+                        <button onclick="switchTab('chat')" class="bg-apricot hover:bg-apricotDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md active:scale-95 flex items-center space-x-2">
                             <i class="fa-solid fa-comments"></i>
                             <span>聊聊煩惱 (AI 解憂)</span>
                         </button>
-                        <button onclick="switchTab('toolbox')" class="bg-softYellow hover:bg-amber-200 text-lakeDark px-6 py-3 rounded-2xl font-medium transition shadow-sm flex items-center space-x-2 border border-lake/20">
+                        <button onclick="switchTab('toolbox')" class="bg-softYellow hover:bg-amber-200 text-lakeDark px-6 py-3 rounded-2xl font-medium transition shadow-sm active:scale-95 flex items-center space-x-2 border border-lake/20">
                             <i class="fa-solid fa-mug-hot"></i>
                             <span>讓自己放鬆一下</span>
                         </button>
@@ -249,7 +245,7 @@
 
             <!-- 四大核心入口卡片 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div onclick="switchTab('checkin')" class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/10 hover:border-lake/30 transition cursor-pointer group flex flex-col justify-between">
+                <div onclick="switchTab('checkin')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/10 hover:border-lake/30 transition cursor-pointer group flex flex-col justify-between active:scale-[0.98]">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-lake/10 text-lake flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                             <i class="fa-solid fa-seedling"></i>
@@ -263,7 +259,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchTab('chat')" class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-apricot/10 hover:border-apricot/30 transition cursor-pointer group flex flex-col justify-between">
+                <div onclick="switchTab('chat')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-apricot/10 hover:border-apricot/30 transition cursor-pointer group flex flex-col justify-between active:scale-[0.98]">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-apricot/10 text-apricot flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                             <i class="fa-solid fa-comments"></i>
@@ -277,7 +273,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchTab('quiz')" class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/15 hover:border-lake/40 transition cursor-pointer group flex flex-col justify-between">
+                <div onclick="switchTab('quiz')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 hover:border-lake/40 transition cursor-pointer group flex flex-col justify-between active:scale-[0.98]">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-softYellow text-lakeDark flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                             <i class="fa-solid fa-clipboard-question"></i>
@@ -291,7 +287,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchTab('dashboard')" class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-apricot/15 hover:border-apricot/40 transition cursor-pointer group flex flex-col justify-between">
+                <div onclick="switchTab('dashboard')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-apricot/15 hover:border-apricot/40 transition cursor-pointer group flex flex-col justify-between active:scale-[0.98]">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-apricot/10 text-apricot flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                             <i class="fa-solid fa-chart-pie"></i>
@@ -306,7 +302,7 @@
                 </div>
             </div>
 
-            <div class="bg-cardBg/90 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/10 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/10 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center space-x-4">
                     <div class="w-12 h-12 rounded-2xl bg-softYellow text-lake flex items-center justify-center text-xl flex-shrink-0">
                         <i class="fa-solid fa-school"></i>
@@ -316,7 +312,7 @@
                         <p class="text-gray-500 text-sm">我們提供「準備給老師的求助卡」預覽與下載，方便您安全傳遞心聲。</p>
                     </div>
                 </div>
-                <button onclick="openHelpCardModal()" class="bg-lake/10 hover:bg-lake/20 text-lakeDark px-5 py-2.5 rounded-xl font-medium text-sm transition whitespace-nowrap">
+                <button onclick="openHelpCardModal()" class="bg-lake/10 hover:bg-lake/20 text-lakeDark px-5 py-2.5 rounded-xl font-medium text-sm transition whitespace-nowrap active:scale-95">
                     查看求助卡
                 </button>
             </div>
@@ -324,7 +320,7 @@
 
         <!-- ================= 2. 記下心情 (Check-in) ================= -->
         <section id="tab-checkin" class="hidden space-y-6">
-            <div class="bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 max-w-2xl mx-auto space-y-6">
+            <div class="bg-cardBg p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 max-w-2xl mx-auto space-y-6">
                 <div>
                     <span class="text-xs font-semibold text-lake bg-lake/10 px-3 py-1 rounded-full">每日自我覺察</span>
                     <h2 class="text-2xl font-bold text-lakeDark mt-2">今天的心情怎麼樣？</h2>
@@ -334,35 +330,35 @@
                 <div class="space-y-3">
                     <label class="block text-sm font-semibold text-warmText">1. 選擇你目前的主要情緒：</label>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <button type="button" onclick="selectMood('平靜', this)" class="mood-btn p-3 rounded-2xl border-2 border-lake bg-lake/5 text-center transition flex flex-col items-center space-y-1 bg-white">
+                        <button type="button" onclick="selectMood('平靜', this)" class="mood-btn p-3 rounded-2xl border-2 border-lake bg-lake/5 text-center transition flex flex-col items-center space-y-1 bg-white active:scale-95">
                             <span class="text-2xl">🌱</span>
                             <span class="text-sm font-medium">平靜</span>
                         </button>
-                        <button type="button" onclick="selectMood('開心', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                        <button type="button" onclick="selectMood('開心', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white active:scale-95">
                             <span class="text-2xl">✨</span>
                             <span class="text-sm font-medium">開心</span>
                         </button>
-                        <button type="button" onclick="selectMood('焦慮', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                        <button type="button" onclick="selectMood('焦慮', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white active:scale-95">
                             <span class="text-2xl">🌊</span>
                             <span class="text-sm font-medium">焦慮</span>
                         </button>
-                        <button type="button" onclick="selectMood('疲憊', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                        <button type="button" onclick="selectMood('疲憊', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white active:scale-95">
                             <span class="text-2xl">☁️</span>
                             <span class="text-sm font-medium">疲憊</span>
                         </button>
-                        <button type="button" onclick="selectMood('低落', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                        <button type="button" onclick="selectMood('低落', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white active:scale-95">
                             <span class="text-2xl">🌧️</span>
                             <span class="text-sm font-medium">低落</span>
                         </button>
-                        <button type="button" onclick="selectMood('迷茫', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                        <button type="button" onclick="selectMood('迷茫', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white active:scale-95">
                             <span class="text-2xl">🧭</span>
                             <span class="text-sm font-medium">迷茫</span>
                         </button>
-                        <button type="button" onclick="selectMood('生氣', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                        <button type="button" onclick="selectMood('生氣', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white active:scale-95">
                             <span class="text-2xl">🔥</span>
                             <span class="text-sm font-medium">生氣</span>
                         </button>
-                        <button type="button" onclick="selectMood('感激', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white">
+                        <button type="button" onclick="selectMood('感激', this)" class="mood-btn p-3 rounded-2xl border-2 border-gray-100 hover:border-lake text-center transition flex flex-col items-center space-y-1 bg-white active:scale-95">
                             <span class="text-2xl">💖</span>
                             <span class="text-sm font-medium">感激</span>
                         </button>
@@ -384,13 +380,13 @@
                     <textarea id="moodReason" rows="3" class="w-full rounded-2xl border border-gray-200 p-3 text-sm focus:outline-none focus:border-lake bg-white" placeholder="例如：最近課業或工作有點多，覺得時間不夠用..."></textarea>
                 </div>
 
-                <button onclick="submitCheckin()" class="w-full bg-lake hover:bg-lakeDark text-white py-3.5 rounded-2xl font-medium transition shadow-md flex items-center justify-center space-x-2">
+                <button onclick="submitCheckin()" class="w-full bg-lake hover:bg-lakeDark text-white py-3.5 rounded-2xl font-medium transition shadow-md active:scale-95 flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-paper-plane"></i>
                     <span>完成今日打卡</span>
                 </button>
             </div>
 
-            <div id="checkinResultCard" class="hidden bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/20 max-w-2xl mx-auto space-y-4">
+            <div id="checkinResultCard" class="hidden bg-cardBg p-6 md:p-8 rounded-3xl card-shadow border border-lake/20 max-w-2xl mx-auto space-y-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-12 h-12 rounded-full bg-lake/10 text-lake flex items-center justify-center text-xl">
                         <i class="fa-solid fa-heart"></i>
@@ -403,11 +399,11 @@
                 <div id="resultFeedbackContent" class="text-gray-700 text-sm leading-relaxed bg-softYellow/50 p-4 rounded-2xl">
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button onclick="switchTab('dashboard')" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2">
+                    <button onclick="switchTab('dashboard')" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-chart-pie"></i>
                         <span>查看心情儀表板</span>
                     </button>
-                    <button onclick="switchTab('chat')" class="flex-1 bg-apricot hover:bg-apricotDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2">
+                    <button onclick="switchTab('chat')" class="flex-1 bg-apricot hover:bg-apricotDark text-white py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-2">
                         <i class="fa-solid fa-comments"></i>
                         <span>找解憂夥伴深聊</span>
                     </button>
@@ -419,33 +415,33 @@
         <section id="tab-chat" class="hidden space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div class="lg:col-span-1 space-y-4">
-                    <div class="bg-cardBg/90 backdrop-blur-sm p-5 rounded-3xl card-shadow border border-lake/10 space-y-3">
+                    <div class="bg-cardBg p-5 rounded-3xl card-shadow border border-lake/10 space-y-3">
                         <h3 class="font-bold text-lakeDark text-sm flex items-center">
                             <i class="fa-solid fa-user-friends mr-2 text-lake"></i> 原創解憂夥伴
                         </h3>
                         <div class="space-y-2">
-                            <button onclick="selectPersona('otter')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-lake bg-lake/5 transition flex items-center space-x-3" data-id="otter">
+                            <button onclick="selectPersona('otter')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-lake bg-lake/5 transition flex items-center space-x-3 active:scale-95" data-id="otter">
                                 <span class="text-2xl">🦦</span>
                                 <div>
                                     <div class="font-bold text-sm text-lakeDark">小獺暖暖</div>
                                     <div class="text-xs text-gray-500">溫柔傾聽與同理</div>
                                 </div>
                             </button>
-                            <button onclick="selectPersona('owl')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white" data-id="owl">
+                            <button onclick="selectPersona('owl')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white active:scale-95" data-id="owl">
                                 <span class="text-2xl">🦉</span>
                                 <div>
                                     <div class="font-bold text-sm text-lakeDark">貓頭鷹想想</div>
                                     <div class="text-xs text-gray-500">協助拆解問題</div>
                                 </div>
                             </button>
-                            <button onclick="selectPersona('bear')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white" data-id="bear">
+                            <button onclick="selectPersona('bear')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white active:scale-95" data-id="bear">
                                 <span class="text-2xl">🐻</span>
                                 <div>
                                     <div class="font-bold text-sm text-lakeDark">小熊勇勇</div>
                                     <div class="text-xs text-gray-500">鼓勵可行小行動</div>
                                 </div>
                             </button>
-                            <button onclick="selectPersona('rabbit')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white" data-id="rabbit">
+                            <button onclick="selectPersona('rabbit')" class="persona-btn w-full text-left p-3 rounded-2xl border-2 border-gray-100 hover:border-lake transition flex items-center space-x-3 bg-white active:scale-95" data-id="rabbit">
                                 <span class="text-2xl">🐰</span>
                                 <div>
                                     <div class="font-bold text-sm text-lakeDark">兔子彩彩</div>
@@ -455,7 +451,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-cardBg/90 backdrop-blur-sm p-5 rounded-3xl card-shadow border border-apricot/20 space-y-3">
+                    <div class="bg-cardBg p-5 rounded-3xl card-shadow border border-apricot/20 space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="font-bold text-apricotDark text-sm flex items-center">
                                 <i class="fa-solid fa-lightbulb mr-2 text-apricot"></i> 名人與專家靈感
@@ -487,19 +483,19 @@
                         </select>
                     </div>
 
-                    <div class="bg-cardBg/90 backdrop-blur-sm p-5 rounded-3xl card-shadow border border-lake/10 space-y-3">
+                    <div class="bg-cardBg p-5 rounded-3xl card-shadow border border-lake/10 space-y-3">
                         <h3 class="font-bold text-lakeDark text-sm flex items-center">
                             <i class="fa-solid fa-sliders mr-2 text-lake"></i> 風格偏好
                         </h3>
                         <div class="grid grid-cols-3 gap-2">
-                            <button onclick="setStylePref('simple')" class="style-btn py-2 px-1 text-xs rounded-xl border border-lake bg-lake/10 text-lakeDark font-medium transition text-center" data-style="simple">簡單易懂</button>
-                            <button onclick="setStylePref('warm')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white" data-style="warm">溫柔陪伴</button>
-                            <button onclick="setStylePref('action')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white" data-style="action">一起想辦法</button>
+                            <button onclick="setStylePref('simple')" class="style-btn py-2 px-1 text-xs rounded-xl border border-lake bg-lake/10 text-lakeDark font-medium transition text-center active:scale-95" data-style="simple">簡單易懂</button>
+                            <button onclick="setStylePref('warm')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white active:scale-95" data-style="warm">溫柔陪伴</button>
+                            <button onclick="setStylePref('action')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white active:scale-95" data-style="action">一起想辦法</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-3 bg-cardBg/95 backdrop-blur-sm rounded-3xl card-shadow border border-lake/10 flex flex-col h-[650px]">
+                <div class="lg:col-span-3 bg-cardBg rounded-3xl card-shadow border border-lake/10 flex flex-col h-[600px]">
                     <div class="p-4 border-b border-gray-100 flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <span id="activePersonaEmoji" class="text-2xl">🦦</span>
@@ -537,11 +533,11 @@
 
                     <div class="p-4 border-t border-gray-100 bg-cardBg rounded-b-3xl space-y-2">
                         <div class="flex items-center space-x-2">
-                            <button id="speechInputBtn" onclick="toggleSpeechInput()" class="w-10 h-10 rounded-xl bg-softYellow hover:bg-lake/20 text-lakeDark flex items-center justify-center transition flex-shrink-0" title="語音輸入">
+                            <button id="speechInputBtn" onclick="toggleSpeechInput()" class="w-10 h-10 rounded-xl bg-softYellow hover:bg-lake/20 text-lakeDark flex items-center justify-center transition flex-shrink-0 active:scale-95" title="語音輸入">
                                 <i class="fa-solid fa-microphone"></i>
                             </button>
                             <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="輸入你想說的話或煩惱..." class="flex-grow rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:border-lake bg-white transition">
-                            <button onclick="sendChatMessage()" class="bg-lake hover:bg-lakeDark text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center space-x-1">
+                            <button onclick="sendChatMessage()" class="bg-lake hover:bg-lakeDark text-white px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-md active:scale-95 flex items-center justify-center space-x-1">
                                 <i class="fa-solid fa-paper-plane"></i>
                                 <span class="hidden sm:inline">送出</span>
                             </button>
@@ -557,7 +553,7 @@
 
         <!-- ================= 4. 心靈小測驗 (Quiz) ================= -->
         <section id="tab-quiz" class="hidden space-y-6">
-            <div class="max-w-2xl mx-auto bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 space-y-6">
+            <div class="max-w-2xl mx-auto bg-cardBg p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 space-y-6">
                 <div class="text-center space-y-2">
                     <span class="text-xs font-semibold text-apricot bg-apricot/10 px-3 py-1 rounded-full">自我覺察心靈小測驗</span>
                     <h2 class="text-2xl font-bold text-lakeDark">測測你目前的內心能量狀態</h2>
@@ -594,11 +590,11 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                        <button onclick="jumpToChatWithPersona()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center space-x-2">
+                        <button onclick="jumpToChatWithPersona()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3.5 rounded-xl text-sm font-medium transition shadow-md active:scale-95 flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-comments"></i>
                             <span id="jumpChatBtnText">找小獺暖暖聊聊心事</span>
                         </button>
-                        <button onclick="resetQuiz()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-6 py-3.5 rounded-xl text-sm font-medium transition">
+                        <button onclick="resetQuiz()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-6 py-3.5 rounded-xl text-sm font-medium transition active:scale-95">
                             重新測驗
                         </button>
                     </div>
@@ -608,7 +604,7 @@
 
         <!-- ================= 5. 心情儀表板 (Dashboard) ================= -->
         <section id="tab-dashboard" class="hidden space-y-6">
-            <div class="bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 space-y-6">
+            <div class="bg-cardBg p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 space-y-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-4">
                     <div>
                         <span class="text-xs font-semibold text-lake bg-lake/10 px-3 py-1 rounded-full">數據與自我覺察</span>
@@ -616,11 +612,11 @@
                         <p class="text-gray-500 text-sm">檢視你最近的心情打卡統計、情緒分佈與壓力趨勢。</p>
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="exportDashboardData()" class="bg-lake/10 hover:bg-lake/20 text-lakeDark px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-1">
+                        <button onclick="exportDashboardData()" class="bg-lake/10 hover:bg-lake/20 text-lakeDark px-4 py-2 rounded-xl text-sm font-medium transition active:scale-95 flex items-center space-x-1">
                             <i class="fa-solid fa-download"></i>
                             <span>匯出記錄</span>
                         </button>
-                        <button onclick="loadDashboardData()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-1">
+                        <button onclick="loadDashboardData()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl text-sm font-medium transition active:scale-95 flex items-center space-x-1">
                             <i class="fa-solid fa-rotate-right"></i>
                             <span>重新整理</span>
                         </button>
@@ -677,7 +673,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-cardBg/95 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
+                <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-10 h-10 rounded-xl bg-lake/10 text-lake flex items-center justify-center text-lg">
@@ -694,12 +690,12 @@
                         </div>
                     </div>
                     <div class="flex space-x-3 pt-4 border-t border-gray-100">
-                        <button onclick="startBreathing()" id="breathStartBtn" class="flex-1 bg-lake hover:bg-lakeDark text-white py-2.5 rounded-xl text-sm font-medium transition">開始呼吸</button>
-                        <button onclick="stopBreathing()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2.5 rounded-xl text-sm font-medium transition">暫停</button>
+                        <button onclick="startBreathing()" id="breathStartBtn" class="flex-1 bg-lake hover:bg-lakeDark text-white py-2.5 rounded-xl text-sm font-medium transition active:scale-95">開始呼吸</button>
+                        <button onclick="stopBreathing()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2.5 rounded-xl text-sm font-medium transition active:scale-95">暫停</button>
                     </div>
                 </div>
 
-                <div class="bg-cardBg/95 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-apricot/15 flex flex-col justify-between">
+                <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-apricot/15 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-10 h-10 rounded-xl bg-apricot/10 text-apricot flex items-center justify-center text-lg">
@@ -715,15 +711,15 @@
                     </div>
                     <div class="flex items-center justify-between pt-4 border-t border-gray-100 mt-4">
                         <div class="flex space-x-2">
-                            <button onclick="setBrushColor('#4A7C59')" class="w-6 h-6 rounded-full bg-lake border-2 border-white shadow"></button>
-                            <button onclick="setBrushColor('#E07A5F')" class="w-6 h-6 rounded-full bg-apricot border-2 border-white shadow"></button>
-                            <button onclick="setBrushColor('#2B3A42')" class="w-6 h-6 rounded-full bg-warmText border-2 border-white shadow"></button>
+                            <button onclick="setBrushColor('#4A7C59')" class="w-6 h-6 rounded-full bg-lake border-2 border-white shadow active:scale-95"></button>
+                            <button onclick="setBrushColor('#E07A5F')" class="w-6 h-6 rounded-full bg-apricot border-2 border-white shadow active:scale-95"></button>
+                            <button onclick="setBrushColor('#2B3A42')" class="w-6 h-6 rounded-full bg-warmText border-2 border-white shadow active:scale-95"></button>
                         </div>
-                        <button onclick="clearCanvas()" class="text-xs bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl transition">清除畫布</button>
+                        <button onclick="clearCanvas()" class="text-xs bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl transition active:scale-95">清除畫布</button>
                     </div>
                 </div>
 
-                <div class="bg-cardBg/95 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
+                <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-10 h-10 rounded-xl bg-softYellow text-lakeDark flex items-center justify-center text-lg">
@@ -736,8 +732,8 @@
                         <div class="space-y-3">
                             <input type="text" id="worryInput" placeholder="寫下一件煩惱的事..." class="w-full rounded-xl border border-gray-200 p-2.5 text-sm focus:outline-none focus:border-lake bg-white">
                             <div class="grid grid-cols-2 gap-2">
-                                <button onclick="categorizeWorry('controllable')" class="bg-lake/10 hover:bg-lake/20 text-lakeDark p-2.5 rounded-xl text-xs font-medium transition text-center">可以掌控/改變</button>
-                                <button onclick="categorizeWorry('uncontrollable')" class="bg-apricot/10 hover:bg-apricot/20 text-apricotDark p-2.5 rounded-xl text-xs font-medium transition text-center">無法掌控 (學會放下)</button>
+                                <button onclick="categorizeWorry('controllable')" class="bg-lake/10 hover:bg-lake/20 text-lakeDark p-2.5 rounded-xl text-xs font-medium transition text-center active:scale-95">可以掌控/改變</button>
+                                <button onclick="categorizeWorry('uncontrollable')" class="bg-apricot/10 hover:bg-apricot/20 text-apricotDark p-2.5 rounded-xl text-xs font-medium transition text-center active:scale-95">無法掌控 (學會放下)</button>
                             </div>
                         </div>
                         <div id="worryResultBox" class="mt-4 p-3 bg-cream rounded-xl text-xs text-gray-600 min-h-[40px] flex items-center justify-center text-center">
@@ -746,7 +742,7 @@
                     </div>
                 </div>
 
-                <div class="bg-cardBg/95 backdrop-blur-sm p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
+                <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center space-x-3 mb-4">
                             <div class="w-10 h-10 rounded-xl bg-lake/10 text-lake flex items-center justify-center text-lg">
@@ -757,10 +753,10 @@
                         <p class="text-gray-600 text-sm mb-4">不知如何向信任的人開口？參考以下溫和表達範本：</p>
                         
                         <div class="space-y-2 text-xs">
-                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition" onclick="copyPhrase(this)">
+                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition active:scale-[0.98]" onclick="copyPhrase(this)">
                                 「最近心裡有點壓力，不知道你有沒有空聽我聊聊幾分鐘？」
                             </div>
-                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition" onclick="copyPhrase(this)">
+                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition active:scale-[0.98]" onclick="copyPhrase(this)">
                                 「這陣子狀況比較多，我覺得有點負荷不過來，想跟你商量一下...」
                             </div>
                         </div>
@@ -774,7 +770,7 @@
 
         <!-- ================= 7. 紀錄與隱私 (Privacy) ================= -->
         <section id="tab-privacy" class="hidden space-y-6">
-            <div class="bg-cardBg/95 backdrop-blur-sm p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 max-w-2xl mx-auto space-y-6">
+            <div class="bg-cardBg p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 max-w-2xl mx-auto space-y-6">
                 <div>
                     <span class="text-xs font-semibold text-lake bg-lake/10 px-3 py-1 rounded-full">資料安全與隱私</span>
                     <h2 class="text-2xl font-bold text-lakeDark mt-2">紀錄與隱私設定</h2>
@@ -784,11 +780,11 @@
                 <div class="space-y-3">
                     <label class="block text-sm font-semibold text-warmText">1. 使用模式與身份設定：</label>
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="setUsageMode('general')" id="modeGeneralBtn" class="p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white">
+                        <button onclick="setUsageMode('general')" id="modeGeneralBtn" class="p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white active:scale-95">
                             <div class="font-bold text-sm text-lakeDark">一般模式</div>
                             <div class="text-xs text-gray-500 mt-1">可輸入自訂暱稱</div>
                         </button>
-                        <button onclick="setUsageMode('campus')" id="modeCampusBtn" class="p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white">
+                        <button onclick="setUsageMode('campus')" id="modeCampusBtn" class="p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white active:scale-95">
                             <div class="font-bold text-sm text-lakeDark">校園模式</div>
                             <div class="text-xs text-gray-500 mt-1">可輸入班級與座號</div>
                         </button>
@@ -829,11 +825,11 @@
 
                 <div class="space-y-2 pt-2 border-t border-gray-100">
                     <div class="flex gap-3">
-                        <button onclick="clearAllDataPrompt()" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-1">
+                        <button onclick="clearAllDataPrompt()" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-1">
                             <i class="fa-solid fa-trash-can"></i>
                             <span>清除全部紀錄</span>
                         </button>
-                        <button onclick="endSessionAction()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-warmText py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-1">
+                        <button onclick="endSessionAction()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-warmText py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-1">
                             <i class="fa-solid fa-right-from-bracket"></i>
                             <span>結束使用 (清空暫存)</span>
                         </button>
@@ -846,9 +842,9 @@
     </main>
 
     <!-- ================= Modal: 校園求助卡預覽與下載 ================= -->
-    <div id="helpCardModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-cardBg rounded-3xl card-shadow max-w-md w-full p-6 space-y-4 border border-lake/20 relative animate-fade-in">
-            <button onclick="closeHelpCardModal()" class="absolute top-4 right-4 text-gray-400 hover:text-warmText text-lg">
+    <div id="helpCardModal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg rounded-3xl card-shadow max-w-md w-full p-6 space-y-4 border border-lake/20 relative">
+            <button onclick="closeHelpCardModal()" class="absolute top-4 right-4 text-gray-400 hover:text-warmText text-lg p-2">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             
@@ -877,11 +873,11 @@
             </div>
 
             <div class="flex space-x-3 pt-2">
-                <button onclick="downloadHelpCardTxt()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2">
+                <button onclick="downloadHelpCardTxt()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-2">
                     <i class="fa-solid fa-download"></i>
                     <span>下載求助卡文字</span>
                 </button>
-                <button onclick="closeHelpCardModal()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-5 py-3 rounded-xl text-sm font-medium transition">
+                <button onclick="closeHelpCardModal()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-5 py-3 rounded-xl text-sm font-medium transition active:scale-95">
                     關閉
                 </button>
             </div>
@@ -889,7 +885,7 @@
     </div>
 
     <!-- 頁尾 -->
-    <footer class="bg-cardBg/90 backdrop-blur-md border-t border-lake/10 py-6 mt-12 text-center text-xs text-gray-500 space-y-2">
+    <footer class="bg-cardBg border-t border-lake/10 py-6 mt-12 text-center text-xs text-gray-500 space-y-2">
         <p>心情小棧｜我的解憂雜貨店 © 2026 溫暖陪伴守護您的每一天</p>
         <p class="text-amber-700 font-medium">
             ⚠️ 重要提醒：若您或身邊的人正面臨嚴重危機、極度憂鬱或安全顧慮，請立即尋求專業真人協助：
@@ -974,7 +970,6 @@
         function toggleApiKeyModal(open) {
             const modal = document.getElementById('apiKeyModal');
             if (open) {
-                // 每次打開必定清空輸入框，絕不留存舊金鑰
                 document.getElementById('floatingApiKeyInput').value = "";
                 modal.classList.remove('hidden');
             } else {
@@ -988,13 +983,12 @@
                 alertBox("請先輸入有效的 API Key。");
                 return;
             }
-            // 僅暫存於記憶體變數中，絕不寫入 localStorage
             runtimeApiKey = keyInput;
             alertBox("API 金鑰已暫時套用至當前分頁！關閉或離開網頁後即會自動銷毀。");
             toggleApiKeyModal(false);
         }
 
-        // ================= 強效多巴胺漸層控制 (6個主題) =================
+        // ================= 多巴胺漸層控制 =================
         function toggleDopaminePanel() {
             isDopaminePanelOpen = !isDopaminePanelOpen;
             const panel = document.getElementById('dopamineFloatingPanel');
@@ -1020,6 +1014,7 @@
 
             if (theme === 'off') {
                 body.style.background = '#FDFBF7';
+                body.style.animation = 'none';
             } else if (theme === 'mode1') {
                 body.style.background = 'linear-gradient(-45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb)';
                 body.style.backgroundSize = '400% 400%';
@@ -1242,7 +1237,6 @@
             2. 一個實際方法：提供一個具體且做得到的方向。
             3. 一個簡短追問：溫柔地問一個能引導對方思考或舒緩的問題。`;
 
-            // 使用暫存於記憶體中的 runtimeApiKey
             const apiKey = runtimeApiKey;
             if (!apiKey) {
                 throw new Error("尚未設定 API Key");
@@ -1378,7 +1372,7 @@
             listEl.innerHTML = '';
             q.options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left p-4 rounded-2xl bg-white hover:bg-lake/5 border border-gray-200 hover:border-lake text-sm font-medium text-warmText transition flex items-center space-x-3 shadow-sm";
+                btn.className = "w-full text-left p-4 rounded-2xl bg-white hover:bg-lake/5 border border-gray-200 hover:border-lake text-sm font-medium text-warmText transition flex items-center space-x-3 shadow-sm active:scale-[0.99]";
                 btn.innerHTML = `<span class="w-7 h-7 rounded-full bg-lake/10 text-lake flex items-center justify-center text-xs font-bold flex-shrink-0">${String.fromCharCode(65 + idx)}</span><span>${opt.text}</span>`;
                 btn.onclick = () => answerQuiz(opt.type);
                 listEl.appendChild(btn);
@@ -1736,13 +1730,13 @@
             const camGroup = document.getElementById('campusInputGroup');
 
             if (mode === 'general') {
-                genBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white";
-                camBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white";
+                genBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white active:scale-95";
+                camBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white active:scale-95";
                 genGroup.classList.remove('hidden');
                 camGroup.classList.add('hidden');
             } else {
-                camBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white";
-                genBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white";
+                camBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white active:scale-95";
+                genBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white active:scale-95";
                 camGroup.classList.remove('hidden');
                 genGroup.classList.add('hidden');
             }
