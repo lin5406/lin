@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心情小棧｜我的解憂雜貨店</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
@@ -60,60 +63,6 @@
 </head>
 <body id="appBody" class="min-h-screen flex flex-col selection:bg-lake selection:text-white relative">
 
-    <!-- ================= 浮動按鈕群組 (手機版優化：調低位置、改為緊湊排列避免遮擋主內容) ================= -->
-    <div class="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex flex-col space-y-2 items-end scale-90 sm:scale-100 origin-right pointer-events-auto">
-        
-        <!-- 1. API Key 浮動按鈕 -->
-        <button onclick="toggleApiKeyModal(true)" class="bg-gradient-to-r from-amber-500 to-apricot text-white p-2.5 sm:p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition opacity-90 hover:opacity-100">
-            <i class="fa-solid fa-key text-base sm:text-lg"></i>
-            <span class="text-[9px] font-bold [writing-mode:vertical-lr] tracking-widest">API 設定</span>
-        </button>
-
-        <!-- 2. 多巴胺面板按鈕與面板 -->
-        <div id="dopamineFloatingPanel" class="flex items-center translate-x-[calc(100%-36px)] sm:translate-x-[calc(100%-40px)] transition-transform duration-300">
-            <button onclick="toggleDopaminePanel()" class="bg-gradient-to-r from-apricot to-pink-500 text-white p-2.5 sm:p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition opacity-90 hover:opacity-100">
-                <i class="fa-solid fa-wand-magic-sparkles text-base sm:text-lg"></i>
-                <span class="text-[9px] font-bold [writing-mode:vertical-lr] tracking-widest">多巴胺漸層</span>
-            </button>
-            <div class="bg-cardBg p-3 sm:p-4 rounded-l-3xl card-shadow border border-lake/20 w-60 sm:w-64 space-y-3">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <h4 class="font-bold text-lakeDark text-xs sm:text-sm flex items-center">
-                        <i class="fa-solid fa-bolt text-apricot mr-1.5"></i> 能量多巴胺背景
-                    </h4>
-                    <button onclick="toggleDopaminePanel()" class="text-gray-400 hover:text-warmText p-1"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <p class="text-[11px] sm:text-xs text-gray-500">點擊下方主題，背景即時切換流動漸層！</p>
-                <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
-                    <button onclick="setDopamineTheme('off')" class="w-full py-2 px-3 rounded-xl border border-gray-200 text-xs font-medium text-warmText hover:bg-gray-50 transition flex items-center justify-between">
-                        <span>🌱 關閉 (經典奶油白)</span>
-                        <span id="check-off" class="text-lake font-bold">✓</span>
-                    </button>
-                    <button onclick="setDopamineTheme('mode1')" class="w-full py-2 px-3 rounded-xl border border-pink-200 text-xs font-medium text-pink-700 bg-pink-50 hover:bg-pink-100 transition flex items-center justify-between">
-                        <span>🌸 甜美粉藍夢幻流光</span>
-                        <span id="check-mode1" class="text-pink-600 hidden">✓</span>
-                    </button>
-                    <button onclick="setDopamineTheme('mode2')" class="w-full py-2 px-3 rounded-xl border border-yellow-200 text-xs font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 transition flex items-center justify-between">
-                        <span>⚡ 活力能量彩虹交織</span>
-                        <span id="check-mode2" class="text-amber-600 hidden">✓</span>
-                    </button>
-                    <button onclick="setDopamineTheme('mode3')" class="w-full py-2 px-3 rounded-xl border border-teal-200 text-xs font-medium text-teal-800 bg-teal-50 hover:bg-teal-100 transition flex items-center justify-between">
-                        <span>🌊 療癒薄荷夕陽流動</span>
-                        <span id="check-mode3" class="text-teal-600 hidden">✓</span>
-                    </button>
-                    <button onclick="setDopamineTheme('mode4')" class="w-full py-2 px-3 rounded-xl border border-orange-200 text-xs font-medium text-orange-800 bg-orange-50 hover:bg-orange-100 transition flex items-center justify-between">
-                        <span>☀️ 晨曦暖黃微光</span>
-                        <span id="check-mode4" class="text-orange-600 hidden">✓</span>
-                    </button>
-                    <button onclick="setDopamineTheme('mode5')" class="w-full py-2 px-3 rounded-xl border border-indigo-200 text-xs font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 transition flex items-center justify-between">
-                        <span>🌌 寧靜星空紫夜</span>
-                        <span id="check-mode5" class="text-indigo-600 hidden">✓</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
     <!-- ================= API Key 設定與教學互動彈窗 (每次開啟皆為空白，絕不儲存) ================= -->
     <div id="apiKeyModal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-cardBg rounded-3xl card-shadow max-w-lg w-full p-6 md:p-8 space-y-6 border border-lake/20 relative max-h-[90vh] overflow-y-auto">
@@ -163,6 +112,46 @@
         </div>
     </div>
 
+    <!-- ================= 多巴胺漸層選單彈窗 ================= -->
+    <div id="dopamineModal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg rounded-3xl card-shadow max-w-sm w-full p-6 space-y-4 border border-lake/20 relative">
+            <button onclick="toggleDopamineModal(false)" class="absolute top-4 right-4 text-gray-400 hover:text-warmText text-lg p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="space-y-1">
+                <span class="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-medium">多巴胺主題</span>
+                <h3 class="text-lg font-bold text-lakeDark mt-1">選擇背景流動漸層</h3>
+                <p class="text-xs text-gray-500">點擊下方主題，背景即時切換流動漸層！</p>
+            </div>
+            <div class="space-y-2 pt-2">
+                <button onclick="setDopamineTheme('off'); toggleDopamineModal(false);" class="w-full py-2.5 px-3 rounded-xl border border-gray-200 text-xs font-medium text-warmText hover:bg-gray-50 transition flex items-center justify-between">
+                    <span>🌱 關閉 (經典奶油白)</span>
+                    <span id="check-off" class="text-lake font-bold">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode1'); toggleDopamineModal(false);" class="w-full py-2.5 px-3 rounded-xl border border-pink-200 text-xs font-medium text-pink-700 bg-pink-50 hover:bg-pink-100 transition flex items-center justify-between">
+                    <span>🌸 甜美粉藍夢幻流光</span>
+                    <span id="check-mode1" class="text-pink-600 hidden">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode2'); toggleDopamineModal(false);" class="w-full py-2.5 px-3 rounded-xl border border-yellow-200 text-xs font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 transition flex items-center justify-between">
+                    <span>⚡ 活力能量彩虹交織</span>
+                    <span id="check-mode2" class="text-amber-600 hidden">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode3'); toggleDopamineModal(false);" class="w-full py-2.5 px-3 rounded-xl border border-teal-200 text-xs font-medium text-teal-800 bg-teal-50 hover:bg-teal-100 transition flex items-center justify-between">
+                    <span>🌊 療癒薄荷夕陽流動</span>
+                    <span id="check-mode3" class="text-teal-600 hidden">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode4'); toggleDopamineModal(false);" class="w-full py-2.5 px-3 rounded-xl border border-orange-200 text-xs font-medium text-orange-800 bg-orange-50 hover:bg-orange-100 transition flex items-center justify-between">
+                    <span>☀️ 晨曦暖黃微光</span>
+                    <span id="check-mode4" class="text-orange-600 hidden">✓</span>
+                </button>
+                <button onclick="setDopamineTheme('mode5'); toggleDopamineModal(false);" class="w-full py-2.5 px-3 rounded-xl border border-indigo-200 text-xs font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 transition flex items-center justify-between">
+                    <span>🌌 寧靜星空紫夜</span>
+                    <span id="check-mode5" class="text-indigo-600 hidden">✓</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- 頂部導覽列 -->
     <header class="bg-cardBg border-b border-lake/10 sticky top-0 z-40 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -175,34 +164,48 @@
                     <p class="text-xs text-gray-500">我的解憂雜貨店</p>
                 </div>
             </div>
-            <!-- 導覽按鈕 (電腦版) -->
-            <nav class="hidden md:flex items-center space-x-1">
-                <button onclick="switchTab('home')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="home">
-                    <i class="fa-solid fa-house mr-1"></i> 首頁
+
+            <!-- 頂端控制按鈕群組 (API 設定與多巴胺背景) 整合在頂端，絕不遮擋主內容 -->
+            <div class="flex items-center space-x-2">
+                <button onclick="toggleApiKeyModal(true)" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1 shadow-sm active:scale-95">
+                    <i class="fa-solid fa-key"></i>
+                    <span class="hidden sm:inline">API</span>
                 </button>
-                <button onclick="switchTab('checkin')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="checkin">
-                    <i class="fa-solid fa-seedling mr-1"></i> 記下心情
+                <button onclick="toggleDopamineModal(true)" class="bg-gradient-to-r from-apricot to-pink-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1 shadow-sm active:scale-95">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span class="hidden sm:inline">背景</span>
                 </button>
-                <button onclick="switchTab('chat')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="chat">
-                    <i class="fa-solid fa-comments mr-1"></i> 聊聊煩惱
+
+                <!-- 導覽按鈕 (電腦版) -->
+                <nav class="hidden md:flex items-center space-x-1 ml-2">
+                    <button onclick="switchTab('home')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="home">
+                        <i class="fa-solid fa-house mr-1"></i> 首頁
+                    </button>
+                    <button onclick="switchTab('checkin')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="checkin">
+                        <i class="fa-solid fa-seedling mr-1"></i> 記下心情
+                    </button>
+                    <button onclick="switchTab('chat')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="chat">
+                        <i class="fa-solid fa-comments mr-1"></i> 聊聊煩惱
+                    </button>
+                    <button onclick="switchTab('quiz')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="quiz">
+                        <i class="fa-solid fa-clipboard-question mr-1"></i> 心靈測驗
+                    </button>
+                    <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="dashboard">
+                        <i class="fa-solid fa-chart-pie mr-1"></i> 心情儀表板
+                    </button>
+                    <button onclick="switchTab('toolbox')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="toolbox">
+                        <i class="fa-solid fa-box-open mr-1"></i> 放鬆工具箱
+                    </button>
+                    <button onclick="switchTab('privacy')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="privacy">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> 紀錄與隱私
+                    </button>
+                </nav>
+
+                <!-- 手機版選單切換按鈕 -->
+                <button onclick="toggleMobileMenu()" class="md:hidden text-lakeDark text-xl p-2 rounded-lg hover:bg-softYellow ml-1">
+                    <i class="fa-solid fa-bars"></i>
                 </button>
-                <button onclick="switchTab('quiz')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="quiz">
-                    <i class="fa-solid fa-clipboard-question mr-1"></i> 心靈測驗
-                </button>
-                <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="dashboard">
-                    <i class="fa-solid fa-chart-pie mr-1"></i> 心情儀表板
-                </button>
-                <button onclick="switchTab('toolbox')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="toolbox">
-                    <i class="fa-solid fa-box-open mr-1"></i> 放鬆工具箱
-                </button>
-                <button onclick="switchTab('privacy')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="privacy">
-                    <i class="fa-solid fa-shield-halved mr-1"></i> 紀錄與隱私
-                </button>
-            </nav>
-            <!-- 手機版選單切換按鈕 -->
-            <button onclick="toggleMobileMenu()" class="md:hidden text-lakeDark text-xl p-2 rounded-lg hover:bg-softYellow">
-                <i class="fa-solid fa-bars"></i>
-            </button>
+            </div>
         </div>
         <!-- 手機版下拉選單 -->
         <div id="mobileMenu" class="hidden md:hidden bg-cardBg border-t border-lake/10 px-4 py-3 space-y-2 shadow-lg">
@@ -909,7 +912,6 @@
         let usageMode = 'general';
         let recognition = null;
         let isRecording = false;
-        let isDopaminePanelOpen = false;
         let runtimeApiKey = ""; // 僅暫存於記憶體，絕不儲存
 
         let currentQuizQuestion = 0;
@@ -990,16 +992,13 @@
             toggleApiKeyModal(false);
         }
 
-        // ================= 多巴胺漸層控制 =================
-        function toggleDopaminePanel() {
-            isDopaminePanelOpen = !isDopaminePanelOpen;
-            const panel = document.getElementById('dopamineFloatingPanel');
-            if (isDopaminePanelOpen) {
-                panel.classList.remove('translate-x-[calc(100%-36px)]');
-                panel.classList.add('translate-x-0');
+        // ================= 多巴胺漸層彈窗控制 =================
+        function toggleDopamineModal(open) {
+            const modal = document.getElementById('dopamineModal');
+            if (open) {
+                modal.classList.remove('hidden');
             } else {
-                panel.classList.remove('translate-x-0');
-                panel.classList.add('translate-x-[calc(100%-36px)]');
+                modal.classList.add('hidden');
             }
         }
 
@@ -1197,7 +1196,7 @@
             } catch (error) {
                 console.error("Gemini API Error:", error);
                 document.getElementById('chatLoading').classList.add('hidden');
-                appendMessage('model', '哎呀，尚未設定 API Key 或金鑰無效。請點擊畫面右側的「API 設定」按鈕輸入您的 Gemini API Key 即可正常對話！');
+                appendMessage('model', '哎呀，尚未設定 API Key 或金鑰無效。請點擊畫面右上方黃色「API」按鈕輸入您的 Gemini API Key 即可正常對話！');
             }
         }
 
