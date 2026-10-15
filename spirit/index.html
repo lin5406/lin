@@ -62,46 +62,104 @@
 </head>
 <body id="appBody" class="min-h-screen flex flex-col selection:bg-lake selection:text-white relative">
 
-    <!-- ================= 右側浮動多巴胺漸層控制面板 (6個主題) ================= -->
-    <div id="dopamineFloatingPanel" class="fixed right-0 top-1/3 z-50 flex items-center translate-x-[calc(100%-40px)] transition-transform duration-300">
-        <!-- 展開/收合觸發按鈕 -->
-        <button onclick="toggleDopaminePanel()" class="bg-gradient-to-r from-apricot to-pink-500 text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 hover:brightness-115 transition">
-            <i class="fa-solid fa-wand-magic-sparkles text-lg animate-bounce"></i>
-            <span class="text-[10px] font-bold [writing-mode:vertical-lr] tracking-widest">多巴胺漸層</span>
+    <!-- ================= 浮動按鈕群組 (API Key 教學彈窗按鈕 + 多巴胺面板) ================= -->
+    <div class="fixed right-0 top-1/4 z-50 flex flex-col space-y-3 items-end">
+        
+        <!-- 1. API Key 浮動按鈕 -->
+        <button onclick="toggleApiKeyModal(true)" class="bg-gradient-to-r from-amber-500 to-apricot text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 hover:brightness-110 transition group">
+            <i class="fa-solid fa-key text-lg group-hover:rotate-45 transition-transform"></i>
+            <span class="text-[10px] font-bold [writing-mode:vertical-lr] tracking-widest">API 設定</span>
         </button>
-        <!-- 控制面板內容 -->
-        <div class="bg-cardBg/95 backdrop-blur-md p-4 rounded-l-3xl card-shadow border border-lake/20 w-68 space-y-3">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                <h4 class="font-bold text-lakeDark text-sm flex items-center">
-                    <i class="fa-solid fa-bolt text-apricot mr-1.5"></i> 能量多巴胺背景
-                </h4>
-                <button onclick="toggleDopaminePanel()" class="text-gray-400 hover:text-warmText"><i class="fa-solid fa-xmark"></i></button>
+
+        <!-- 2. 多巴胺面板按鈕與面板 -->
+        <div id="dopamineFloatingPanel" class="flex items-center translate-x-[calc(100%-40px)] transition-transform duration-300">
+            <button onclick="toggleDopaminePanel()" class="bg-gradient-to-r from-apricot to-pink-500 text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 hover:brightness-115 transition">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg animate-bounce"></i>
+                <span class="text-[10px] font-bold [writing-mode:vertical-lr] tracking-widest">多巴胺漸層</span>
+            </button>
+            <div class="bg-cardBg/95 backdrop-blur-md p-4 rounded-l-3xl card-shadow border border-lake/20 w-68 space-y-3">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                    <h4 class="font-bold text-lakeDark text-sm flex items-center">
+                        <i class="fa-solid fa-bolt text-apricot mr-1.5"></i> 能量多巴胺背景
+                    </h4>
+                    <button onclick="toggleDopaminePanel()" class="text-gray-400 hover:text-warmText"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <p class="text-xs text-gray-500">點擊下方主題，背景即時切換流動漸層！</p>
+                <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                    <button onclick="setDopamineTheme('off')" class="w-full py-2 px-3 rounded-xl border border-gray-200 text-xs font-medium text-warmText hover:bg-gray-50 transition flex items-center justify-between">
+                        <span>🌱 關閉 (經典奶油白)</span>
+                        <span id="check-off" class="text-lake font-bold">✓</span>
+                    </button>
+                    <button onclick="setDopamineTheme('mode1')" class="w-full py-2 px-3 rounded-xl border border-pink-200 text-xs font-medium text-pink-700 bg-pink-50 hover:bg-pink-100 transition flex items-center justify-between">
+                        <span>🌸 甜美粉藍夢幻流光</span>
+                        <span id="check-mode1" class="text-pink-600 hidden">✓</span>
+                    </button>
+                    <button onclick="setDopamineTheme('mode2')" class="w-full py-2 px-3 rounded-xl border border-yellow-200 text-xs font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 transition flex items-center justify-between">
+                        <span>⚡ 活力能量彩虹交織</span>
+                        <span id="check-mode2" class="text-amber-600 hidden">✓</span>
+                    </button>
+                    <button onclick="setDopamineTheme('mode3')" class="w-full py-2 px-3 rounded-xl border border-teal-200 text-xs font-medium text-teal-800 bg-teal-50 hover:bg-teal-100 transition flex items-center justify-between">
+                        <span>🌊 療癒薄荷夕陽流動</span>
+                        <span id="check-mode3" class="text-teal-600 hidden">✓</span>
+                    </button>
+                    <button onclick="setDopamineTheme('mode4')" class="w-full py-2 px-3 rounded-xl border border-orange-200 text-xs font-medium text-orange-800 bg-orange-50 hover:bg-orange-100 transition flex items-center justify-between">
+                        <span>☀️ 晨曦暖黃微光</span>
+                        <span id="check-mode4" class="text-orange-600 hidden">✓</span>
+                    </button>
+                    <button onclick="setDopamineTheme('mode5')" class="w-full py-2 px-3 rounded-xl border border-indigo-200 text-xs font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 transition flex items-center justify-between">
+                        <span>🌌 寧靜星空紫夜</span>
+                        <span id="check-mode5" class="text-indigo-600 hidden">✓</span>
+                    </button>
+                </div>
             </div>
-            <p class="text-xs text-gray-500">點擊下方主題，背景即時切換流動漸層！</p>
-            <div class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                <button onclick="setDopamineTheme('off')" class="w-full py-2 px-3 rounded-xl border border-gray-200 text-xs font-medium text-warmText hover:bg-gray-50 transition flex items-center justify-between">
-                    <span>🌱 關閉 (經典奶油白)</span>
-                    <span id="check-off" class="text-lake font-bold">✓</span>
-                </button>
-                <button onclick="setDopamineTheme('mode1')" class="w-full py-2 px-3 rounded-xl border border-pink-200 text-xs font-medium text-pink-700 bg-pink-50 hover:bg-pink-100 transition flex items-center justify-between">
-                    <span>🌸 甜美粉藍夢幻流光</span>
-                    <span id="check-mode1" class="text-pink-600 hidden">✓</span>
-                </button>
-                <button onclick="setDopamineTheme('mode2')" class="w-full py-2 px-3 rounded-xl border border-yellow-200 text-xs font-medium text-amber-800 bg-amber-50 hover:bg-amber-100 transition flex items-center justify-between">
-                    <span>⚡ 活力能量彩虹交織</span>
-                    <span id="check-mode2" class="text-amber-600 hidden">✓</span>
-                </button>
-                <button onclick="setDopamineTheme('mode3')" class="w-full py-2 px-3 rounded-xl border border-teal-200 text-xs font-medium text-teal-800 bg-teal-50 hover:bg-teal-100 transition flex items-center justify-between">
-                    <span>🌊 療癒薄荷夕陽流動</span>
-                    <span id="check-mode3" class="text-teal-600 hidden">✓</span>
-                </button>
-                <button onclick="setDopamineTheme('mode4')" class="w-full py-2 px-3 rounded-xl border border-orange-200 text-xs font-medium text-orange-800 bg-orange-50 hover:bg-orange-100 transition flex items-center justify-between">
-                    <span>☀️ 晨曦暖黃微光</span>
-                    <span id="check-mode4" class="text-orange-600 hidden">✓</span>
-                </button>
-                <button onclick="setDopamineTheme('mode5')" class="w-full py-2 px-3 rounded-xl border border-indigo-200 text-xs font-medium text-indigo-800 bg-indigo-50 hover:bg-indigo-100 transition flex items-center justify-between">
-                    <span>🌌 寧靜星空紫夜</span>
-                    <span id="check-mode5" class="text-indigo-600 hidden">✓</span>
+        </div>
+
+    </div>
+
+    <!-- ================= API Key 設定與教學互動彈窗 ================= -->
+    <div id="apiKeyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg rounded-3xl card-shadow max-w-lg w-full p-6 md:p-8 space-y-6 border border-lake/20 relative animate-fade-in max-h-[90vh] overflow-y-auto">
+            <button onclick="toggleApiKeyModal(false)" class="absolute top-5 right-5 text-gray-400 hover:text-warmText text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="space-y-1">
+                <span class="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-medium">Gemini AI 連線設定</span>
+                <h3 class="text-xl font-bold text-lakeDark mt-1">設定您的 Gemini API Key</h3>
+                <p class="text-xs text-gray-500">當您將網頁部署至 GitHub Pages 等個人網域時，需填入 API Key 才能正常與 AI 夥伴對話。</p>
+            </div>
+
+            <!-- 輸入框區塊 -->
+            <div class="space-y-2 bg-softYellow/40 p-4 rounded-2xl border border-lake/15">
+                <label class="block text-xs font-bold text-lakeDark" for="floatingApiKeyInput">
+                    <i class="fa-solid fa-key mr-1 text-apricot"></i> 輸入您的 Gemini API Key
+                </label>
+                <div class="flex space-x-2">
+                    <input type="password" id="floatingApiKeyInput" placeholder="請貼上您的 AIzaSy... 金鑰" class="flex-grow rounded-xl border border-gray-200 p-2.5 text-xs focus:outline-none focus:border-lake bg-white">
+                    <button onclick="saveFloatingApiKey()" class="bg-lake hover:bg-lakeDark text-white px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap">
+                        儲存金鑰
+                    </button>
+                </div>
+                <p class="text-[10px] text-gray-500">🔒 金鑰僅儲存於您當前瀏覽器的本機儲存空間（LocalStorage），絕不會外流。</p>
+            </div>
+
+            <!-- 教學與說明區塊 -->
+            <div class="space-y-3 border-t border-gray-100 pt-4">
+                <h4 class="font-bold text-sm text-lakeDark flex items-center">
+                    <i class="fa-solid fa-graduation-cap text-apricot mr-2"></i> 如何免費申請 Gemini API Key？
+                </h4>
+                <ol class="list-decimal pl-5 text-xs text-gray-600 space-y-2 leading-relaxed">
+                    <li>前往 Google 官方免費平台：<a href="https://aistudio.google.com/" target="_blank" class="text-lake underline font-medium">Google AI Studio</a> 並登入您的 Google 帳號。</li>
+                    <li>點擊左上角的 <strong>"Get API key"</strong>（取得 API 金鑰）按鈕。</li>
+                    <li>點擊 <strong>"Create API key in new project"</strong>（在新專案中建立金鑰）。</li>
+                    <li>將產生的長串英數字金鑰（以 <code class="bg-gray-100 text-red-600 px-1 rounded">AIzaSy...</code> 開頭）複製起來。</li>
+                    <li>貼到上方欄位並點擊「儲存金鑰」即可開始暢聊！</li>
+                </ol>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="toggleApiKeyModal(false)" class="bg-gray-100 hover:bg-gray-200 text-warmText px-5 py-2.5 rounded-xl text-xs font-medium transition">
+                    關閉視窗
                 </button>
             </div>
         </div>
@@ -839,7 +897,7 @@
         </p>
     </footer>
 
-    <!-- ================= STREAMING_CHUNK:Initializing JavaScript Application Logic... ================= -->
+    <!-- JavaScript 邏輯 -->
     <script>
         let currentTab = 'home';
         let selectedMood = '平靜';
@@ -910,6 +968,36 @@
             initQuiz();
             loadDashboardData();
         };
+
+        // ================= API Key 浮動彈窗與儲存 =================
+        function toggleApiKeyModal(open) {
+            const modal = document.getElementById('apiKeyModal');
+            if (open) {
+                modal.classList.remove('hidden');
+                // 載入已儲存的金鑰顯示在浮動輸入框中
+                try {
+                    const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
+                    if (stored.userApiKey) {
+                        document.getElementById('floatingApiKeyInput').value = stored.userApiKey;
+                    }
+                } catch (e) {}
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function saveFloatingApiKey() {
+            const keyInput = document.getElementById('floatingApiKeyInput').value.trim();
+            try {
+                const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
+                stored.userApiKey = keyInput;
+                localStorage.setItem('mood_station_data', JSON.stringify(stored));
+                alertBox("Gemini API 金鑰已成功儲存至瀏覽器！您現在可以正常與 AI 對話了。");
+                toggleApiKeyModal(false);
+            } catch (e) {
+                alertBox("儲存失敗，請檢查瀏覽器隱私設定。");
+            }
+        }
 
         // ================= 強效多巴胺漸層控制 (6個主題) =================
         function toggleDopaminePanel() {
@@ -1117,7 +1205,7 @@
             } catch (error) {
                 console.error("Gemini API Error:", error);
                 document.getElementById('chatLoading').classList.add('hidden');
-                appendMessage('model', '哎呀，小棧的連線好像稍微晃動了一下。請稍後再試一次喔！');
+                appendMessage('model', '哎呀，小棧的連線好像稍微晃動了一下。請點擊畫面右側的「API 設定」按鈕填入您的 Gemini API Key 即可正常使用喔！');
             }
         }
 
@@ -1159,7 +1247,14 @@
             2. 一個實際方法：提供一個具體且做得到的方向。
             3. 一個簡短追問：溫柔地問一個能引導對方思考或舒緩的問題。`;
 
-            const apiKey = ""; 
+            let apiKey = ""; 
+            try {
+                const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
+                if (stored.userApiKey) {
+                    apiKey = stored.userApiKey;
+                }
+            } catch (e) {}
+
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             const payload = {
@@ -1179,8 +1274,7 @@
                     });
                     
                     if (!response.ok) {
-                        const errData = await response.json().catch(() => ({}));
-                        throw new Error(`API Error: ${response.status} ${errData.error?.message || response.statusText}`);
+                        throw new Error(`API 錯誤 (${response.status})`);
                     }
 
                     const result = await response.json();
@@ -1189,7 +1283,6 @@
                         return candidate.content.parts[0].text;
                     }
                 } catch (e) {
-                    console.warn(`Attempt ${i+1} failed:`, e);
                     if (i === retries - 1) throw e;
                     await new Promise(res => setTimeout(res, delay));
                     delay *= 2;
