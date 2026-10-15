@@ -58,29 +58,29 @@
 </head>
 <body id="appBody" class="min-h-screen flex flex-col selection:bg-lake selection:text-white relative">
 
-    <!-- ================= 浮動按鈕群組 (API Key 教學彈窗按鈕 + 多巴胺面板) ================= -->
-    <div class="fixed right-0 top-1/4 z-50 flex flex-col space-y-3 items-end">
+    <!-- ================= 浮動按鈕群組 (手機版優化：調低位置、改為半透明或緊湊排列避免遮擋) ================= -->
+    <div class="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex flex-col space-y-2 items-end scale-90 sm:scale-100 origin-right">
         
         <!-- 1. API Key 浮動按鈕 -->
-        <button onclick="toggleApiKeyModal(true)" class="bg-gradient-to-r from-amber-500 to-apricot text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition">
-            <i class="fa-solid fa-key text-lg"></i>
-            <span class="text-[10px] font-bold [writing-mode:vertical-lr] tracking-widest">API 設定</span>
+        <button onclick="toggleApiKeyModal(true)" class="bg-gradient-to-r from-amber-500 to-apricot text-white p-2.5 sm:p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition opacity-90 hover:opacity-100">
+            <i class="fa-solid fa-key text-base sm:text-lg"></i>
+            <span class="text-[9px] font-bold [writing-mode:vertical-lr] tracking-widest">API 設定</span>
         </button>
 
         <!-- 2. 多巴胺面板按鈕與面板 -->
-        <div id="dopamineFloatingPanel" class="flex items-center translate-x-[calc(100%-40px)] transition-transform duration-300">
-            <button onclick="toggleDopaminePanel()" class="bg-gradient-to-r from-apricot to-pink-500 text-white p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition">
-                <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
-                <span class="text-[10px] font-bold [writing-mode:vertical-lr] tracking-widest">多巴胺漸層</span>
+        <div id="dopamineFloatingPanel" class="flex items-center translate-x-[calc(100%-36px)] sm:translate-x-[calc(100%-40px)] transition-transform duration-300">
+            <button onclick="toggleDopaminePanel()" class="bg-gradient-to-r from-apricot to-pink-500 text-white p-2.5 sm:p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition opacity-90 hover:opacity-100">
+                <i class="fa-solid fa-wand-magic-sparkles text-base sm:text-lg"></i>
+                <span class="text-[9px] font-bold [writing-mode:vertical-lr] tracking-widest">多巴胺漸層</span>
             </button>
-            <div class="bg-cardBg p-4 rounded-l-3xl card-shadow border border-lake/20 w-64 space-y-3">
+            <div class="bg-cardBg p-3 sm:p-4 rounded-l-3xl card-shadow border border-lake/20 w-60 sm:w-64 space-y-3">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <h4 class="font-bold text-lakeDark text-sm flex items-center">
+                    <h4 class="font-bold text-lakeDark text-xs sm:text-sm flex items-center">
                         <i class="fa-solid fa-bolt text-apricot mr-1.5"></i> 能量多巴胺背景
                     </h4>
                     <button onclick="toggleDopaminePanel()" class="text-gray-400 hover:text-warmText p-1"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <p class="text-xs text-gray-500">點擊下方主題，背景即時切換流動漸層！</p>
+                <p class="text-[11px] sm:text-xs text-gray-500">點擊下方主題，背景即時切換流動漸層！</p>
                 <div class="space-y-1.5 max-h-60 overflow-y-auto pr-1">
                     <button onclick="setDopamineTheme('off')" class="w-full py-2 px-3 rounded-xl border border-gray-200 text-xs font-medium text-warmText hover:bg-gray-50 transition flex items-center justify-between">
                         <span>🌱 關閉 (經典奶油白)</span>
