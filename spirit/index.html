@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心情小棧｜我的解憂雜貨店</title>
+    <title>心情小棧｜同學的元氣加油站</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -63,7 +63,7 @@
 </head>
 <body id="appBody" class="min-h-screen flex flex-col selection:bg-lake selection:text-white relative">
 
-    <!-- ================= API Key 設定與教學互動彈窗 (每次開啟皆為空白，絕不儲存) ================= -->
+    <!-- ================= API Key 設定與教學互動彈窗 ================= -->
     <div id="apiKeyModal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-cardBg rounded-3xl card-shadow max-w-lg w-full p-6 md:p-8 space-y-6 border border-lake/20 relative max-h-[90vh] overflow-y-auto">
             <button onclick="toggleApiKeyModal(false)" class="absolute top-5 right-5 text-gray-400 hover:text-warmText text-lg p-2">
@@ -76,7 +76,6 @@
                 <p class="text-xs text-gray-500">當您將網頁部署至 GitHub Pages 等個人網域時，需填入 API Key 才能正常與 AI 夥伴對話。</p>
             </div>
 
-            <!-- 輸入框區塊 (每次打開皆為空白，絕不儲存) -->
             <div class="space-y-2 bg-softYellow/40 p-4 rounded-2xl border border-lake/15">
                 <label class="block text-xs font-bold text-lakeDark" for="floatingApiKeyInput">
                     <i class="fa-solid fa-key mr-1 text-apricot"></i> 輸入您的 Gemini API Key
@@ -90,7 +89,6 @@
                 <p class="text-[10px] text-gray-500">🔒 基於安全考量，金鑰絕不儲存於本機裝置。每次離開頁面即自動清除，防止被盜用。</p>
             </div>
 
-            <!-- 教學與說明區塊 -->
             <div class="space-y-3 border-t border-gray-100 pt-4">
                 <h4 class="font-bold text-sm text-lakeDark flex items-center">
                     <i class="fa-solid fa-graduation-cap text-apricot mr-2"></i> 如何免費申請 Gemini API Key？
@@ -155,29 +153,31 @@
     <!-- 頂部導覽列 -->
     <header class="bg-cardBg border-b border-lake/10 sticky top-0 z-40 shadow-sm">
         <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('station')">
                 <div class="w-10 h-10 rounded-full bg-apricot/20 flex items-center justify-center text-apricot text-xl font-bold">
                     <i class="fa-solid fa-mug-hot"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg text-lakeDark leading-tight">心情小棧</h1>
+                    <h1 class="font-bold text-lg text-lakeDark leading-tight">同學的元氣加油站</h1>
                     <p class="text-xs text-gray-500">我的解憂雜貨店</p>
                 </div>
             </div>
 
-            <!-- 頂端控制按鈕群組 (API 設定與多巴胺背景) 整合在頂端，絕不遮擋主內容 -->
             <div class="flex items-center space-x-2">
-                <button onclick="toggleApiKeyModal(true)" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1 shadow-sm active:scale-95">
+                <button onclick="toggleApiKeyModal(true)" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1 shadow-sm active:scale-95" title="設定 Gemini API 金鑰">
                     <i class="fa-solid fa-key"></i>
                     <span class="hidden sm:inline">API</span>
                 </button>
-                <button onclick="toggleDopamineModal(true)" class="bg-gradient-to-r from-apricot to-pink-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1 shadow-sm active:scale-95">
+                <button onclick="toggleDopamineModal(true)" class="bg-gradient-to-r from-apricot to-pink-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center space-x-1 shadow-sm active:scale-95" title="切換背景多巴胺顏色">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     <span class="hidden sm:inline">背景</span>
                 </button>
 
                 <!-- 導覽按鈕 (電腦版) -->
                 <nav class="hidden md:flex items-center space-x-1 ml-2">
+                    <button onclick="switchTab('station')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition bg-softYellow text-lakeDark font-bold" data-tab="station">
+                        <i class="fa-solid fa-star mr-1 text-apricot"></i> 同學的元氣加油站
+                    </button>
                     <button onclick="switchTab('home')" class="nav-btn px-3 py-2 rounded-xl text-sm font-medium transition hover:bg-softYellow text-warmText" data-tab="home">
                         <i class="fa-solid fa-house mr-1"></i> 首頁
                     </button>
@@ -201,7 +201,6 @@
                     </button>
                 </nav>
 
-                <!-- 手機版選單切換按鈕 -->
                 <button onclick="toggleMobileMenu()" class="md:hidden text-lakeDark text-xl p-2 rounded-lg hover:bg-softYellow ml-1">
                     <i class="fa-solid fa-bars"></i>
                 </button>
@@ -209,6 +208,7 @@
         </div>
         <!-- 手機版下拉選單 -->
         <div id="mobileMenu" class="hidden md:hidden bg-cardBg border-t border-lake/10 px-4 py-3 space-y-2 shadow-lg">
+            <button onclick="switchTab('station'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium text-apricot font-bold">✨ 同學的元氣加油站</button>
             <button onclick="switchTab('home'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">首頁</button>
             <button onclick="switchTab('checkin'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">記下心情</button>
             <button onclick="switchTab('chat'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-lg hover:bg-softYellow font-medium">聊聊煩惱 (AI 解憂)</button>
@@ -222,8 +222,132 @@
     <!-- 主要內容區 -->
     <main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
 
+        <!-- ================= 0. 同學的元氣加油站 (Student Station) ================= -->
+        <section id="tab-station" class="space-y-6">
+            <!-- 頂部標題列與寒暑假切換按鈕 -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-cardBg p-6 rounded-3xl card-shadow border border-lake/10">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-apricot/20 flex items-center justify-center text-apricot text-2xl font-bold">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl md:text-3xl font-bold text-lakeDark">同學的元氣加油站</h2>
+                        <p class="text-xs text-gray-500">學生專屬解憂補給包 ｜ 溫暖守護每一天</p>
+                    </div>
+                </div>
+                <!-- 寒暑假切換按鈕 -->
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="setBreakTarget('winter')" id="winterBtn" class="bg-gray-900 text-white hover:bg-black px-4 py-3 rounded-2xl text-xs font-medium transition flex items-center space-x-2 shadow active:scale-95">
+                        <span>❄️</span>
+                        <div class="text-left">
+                            <div class="font-bold">我要掃到寒假</div>
+                            <div class="text-[10px] text-gray-300">先跨過第一學期</div>
+                        </div>
+                    </button>
+                    <button onclick="setBreakTarget('summer')" id="summerBtn" class="bg-apricot/80 text-white hover:bg-apricot px-4 py-3 rounded-2xl text-xs font-medium transition flex items-center space-x-2 shadow active:scale-95">
+                        <span>☀️</span>
+                        <div class="text-left">
+                            <div class="font-bold">我要掃到暑假</div>
+                            <div class="text-[10px] text-orange-100">一路掃到學年終點</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 主網格區域 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- 左側：6大創意主題彩虹卡與中間人物輪播 (佔 7 格) -->
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- 6大創意主題頁籤列 -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <button onclick="switchStationTheme(0)" class="station-tab-btn py-2.5 px-3 rounded-xl text-xs font-bold transition text-white bg-lake shadow text-center" data-index="0">🌱 自我充電與接納</button>
+                        <button onclick="switchStationTheme(1)" class="station-tab-btn py-2.5 px-3 rounded-xl text-xs font-bold transition text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 text-center" data-index="1">☕ 考前超強戰鬥包</button>
+                        <button onclick="switchStationTheme(2)" class="station-tab-btn py-2.5 px-3 rounded-xl text-xs font-bold transition text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 text-center" data-index="2">🌊 擺脫焦慮金句集</button>
+                        <button onclick="switchStationTheme(3)" class="station-tab-btn py-2.5 px-3 rounded-xl text-xs font-bold transition text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 text-center" data-index="3">🧭 迷茫時的指南針</button>
+                        <button onclick="switchStationTheme(4)" class="station-tab-btn py-2.5 px-3 rounded-xl text-xs font-bold transition text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 text-center" data-index="4">🔥 告別內耗小行動</button>
+                        <button onclick="switchStationTheme(5)" class="station-tab-btn py-2.5 px-3 rounded-xl text-xs font-bold transition text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 text-center" data-index="5">💖 神仙友情與人際</button>
+                    </div>
+
+                    <!-- 彩虹卡互動大卡片 + 中間去背人物輪播 -->
+                    <div class="bg-cardBg p-6 md:p-8 rounded-3xl card-shadow border border-lake/10 flex flex-col justify-between min-h-[380px] relative overflow-hidden">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span id="stationCardBadge" class="text-xs bg-lake/10 text-lake px-3 py-1 rounded-full font-bold">🌱 自我充電與接納</span>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="speakCurrentCard()" class="text-xs bg-softYellow hover:bg-amber-200 text-lakeDark px-3 py-1.5 rounded-full font-medium transition flex items-center space-x-1 shadow-sm active:scale-95" title="語音朗讀中英文句子">
+                                        <i class="fa-solid fa-volume-high"></i>
+                                        <span>朗讀金句</span>
+                                    </button>
+                                    <span class="text-xs text-gray-400">點卡片換一句</span>
+                                </div>
+                            </div>
+
+                            <div onclick="drawNextStationCard()" class="cursor-pointer py-6 space-y-3 group">
+                                <h3 id="stationCardQuote" class="text-xl md:text-2xl font-bold text-lakeDark leading-relaxed group-hover:text-lake transition">
+                                    你不是永遠要給出答案的人，允許自己今天先卡關一下也無所謂。<br>
+                                    <span class="text-sm font-normal text-gray-500 block mt-1">You don't always have to provide answers; it's okay to allow yourself to get stuck today.</span>
+                                </h3>
+                                <p class="text-xs text-apricot font-medium">💡 點一下，再抽一張 ↻</p>
+                            </div>
+                        </div>
+
+                        <!-- 4張去背人物圖片自動/點擊輪播 -->
+                        <div class="flex justify-center items-center pt-4 border-t border-gray-100">
+                            <div onclick="nextMascotImage()" class="cursor-pointer text-center group" title="點擊切換加油夥伴">
+                                <img id="stationMascotImg" src="https://lin5406.github.io/lin/spirit/afu001.png" alt="加油夥伴" class="h-40 md:h-48 object-contain mx-auto group-hover:scale-105 transition duration-300" onerror="this.src='https://placehold.co/150x200/4A7C59/FFFFFF?text=Mascot'">
+                                <p class="text-[11px] text-gray-400 mt-1">點擊夥伴切換造型 ✨</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右側：倒數計時器與進度卡片 (佔 5 格) -->
+                <div class="lg:col-span-5 space-y-6">
+                    <!-- 倒數計時器卡片 -->
+                    <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/10 space-y-4 text-center">
+                        <div class="text-xs text-gray-500 font-medium" id="countdownTitleLabel">距離寒假還有</div>
+                        <div class="text-5xl md:text-6xl font-black text-apricot tracking-tight py-2" id="countdownDaysNum">97 天</div>
+                        <div class="text-sm font-mono text-gray-600 bg-softYellow/60 py-2 rounded-xl" id="countdownClockStr">02 : 11 : 33</div>
+                        <div class="text-[11px] text-gray-400 flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-calendar"></i>
+                            <span id="countdownTargetDateText">目標日 2027/1/21</span>
+                        </div>
+                    </div>
+
+                    <!-- 學生工作量 / 學期進度卡片 -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-cardBg p-5 rounded-3xl card-shadow border border-gray-100 text-center space-y-2">
+                            <div class="text-xs text-gray-500 font-medium" id="semesterProgressLabel">學期進度</div>
+                            <div class="text-3xl font-bold text-lakeDark" id="semesterProgressNum">31%</div>
+                            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                <div id="semesterProgressBar" class="bg-lake h-2 rounded-full" style="width: 31%;"></div>
+                            </div>
+                            <div class="text-[10px] text-gray-400" id="semesterProgressDesc">進度開始有感，同學也開始有感。</div>
+                        </div>
+                        <div class="bg-cardBg p-5 rounded-3xl card-shadow border border-gray-100 text-center space-y-2">
+                            <div class="text-xs text-gray-500 font-medium" id="classDaysLabel">真正剩餘上課天</div>
+                            <div class="text-3xl font-bold text-apricot" id="classDaysNum">67 天</div>
+                            <div class="text-[10px] text-gray-400 pt-3">今天也算在裡面 🌱</div>
+                        </div>
+                    </div>
+
+                    <!-- 最近連假卡片 -->
+                    <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/10 flex items-center justify-between">
+                        <div class="space-y-1">
+                            <span class="text-[10px] bg-lake/10 text-lake px-2.5 py-0.5 rounded-full font-bold">最近連假</span>
+                            <h4 class="font-bold text-lakeDark text-base">週末假日</h4>
+                            <p class="text-xs text-gray-400">下一個連假 週末二日</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-black text-apricot">還剩 2 天</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- ================= 1. 首頁 (Home) ================= -->
-        <section id="tab-home" class="space-y-8">
+        <section id="tab-home" class="hidden space-y-8">
             <div class="bg-cardBg rounded-3xl p-6 md:p-12 card-shadow border border-lake/10 relative overflow-hidden">
                 <div class="max-w-2xl relative z-10 space-y-4">
                     <span class="inline-block bg-lake text-white text-xs px-3 py-1 rounded-full font-medium tracking-wide">溫暖陪伴・隨時傾聽</span>
@@ -232,17 +356,17 @@
                         這裡是一個專屬於你的溫柔避風港。不論是日常的碎碎念、沉重的煩惱，或是需要一點靜心放鬆，雜貨店的大門永遠為你敞開。
                     </p>
                     <div class="pt-2 flex flex-wrap gap-4">
+                        <button onclick="switchTab('station')" class="bg-apricot hover:bg-apricotDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md active:scale-95 flex items-center space-x-2">
+                            <i class="fa-solid fa-star"></i>
+                            <span>進入同學的元氣加油站</span>
+                        </button>
                         <button onclick="switchTab('checkin')" class="bg-lake hover:bg-lakeDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md active:scale-95 flex items-center space-x-2">
                             <i class="fa-solid fa-seedling"></i>
                             <span>立即記下心情</span>
                         </button>
-                        <button onclick="switchTab('chat')" class="bg-apricot hover:bg-apricotDark text-white px-6 py-3 rounded-2xl font-medium transition shadow-md active:scale-95 flex items-center space-x-2">
+                        <button onclick="switchTab('chat')" class="bg-softYellow hover:bg-amber-200 text-lakeDark px-6 py-3 rounded-2xl font-medium transition shadow-sm border border-lake/20 flex items-center space-x-2 active:scale-95">
                             <i class="fa-solid fa-comments"></i>
                             <span>聊聊煩惱 (AI 解憂)</span>
-                        </button>
-                        <button onclick="switchTab('toolbox')" class="bg-softYellow hover:bg-amber-200 text-lakeDark px-6 py-3 rounded-2xl font-medium transition shadow-sm active:scale-95 flex items-center space-x-2 border border-lake/20">
-                            <i class="fa-solid fa-mug-hot"></i>
-                            <span>讓自己放鬆一下</span>
                         </button>
                     </div>
                 </div>
@@ -250,7 +374,7 @@
 
             <!-- 四大核心入口卡片 -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div onclick="switchTab('checkin')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/10 hover:border-lake/30 transition cursor-pointer group flex flex-col justify-between active:scale-[0.98]">
+                <div onclick="switchTab('checkin')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/10 hover:border-lake/30 transition cursor-pointer group flex flex-col justify-between">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-lake/10 text-lake flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                             <i class="fa-solid fa-seedling"></i>
@@ -264,7 +388,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchTab('chat')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-apricot/10 hover:border-apricot/30 transition cursor-pointer group flex flex-col justify-between active:scale-[0.98]">
+                <div onclick="switchTab('chat')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-apricot/10 hover:border-apricot/30 transition cursor-pointer group flex flex-col justify-between">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-apricot/10 text-apricot flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                             <i class="fa-solid fa-comments"></i>
@@ -278,7 +402,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchTab('quiz')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 hover:border-lake/40 transition cursor-pointer group flex flex-col justify-between active:scale-[0.98]">
+                <div onclick="switchTab('quiz')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 hover:border-lake/40 transition cursor-pointer group flex flex-col justify-between">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-softYellow text-lakeDark flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                             <i class="fa-solid fa-clipboard-question"></i>
@@ -292,7 +416,7 @@
                     </div>
                 </div>
 
-                <div onclick="switchTab('dashboard')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-apricot/15 hover:border-apricot/40 transition cursor-pointer group flex flex-col justify-between active:scale-[0.98]">
+                <div onclick="switchTab('dashboard')" class="bg-cardBg p-6 rounded-3xl card-shadow border border-apricot/15 hover:border-apricot/40 transition cursor-pointer group flex flex-col justify-between">
                     <div>
                         <div class="w-14 h-14 rounded-2xl bg-apricot/10 text-apricot flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
                             <i class="fa-solid fa-chart-pie"></i>
@@ -307,6 +431,7 @@
                 </div>
             </div>
 
+            <!-- 校園求助小卡提醒區 -->
             <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/10 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center space-x-4">
                     <div class="w-12 h-12 rounded-2xl bg-softYellow text-lake flex items-center justify-center text-xl flex-shrink-0">
@@ -382,7 +507,7 @@
 
                 <div class="space-y-2">
                     <label class="block text-sm font-semibold text-warmText" for="moodReason">3. 想簡單說說發生了什麼事嗎？（選填）</label>
-                    <textarea id="moodReason" rows="3" class="w-full rounded-2xl border border-gray-200 p-3 text-sm focus:outline-none focus:border-lake bg-white" placeholder="例如：最近課業或工作有點多，覺得時間不夠用..."></textarea>
+                    <textarea id="moodReason" rows="3" class="w-full rounded-2xl border border-gray-200 p-3 text-sm focus:outline-none focus:border-lake bg-white" placeholder="例如：最近課業或人際有點繁雜，覺得時間不夠用..."></textarea>
                 </div>
 
                 <button onclick="submitCheckin()" class="w-full bg-lake hover:bg-lakeDark text-white py-3.5 rounded-2xl font-medium transition shadow-md active:scale-95 flex items-center justify-center space-x-2">
@@ -404,11 +529,11 @@
                 <div id="resultFeedbackContent" class="text-gray-700 text-sm leading-relaxed bg-softYellow/50 p-4 rounded-2xl">
                 </div>
                 <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button onclick="switchTab('dashboard')" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-2">
+                    <button onclick="switchTab('dashboard')" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2 active:scale-95">
                         <i class="fa-solid fa-chart-pie"></i>
                         <span>查看心情儀表板</span>
                     </button>
-                    <button onclick="switchTab('chat')" class="flex-1 bg-apricot hover:bg-apricotDark text-white py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-2">
+                    <button onclick="switchTab('chat')" class="flex-1 bg-apricot hover:bg-apricotDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2 active:scale-95">
                         <i class="fa-solid fa-comments"></i>
                         <span>找解憂夥伴深聊</span>
                     </button>
@@ -493,14 +618,14 @@
                             <i class="fa-solid fa-sliders mr-2 text-lake"></i> 風格偏好
                         </h3>
                         <div class="grid grid-cols-3 gap-2">
-                            <button onclick="setStylePref('simple')" class="style-btn py-2 px-1 text-xs rounded-xl border border-lake bg-lake/10 text-lakeDark font-medium transition text-center active:scale-95" data-style="simple">簡單易懂</button>
-                            <button onclick="setStylePref('warm')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white active:scale-95" data-style="warm">溫柔陪伴</button>
-                            <button onclick="setStylePref('action')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white active:scale-95" data-style="action">一起想辦法</button>
+                            <button onclick="setStylePref('simple')" class="style-btn py-2 px-1 text-xs rounded-xl border border-lake bg-lake/10 text-lakeDark font-medium transition text-center" data-style="simple">簡單易懂</button>
+                            <button onclick="setStylePref('warm')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white" data-style="warm">溫柔陪伴</button>
+                            <button onclick="setStylePref('action')" class="style-btn py-2 px-1 text-xs rounded-xl border border-gray-200 hover:border-lake text-warmText font-medium transition text-center bg-white" data-style="action">一起想辦法</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-3 bg-cardBg rounded-3xl card-shadow border border-lake/10 flex flex-col h-[600px]">
+                <div class="lg:col-span-3 bg-cardBg rounded-3xl card-shadow border border-lake/10 flex flex-col h-[650px]">
                     <div class="p-4 border-b border-gray-100 flex items-center justify-between">
                         <div class="flex items-center space-x-3">
                             <span id="activePersonaEmoji" class="text-2xl">🦦</span>
@@ -510,10 +635,10 @@
                             </div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <button onclick="clearChatHistory()" class="text-xs text-gray-400 hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition" title="清除對話紀錄">
+                            <button onclick="clearChatHistory()" class="text-xs text-gray-400 hover:text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-50 transition active:scale-95" title="清除對話紀錄">
                                 <i class="fa-solid fa-trash-can mr-1"></i> 清除對話
                             </button>
-                            <button onclick="downloadChatTxt()" class="text-xs text-lake hover:bg-lake/10 px-3 py-1.5 rounded-lg transition" title="下載對話 TXT">
+                            <button onclick="downloadChatTxt()" class="text-xs text-lake hover:bg-lake/10 px-3 py-1.5 rounded-lg transition active:scale-95" title="下載對話 TXT">
                                 <i class="fa-solid fa-download mr-1"></i> 下載紀錄
                             </button>
                         </div>
@@ -595,7 +720,7 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-3 pt-2">
-                        <button onclick="jumpToChatWithPersona()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3.5 rounded-xl text-sm font-medium transition shadow-md active:scale-95 flex items-center justify-center space-x-2">
+                        <button onclick="jumpToChatWithPersona()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3.5 rounded-xl text-sm font-medium transition shadow-md flex items-center justify-center space-x-2 active:scale-95">
                             <i class="fa-solid fa-comments"></i>
                             <span id="jumpChatBtnText">找小獺暖暖聊聊心事</span>
                         </button>
@@ -617,11 +742,11 @@
                         <p class="text-gray-500 text-sm">檢視你最近的心情打卡統計、情緒分佈與壓力趨勢。</p>
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="exportDashboardData()" class="bg-lake/10 hover:bg-lake/20 text-lakeDark px-4 py-2 rounded-xl text-sm font-medium transition active:scale-95 flex items-center space-x-1">
+                        <button onclick="exportDashboardData()" class="bg-lake/10 hover:bg-lake/20 text-lakeDark px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-1 active:scale-95">
                             <i class="fa-solid fa-download"></i>
                             <span>匯出記錄</span>
                         </button>
-                        <button onclick="loadDashboardData()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl text-sm font-medium transition active:scale-95 flex items-center space-x-1">
+                        <button onclick="loadDashboardData()" class="bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-1 active:scale-95">
                             <i class="fa-solid fa-rotate-right"></i>
                             <span>重新整理</span>
                         </button>
@@ -649,6 +774,7 @@
                             <i class="fa-solid fa-chart-pie mr-2 text-lake"></i> 情緒分佈統計
                         </h3>
                         <div id="moodDistributionContainer" class="space-y-3">
+                            <div class="text-center py-6 text-gray-400 text-sm">尚無心情打卡統計資料</div>
                         </div>
                     </div>
 
@@ -678,6 +804,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 4-7-8 呼吸 -->
                 <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center space-x-3 mb-4">
@@ -700,6 +827,7 @@
                     </div>
                 </div>
 
+                <!-- 塗鴉板 -->
                 <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-apricot/15 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center space-x-3 mb-4">
@@ -716,14 +844,15 @@
                     </div>
                     <div class="flex items-center justify-between pt-4 border-t border-gray-100 mt-4">
                         <div class="flex space-x-2">
-                            <button onclick="setBrushColor('#4A7C59')" class="w-6 h-6 rounded-full bg-lake border-2 border-white shadow active:scale-95"></button>
-                            <button onclick="setBrushColor('#E07A5F')" class="w-6 h-6 rounded-full bg-apricot border-2 border-white shadow active:scale-95"></button>
-                            <button onclick="setBrushColor('#2B3A42')" class="w-6 h-6 rounded-full bg-warmText border-2 border-white shadow active:scale-95"></button>
+                            <button onclick="setBrushColor('#4A7C59')" class="w-6 h-6 rounded-full bg-lake border-2 border-white shadow"></button>
+                            <button onclick="setBrushColor('#E07A5F')" class="w-6 h-6 rounded-full bg-apricot border-2 border-white shadow"></button>
+                            <button onclick="setBrushColor('#2B3A42')" class="w-6 h-6 rounded-full bg-warmText border-2 border-white shadow"></button>
                         </div>
                         <button onclick="clearCanvas()" class="text-xs bg-gray-100 hover:bg-gray-200 text-warmText px-4 py-2 rounded-xl transition active:scale-95">清除畫布</button>
                     </div>
                 </div>
 
+                <!-- 煩惱拆解卡 -->
                 <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center space-x-3 mb-4">
@@ -747,6 +876,7 @@
                     </div>
                 </div>
 
+                <!-- 求助句型練習 -->
                 <div class="bg-cardBg p-6 rounded-3xl card-shadow border border-lake/15 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center space-x-3 mb-4">
@@ -758,10 +888,10 @@
                         <p class="text-gray-600 text-sm mb-4">不知如何向信任的人開口？參考以下溫和表達範本：</p>
                         
                         <div class="space-y-2 text-xs">
-                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition active:scale-[0.98]" onclick="copyPhrase(this)">
+                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition" onclick="copyPhrase(this)">
                                 「最近心裡有點壓力，不知道你有沒有空聽我聊聊幾分鐘？」
                             </div>
-                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition active:scale-[0.98]" onclick="copyPhrase(this)">
+                            <div class="p-3 bg-cream rounded-xl border border-lake/15 cursor-pointer hover:bg-softYellow transition" onclick="copyPhrase(this)">
                                 「這陣子狀況比較多，我覺得有點負荷不過來，想跟你商量一下...」
                             </div>
                         </div>
@@ -830,11 +960,11 @@
 
                 <div class="space-y-2 pt-2 border-t border-gray-100">
                     <div class="flex gap-3">
-                        <button onclick="clearAllDataPrompt()" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-1">
+                        <button onclick="clearAllDataPrompt()" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-1 active:scale-95">
                             <i class="fa-solid fa-trash-can"></i>
                             <span>清除全部紀錄</span>
                         </button>
-                        <button onclick="endSessionAction()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-warmText py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-1">
+                        <button onclick="endSessionAction()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-warmText py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-1 active:scale-95">
                             <i class="fa-solid fa-right-from-bracket"></i>
                             <span>結束使用 (清空暫存)</span>
                         </button>
@@ -847,9 +977,9 @@
     </main>
 
     <!-- ================= Modal: 校園求助卡預覽與下載 ================= -->
-    <div id="helpCardModal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+    <div id="helpCardModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-cardBg rounded-3xl card-shadow max-w-md w-full p-6 space-y-4 border border-lake/20 relative">
-            <button onclick="closeHelpCardModal()" class="absolute top-4 right-4 text-gray-400 hover:text-warmText text-lg p-2">
+            <button onclick="closeHelpCardModal()" class="absolute top-4 right-4 text-gray-400 hover:text-warmText text-lg p-1">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             
@@ -878,7 +1008,7 @@
             </div>
 
             <div class="flex space-x-3 pt-2">
-                <button onclick="downloadHelpCardTxt()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition active:scale-95 flex items-center justify-center space-x-2">
+                <button onclick="downloadHelpCardTxt()" class="flex-1 bg-lake hover:bg-lakeDark text-white py-3 rounded-xl text-sm font-medium transition flex items-center justify-center space-x-2 active:scale-95">
                     <i class="fa-solid fa-download"></i>
                     <span>下載求助卡文字</span>
                 </button>
@@ -891,7 +1021,7 @@
 
     <!-- 頁尾 -->
     <footer class="bg-cardBg border-t border-lake/10 py-6 mt-12 text-center text-xs text-gray-500 space-y-2">
-        <p>心情小棧｜我的解憂雜貨店 © 2026 溫暖陪伴守護您的每一天</p>
+        <p>心情小棧｜同學的元氣加油站 © 2026 溫暖陪伴守護您的每一天</p>
         <p class="text-amber-700 font-medium">
             ⚠️ 重要提醒：若您或身邊的人正面臨嚴重危機、極度憂鬱或安全顧慮，請立即尋求專業真人協助：
             <span class="underline">安心專線 1925</span> ｜ <span class="underline">張老師專線 1980</span> ｜ <span class="underline">生命線 1995</span>
@@ -900,7 +1030,7 @@
 
     <!-- JavaScript 邏輯 -->
     <script>
-        let currentTab = 'home';
+        let currentTab = 'station';
         let selectedMood = '平靜';
         let stressLevelVal = 3;
         let currentPersona = 'otter';
@@ -912,8 +1042,16 @@
         let usageMode = 'general';
         let recognition = null;
         let isRecording = false;
-        let runtimeApiKey = ""; // 僅暫存於記憶體，絕不儲存
+        let runtimeApiKey = "";
 
+        const personas = {
+            otter: { name: '小獺暖暖', emoji: '🦦', desc: '溫柔傾聽與同理你的感受' },
+            owl: { name: '貓頭鷹想想', emoji: '🦉', desc: '協助拆解問題與理性分析' },
+            bear: { name: '小熊勇勇', emoji: '🐻', desc: '給予溫暖鼓勵與可行小行動' },
+            rabbit: { name: '兔子彩彩', emoji: '🐰', desc: '透過故事與想像整理心情' }
+        };
+
+        // 心靈測驗題目定義 (完整4題)
         let currentQuizQuestion = 0;
         let quizScores = { otter: 0, owl: 0, bear: 0, rabbit: 0 };
         const quizQuestions = [
@@ -955,22 +1093,190 @@
             }
         ];
 
-        const personas = {
-            otter: { name: '小獺暖暖', emoji: '🦦', desc: '溫柔傾聽與同理你的感受' },
-            owl: { name: '貓頭鷹想想', emoji: '🦉', desc: '協助拆解問題與理性分析' },
-            bear: { name: '小熊勇勇', emoji: '🐻', desc: '給予溫暖鼓勵與可行小行動' },
-            rabbit: { name: '兔子彩彩', emoji: '🐰', desc: '透過故事與想像整理心情' }
-        };
+        // 6大創意主題彩虹卡（各20句，第一行中文，第二行英譯英文）
+        const stationThemes = [
+            {
+                name: "🌱 自我充電與接納",
+                quotes: [
+                    "你不是永遠要給出答案的人，允許自己今天先卡關一下也無所謂。<br><span class='text-sm font-normal text-gray-500 block mt-1'>You don't always have to provide answers; it's okay to allow yourself to get stuck today.</span>",
+                    "累了就停下腳步，世界不會因為你休息五分鐘而停止轉動。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Stop when you're tired; the world won't stop spinning because you rest for five minutes.</span>",
+                    "照顧好自己的心，比達到別人的期待重要一百倍。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Taking care of your own heart is a hundred times more important than meeting others' expectations.</span>",
+                    "接受當下不完美的自己，也是一種勇敢的成長。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Accepting your imperfect self in the present is also a brave form of growth.</span>",
+                    "不必對每個人都笑臉迎迎，你的情緒值得被自己溫柔對待。<br><span class='text-sm font-normal text-gray-500 block mt-1'>You don't need to smile at everyone; your emotions deserve your own gentle treatment.</span>",
+                    "今天過得普通也很好，平安度過就是一種成就。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Having an ordinary day is also great; getting through safely is an achievement.</span>",
+                    "把期待放小一點，把溫柔留給自己多一點。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Keep your expectations small and reserve more tenderness for yourself.</span>",
+                    "給自己一個大大的擁抱，你已經比想像中更努力了。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Give yourself a big hug; you've worked much harder than you imagine.</span>",
+                    "心累的時候，允許自己什麼也不做，發呆也是一種修復。<br><span class='text-sm font-normal text-gray-500 block mt-1'>When your mind is tired, allow yourself to do nothing; daydreaming is also healing.</span>",
+                    "不需要和別人比較節奏，花開有時，你有你的花期。<br><span class='text-sm font-normal text-gray-500 block mt-1'>No need to compare paces with others; flowers bloom in time, and you have your own season.</span>",
+                    "放過那個對自己太嚴格的聲音，你夠好了。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Let go of that overly strict voice inside; you are good enough.</span>",
+                    "每一個脆弱的時刻，都是靈魂在提醒你需要休息。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Every fragile moment is your soul reminding you that you need rest.</span>",
+                    "今天的心情如果有烏雲也沒關係，太陽明天還會升起。<br><span class='text-sm font-normal text-gray-500 block mt-1'>It's okay if today's mood has dark clouds; the sun will rise again tomorrow.</span>",
+                    "不用急著把生活過成完美的樣子，真實的你最可愛。<br><span class='text-sm font-normal text-gray-500 block mt-1'>No need to rush life into perfection; the real you is the most adorable.</span>",
+                    "聽聽心裡的聲音，今天辛苦啦。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Listen to your inner voice; you've worked hard today.</span>",
+                    "把肩膀放鬆，深呼吸，把不屬於你的壓力卸下來。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Relax your shoulders, take a deep breath, and unload the stress that doesn't belong to you.</span>",
+                    "你值得被這個世界溫柔以待，首先從自己開始。<br><span class='text-sm font-normal text-gray-500 block mt-1'>You deserve to be treated gently by this world, starting with yourself.</span>",
+                    "偶爾迷路也無妨，沿途的風景也是旅程的一部分。<br><span class='text-sm font-normal text-gray-500 block mt-1'>It's okay to get lost occasionally; the scenery along the way is part of the journey.</span>",
+                    "不需要向任何人證明自己有多堅強，你可以喊累。<br><span class='text-sm font-normal text-gray-500 block mt-1'>You don't need to prove your strength to anyone; you are allowed to say you're tired.</span>",
+                    "今天對自己說聲謝謝，感謝努力撐過來的自己。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Say thank you to yourself today, thanking yourself for persevering.</span>"
+                ]
+            },
+            {
+                name: "☕ 考前超強戰鬥包",
+                quotes: [
+                    "考卷上的分數不代表你的全部價值，盡力了就足夠閃耀。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Scores on a paper don't define your entire worth; doing your best makes you shine enough.</span>",
+                    "一次的失利只是考驗，不是終點，你的未來還有無限可能。<br><span class='text-sm font-normal text-gray-500 block mt-1'>A single setback is just a test, not the end; your future holds infinite possibilities.</span>",
+                    "深呼吸，把會寫的寫好，剩下的交給運氣和實力。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Take a deep breath, write down what you know well, and leave the rest to luck and skill.</span>",
+                    "書本讀不完沒關係，把握當下學懂的每一題。<br><span class='text-sm font-normal text-gray-500 block mt-1'>It's okay if you can't finish reading; grasp every question you learn right now.</span>",
+                    "大腦也需要充電，讀累了就站起來喝口水伸展一下。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Your brain needs recharging too; when tired, stand up, drink water, and stretch.</span>",
+                    "你是自己的榜樣，超越昨天的自己就是第一名。<br><span class='text-sm font-normal text-gray-500 block mt-1'>You are your own role model; surpassing yesterday's self makes you number one.</span>",
+                    "就算題目很難，保持冷靜你就能看見解題的曙光。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Even if questions are tough, staying calm lets you see the light of solution.</span>",
+                    "考試只是人生的一小步，別讓它定義了你的宏大未來。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Exams are just a small step in life; don't let them define your grand future.</span>",
+                    "相信自己平時累積的努力，筆尖下的文字會有力量。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Trust the effort you've accumulated; the words under your pen will have power.</span>",
+                    "考完就放下，過去的已經過去，未來的掌握在手中。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Let go after the exam; the past is gone, and the future is in your hands.</span>",
+                    "保持穩定的呼吸，專注在眼前的這一題就好。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Keep your breathing steady and focus solely on the question right in front of you.</span>",
+                    "緊張是正常的，代表你在乎，把它轉化為專注的力量。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Nervousness is normal, meaning you care; turn it into focused energy.</span>",
+                    "深夜的燈光和努力，時間都看得見，別懷疑自己。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Late-night lights and hard work are seen by time; don't doubt yourself.</span>",
+                    "答錯了題目沒關係，那是幫你把觀念補起來的機會。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Getting a question wrong is fine; it's an opportunity to patch up your concepts.</span>",
+                    "帶著自信進考場，交出無愧於心的考卷。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Enter the exam room with confidence and hand in a paper with a clear conscience.</span>",
+                    "放輕鬆，你的努力不會背叛你。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Relax; your hard work will not betray you.</span>",
+                    "考好考壞，家人和朋友永遠愛的是你這個人。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Win or lose, family and friends always love you for who you are.</span>",
+                    "用一杯熱牛奶慰勞辛苦複習的自己吧。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Reward your hard-studying self with a warm glass of milk.</span>",
+                    "給自己一點信心，你比想像中還要聰明與強大。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Give yourself some confidence; you are smarter and stronger than you think.</span>",
+                    "闔上書本，今晚好好睡一覺，大腦會幫你整理記憶。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Close the book and get a good night's sleep; your brain will organize your memory.</span>"
+                ]
+            },
+            {
+                name: "🌊 擺脫焦慮金句集",
+                quotes: [
+                    "未來的事未來再煩惱，現在先專注吃眼前這口好吃的。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Worry about future things in the future; for now, focus on enjoying the tasty bite in front of you.</span>",
+                    "擔心就像搖晃碳酸飲料，只會讓自己心浮氣躁，停下來吧。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Worrying is like shaking carbonated drinks; it only makes you restless, so stop.</span>",
+                    "大部分你害怕發生的事，其實根本不會發生。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Most of the things you're afraid will happen actually never will.</span>",
+                    "肩膀垮下來，眉頭鬆開，焦慮追不上放鬆的你。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Drop your shoulders and loosen your brow; anxiety can't catch up to a relaxed you.</span>",
+                    "一次只要過好一天，甚至只要過好接下來的一小時。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Just get through one day at a time, or even just the next hour.</span>",
+                    "如果無法改變現狀，就先接受它，然後順其自然。<br><span class='text-sm font-normal text-gray-500 block mt-1'>If you can't change the status quo, accept it first, then let nature take its course.</span>",
+                    "深呼吸 4 秒，憋氣 7 秒，吐氣 8 秒，焦慮會慢慢飄走。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Inhale for 4s, hold for 7s, exhale for 8s; anxiety will slowly drift away.</span>",
+                    "天塌下來還有高個子頂著，先把自己照顧好。<br><span class='text-sm font-normal text-gray-500 block mt-1'>If the sky falls, the tall ones will hold it up; take care of yourself first.</span>",
+                    "放手吧，有些事情不是你的責任，別全扛在肩上。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Let go; some things aren't your responsibility, don't carry them all on your shoulders.</span>",
+                    "生活總有出路，船到橋頭自然直，別自己嚇自己。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Life always finds a way, things sort themselves out; don't scare yourself.</span>",
+                    "焦慮時摸摸溫熱的馬克杯，把思緒拉回安全的當下。<br><span class='text-sm font-normal text-gray-500 block mt-1'>When anxious, touch a warm mug to pull your thoughts back to the safe present.</span>",
+                    "事情沒有想像中那麼糟，笑一個，會過去的。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Things aren't as bad as you imagine; smile, this too shall pass.</span>",
+                    "把心裡的雜訊關小聲一點，聽聽自己的心跳。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Turn down the noise in your heart and listen to your own heartbeat.</span>",
+                    "允許自己有焦慮的情緒，不用急著把它趕走。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Allow yourself to feel anxious; you don't need to rush to chase it away.</span>",
+                    "退一步海闊天空，不用每件事都要求完美無瑕。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Take a step back for a wider view; not everything needs to be flawless.</span>",
+                    "今天放自己一個假，焦慮明天上學再說。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Take a day off today; let tomorrow's anxiety wait until tomorrow.</span>",
+                    "閉上眼睛，想像自己正走在陽光灑落的森林小徑。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Close your eyes and imagine walking down a sun-dappled forest path.</span>",
+                    "把大目標拆成小碎片，一次解決一個就不慌了。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Break big goals into tiny pieces; solve one at a time and you won't panic.</span>",
+                    "你已經做得很好了，別再拿放大鏡檢視自己的缺點。<br><span class='text-sm font-normal text-gray-500 block mt-1'>You've already done great; stop using a magnifying glass on your flaws.</span>",
+                    "明天的事明天再煩惱，今晚安穩入眠最大。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Worry about tomorrow's matters tomorrow; sleeping soundly tonight is top priority.</span>"
+                ]
+            },
+            {
+                name: "🧭 迷茫時的指南針",
+                quotes: [
+                    "迷茫是因為你正在思考更遠的未來，這代表你在成長。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Being lost means you're thinking about a farther future, which shows you're growing.</span>",
+                    "找不到方向時就先停下來看風景，休息也是在累積前進的動力。<br><span class='text-sm font-normal text-gray-500 block mt-1'>When you can't find direction, stop to enjoy the scenery; rest accumulates momentum.</span>",
+                    "人生沒有白走的路，每一步迷惘都是在幫你排除錯誤選項。<br><span class='text-sm font-normal text-gray-500 block mt-1'>No path in life is wasted; every bit of confusion helps rule out wrong options.</span>",
+                    "不用急著知道十年後的自己在哪裡，過好今天就好。<br><span class='text-sm font-normal text-gray-500 block mt-1'>No need to rush to know where you'll be in ten years; just live today well.</span>",
+                    "順著內心的微光前進，哪怕步伐再小也是在向前走。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Follow the inner glimmer forward; no matter how small the step, you're moving.</span>",
+                    "偶爾迷路，往往能看見地圖上沒有的美麗風景。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Getting lost occasionally often reveals beautiful scenery not found on maps.</span>",
+                    "心之所向就是方向，相信你的直覺與善良。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Where your heart points is your direction; trust your intuition and kindness.</span>",
+                    "迷茫是青春的特權，別害怕，大家都在摸索中前進。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Confusion is youth's privilege; don't be afraid, everyone moves forward while exploring.</span>",
+                    "把眼光放回今天，做好眼前這件小事就是最佳解答。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Bring your focus back to today; doing the small task right in front of you is the best answer.</span>",
+                    "人生不是選擇題，怎麼走都可以開創出屬於你的路。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Life isn't a multiple-choice test; any path you take can carve out your own way.</span>",
+                    "當你不知道去哪裡時，先把自己變得更好就對了。<br><span class='text-sm font-normal text-gray-500 block mt-1'>When you don't know where to go, focusing on self-improvement is always right.</span>",
+                    "探索自我本來就需要時間，對自己多一點耐心。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Exploring yourself naturally takes time; have a little more patience with yourself.</span>",
+                    "前進的路上，慢一點也沒關係，方向對了就不怕遠。<br><span class='text-sm font-normal text-gray-500 block mt-1'>On the road forward, being slow is fine; with the right direction, distance isn't scary.</span>",
+                    "聽從內心的熱情，哪怕只有一點點微光也足夠點燃勇氣。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Listen to your inner passion; even a tiny glimmer is enough to ignite courage.</span>",
+                    "迷路的時候，抬頭看看星空，宇宙會指引你。<br><span class='text-sm font-normal text-gray-500 block mt-1'>When lost, look up at the starry sky; the universe will guide you.</span>",
+                    "放下對未來的恐懼，過好當下的每一秒。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Let go of fear about the future and live every second of the present.</span>",
+                    "每一個大人物年輕時都曾迷茫過，你並不孤單。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Every great figure was once confused in their youth; you are not alone.</span>",
+                    "勇敢跨出第一步，迷霧自然會散開。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Bravely take the first step, and the fog will naturally clear.</span>",
+                    "你的價值不需要別人來定義，走自己的路就對了。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Your worth doesn't need defining by others; walking your own path is right.</span>",
+                    "相信時間的力量，答案會在不經意時浮現。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Trust the power of time; answers will emerge when you least expect them.</span>"
+                ]
+            },
+            {
+                name: "🔥 告別內耗小行動",
+                quotes: [
+                    "與其在腦海裡上演小劇場一千遍，不如現在就動手做一件小事。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Instead of running a mini-drama in your head a thousand times, take action on one small thing now.</span>",
+                    "行動是治癒內耗的最佳良藥，先起立走動五分鐘再說。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Action is the best remedy for mental exhaustion; stand up and walk around for five minutes first.</span>",
+                    "別把精力耗在無法控制的事情上，把力氣留給自己。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Don't waste energy on things you can't control; save your strength for yourself.</span>",
+                    "完美主義是拖延的藉口，先求有再求好。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Perfectionism is an excuse for procrastination; aim for done before perfect.</span>",
+                    "把腦袋中的雜物清出來寫在紙上，大腦立刻就釋放了。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Clear the clutter out of your head onto paper, and your brain will instantly release.</span>",
+                    "不要過度解讀別人的眼神或一句話，大家都很忙的。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Don't overinterpret others' looks or words; everyone is very busy.</span>",
+                    "停止內耗的最好方法：去喝水、去洗臉、去睡覺。<br><span class='text-sm font-normal text-gray-500 block mt-1'>The best way to stop mental friction: drink water, wash your face, go to sleep.</span>",
+                    "今天只要完成一項小任務，你就已經贏過昨天的自己。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Completing just one small task today means you've already beaten yesterday's self.</span>",
+                    "別再自我懷疑了，你的直覺往往是對的。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Stop self-doubting; your intuition is often right.</span>",
+                    "把『我辦不到』換成『我先試試看五分鐘』。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Replace 'I can't' with 'I'll try it for five minutes first.'</span>",
+                    "與其懊惱過去，不如把眼光放在可以改變的現在。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Instead of regretting the past, set your sights on the changeable present.</span>",
+                    "拒絕精神內耗，從今天開始學會對不合理的要求說不。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Reject mental draining; start learning to say no to unreasonable demands today.</span>",
+                    "行動起來會發現，原本擔心的障礙其實沒那麼可怕。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Taking action reveals that the feared obstacles aren't actually that scary.</span>",
+                    "放下無謂的比較，你的舞台只有你自己。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Drop pointless comparisons; your only stage is yourself.</span>",
+                    "每天清理一個抽屜或桌面，內心也會跟著清爽起來。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Clean out one drawer or desk daily, and your inner self will feel refreshed too.</span>",
+                    "別讓別人的意見成為你內心打架的武器。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Don't let others' opinions become weapons for your inner conflicts.</span>",
+                    "接受自己的不完美，停止無止境的自我批判。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Accept your imperfections and stop endless self-criticism.</span>",
+                    "做就對了！在碰撞中修正，總比原地打轉好。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Just do it! Adjusting through trial is better than spinning in place.</span>",
+                    "給大腦一個安靜的空間，不要塞滿過多的資訊。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Give your brain a quiet space without stuffing it with too much information.</span>",
+                    "活在當下，把每一件小事做到溫柔而堅定。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Live in the present and do every small thing with gentleness and firmness.</span>"
+                ]
+            },
+            {
+                name: "💖 神仙友情與人際",
+                quotes: [
+                    "真正的朋友懂你的沉默，也懂你欲言又止的疲憊。<br><span class='text-sm font-normal text-gray-500 block mt-1'>True friends understand your silence and your unspoken fatigue.</span>",
+                    "人際關係不用勉強討好所有人，磁場對了自然會靠近。<br><span class='text-sm font-normal text-gray-500 block mt-1'>No need to force-please everyone in relationships; when vibes align, you naturally get close.</span>",
+                    "學會對不舒服的關係保持距離，也是一種自我保護。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Learning to keep distance from uncomfortable relationships is also self-protection.</span>",
+                    "溫柔以待身邊的人，世界會把雙倍的溫暖還給你。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Treat those around you gently, and the world will return double the warmth.</span>",
+                    "謝謝那些在你低潮時默默遞上一杯熱茶的真心朋友。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Thank those sincere friends who quietly handed you a cup of tea during low moments.</span>",
+                    "不用害怕衝突，真誠的溝通能讓彼此靠得更近。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Don't fear conflict; sincere communication brings each other closer.</span>",
+                    "孤單並不可恥，那是與自己深度對話的最佳時光。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Being alone isn't shameful; it's the best time for deep dialogue with yourself.</span>",
+                    "遇到懂你的人是幸運，遇到不懂你的人就笑笑走過。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Meeting someone who understands you is lucky; pass those who don't with a smile.</span>",
+                    "把真心留給懂珍惜你的人，你的善良很珍貴。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Save your sincerity for those who know how to cherish you; your kindness is precious.</span>",
+                    "學會傾聽別人的心聲，也能同時療癒自己的內心。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Learning to listen to others' voices can simultaneously heal your own heart.</span>",
+                    "友情不需要黏得像連體嬰，各自努力、互相支持最舒服。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Friendship doesn't need to cling like Siamese twins; mutual support while striving separately is most comfortable.</span>",
+                    "給朋友一個大大的微笑，今天大家都要過得開心。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Give friends a big smile; may everyone have a happy day today.</span>",
+                    "原諒別人的無心之過，也是放過自己的心靈。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Forgiving others' unintentional mistakes is also liberating your own mind.</span>",
+                    "在人群中保持獨立的自我，不隨波逐流。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Maintain your independent self among crowds without following the trend blindly.</span>",
+                    "一個懂你的眼神勝過千言萬語。<br><span class='text-sm font-normal text-gray-500 block mt-1'>A look that understands you outweighs a thousand words.</span>",
+                    "對家人說聲我愛你，愛要大聲且溫柔地表達。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Tell your family you love them; love should be expressed loudly and gently.</span>",
+                    "學會說謝謝與對不起，人與人之間最美的橋樑。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Learning to say thank you and sorry builds the most beautiful bridge between people.</span>",
+                    "當朋友的避風港，自己也會感到無比踏實與溫暖。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Being a safe haven for friends makes you feel immensely grounded and warm too.</span>",
+                    "溫柔是一種選擇，對世界溫柔，世界也會擁抱你。<br><span class='text-sm font-normal text-gray-500 block mt-1'>Gentleness is a choice; be gentle with the world, and it will embrace you back.</span>",
+                    "願你的青春裡，總有一兩位懂你笑淚的知己相伴。<br><span class='text-sm font-normal text-gray-500 block mt-1'>May your youth always be accompanied by one or two soulmates who understand your smiles and tears.</span>"
+                ]
+            }
+        ];
+
+        let currentStationTheme = 0;
+        let currentQuoteIndex = 0;
+
+        // 4張去背人物圖片自動/點擊輪播
+        const mascotImages = [
+            "https://lin5406.github.io/lin/spirit/afu001.png",
+            "https://lin5406.github.io/lin/spirit/afu002.png",
+            "https://lin5406.github.io/lin/spirit/afu003.png",
+            "https://lin5406.github.io/lin/spirit/afu004.png"
+        ];
+        let currentMascotIndex = 0;
+        let mascotAutoTimer = null;
+
+        // 寒暑假倒數設定
+        let currentBreakType = 'winter'; // 'winter' or 'summer'
+        const winterTargetDate = new Date('2027-01-21T00:00:00');
+        const summerTargetDate = new Date('2027-07-01T00:00:00');
 
         window.onload = function() {
+            startCountdownTimer();
+            startMascotAutoRotate();
+            drawNextStationCard();
+            initQuiz();
             initCanvas();
             initSpeechRecognition();
             loadSettingsFromStorage();
-            initQuiz();
             loadDashboardData();
         };
 
-        // ================= API Key 浮動彈窗與暫存 (絕不寫入 LocalStorage) =================
+        // ================= API Key 暫存與套用 =================
         function toggleApiKeyModal(open) {
             const modal = document.getElementById('apiKeyModal');
             if (open) {
@@ -984,32 +1290,27 @@
         function saveFloatingApiKey() {
             const keyInput = document.getElementById('floatingApiKeyInput').value.trim();
             if (!keyInput) {
-                alertBox("請先輸入有效的 API Key。");
+                showCustomNotice("請先輸入有效的 API Key。");
                 return;
             }
             runtimeApiKey = keyInput;
-            alertBox("API 金鑰已暫時套用至當前分頁！關閉或離開網頁後即會自動銷毀。");
+            showCustomNotice("API 金鑰已暫時套用至當前分頁！");
             toggleApiKeyModal(false);
         }
 
-        // ================= 多巴胺漸層彈窗控制 =================
+        // ================= 多巴胺漸層控制 =================
         function toggleDopamineModal(open) {
             const modal = document.getElementById('dopamineModal');
-            if (open) {
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-            }
+            if (open) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
         }
 
         function setDopamineTheme(theme) {
             const body = document.getElementById('appBody');
-
             ['off', 'mode1', 'mode2', 'mode3', 'mode4', 'mode5'].forEach(t => {
                 const checkEl = document.getElementById(`check-${t}`);
                 if (checkEl) checkEl.classList.add('hidden');
             });
-
             const activeCheck = document.getElementById(`check-${theme}`);
             if (activeCheck) activeCheck.classList.remove('hidden');
 
@@ -1042,35 +1343,148 @@
         // ================= 頁籤切換 =================
         function switchTab(tabId) {
             currentTab = tabId;
-            const tabs = ['home', 'checkin', 'chat', 'quiz', 'dashboard', 'toolbox', 'privacy'];
+            const tabs = ['station', 'home', 'checkin', 'chat', 'quiz', 'dashboard', 'toolbox', 'privacy'];
             tabs.forEach(t => {
                 const el = document.getElementById(`tab-${t}`);
                 if (el) {
                     if (t === tabId) {
                         el.classList.remove('hidden');
-                        if (t === 'dashboard') {
-                            renderDashboard();
-                        }
+                        if (t === 'dashboard') renderDashboard();
                     } else {
                         el.classList.add('hidden');
                     }
                 }
             });
-
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                if (btn.dataset.tab === tabId) {
-                    btn.classList.add('bg-softYellow', 'text-lakeDark', 'font-bold');
-                } else {
-                    btn.classList.remove('bg-softYellow', 'text-lakeDark', 'font-bold');
-                }
+                if (btn.dataset.tab === tabId) btn.classList.add('bg-softYellow', 'text-lakeDark', 'font-bold');
+                else btn.classList.remove('bg-softYellow', 'text-lakeDark', 'font-bold');
             });
-
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function toggleMobileMenu() {
-            const menu = document.getElementById('mobileMenu');
-            menu.classList.toggle('hidden');
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+
+        // ================= 同學的元氣加油站互動邏輯 =================
+        function switchStationTheme(index) {
+            currentStationTheme = index;
+            currentQuoteIndex = Math.floor(Math.random() * stationThemes[index].quotes.length);
+            document.querySelectorAll('.station-tab-btn').forEach((btn, idx) => {
+                if (idx === index) btn.className = "station-tab-btn py-2.5 px-3 rounded-xl text-xs font-bold transition text-white bg-lake shadow text-center";
+                else btn.className = "station-tab-btn py-2.5 px-3 rounded-xl text-xs font-bold transition text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 text-center";
+            });
+            const themeObj = stationThemes[index];
+            document.getElementById('stationCardBadge').innerText = themeObj.name;
+            document.getElementById('stationCardQuote').innerHTML = themeObj.quotes[currentQuoteIndex];
+        }
+
+        function drawNextStationCard() {
+            const themeObj = stationThemes[currentStationTheme];
+            currentQuoteIndex = (currentQuoteIndex + 1) % themeObj.quotes.length;
+            document.getElementById('stationCardQuote').innerHTML = themeObj.quotes[currentQuoteIndex];
+            nextMascotImage();
+        }
+
+        function nextMascotImage() {
+            currentMascotIndex = (currentMascotIndex + 1) % mascotImages.length;
+            const imgEl = document.getElementById('stationMascotImg');
+            if (imgEl) {
+                imgEl.style.opacity = '0.3';
+                setTimeout(() => {
+                    imgEl.src = mascotImages[currentMascotIndex];
+                    imgEl.style.opacity = '1';
+                }, 150);
+            }
+        }
+
+        function startMascotAutoRotate() {
+            clearInterval(mascotAutoTimer);
+            mascotAutoTimer = setInterval(() => {
+                nextMascotImage();
+            }, 3500);
+        }
+
+        function speakCurrentCard() {
+            if (!('speechSynthesis' in window)) {
+                showCustomNotice("您的瀏覽器不支援語音朗讀功能。");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const quoteHTML = stationThemes[currentStationTheme].quotes[currentQuoteIndex];
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = quoteHTML;
+            const plainText = tempDiv.textContent || tempDiv.innerText || "";
+            
+            const utterance = new SpeechSynthesisUtterance(plainText);
+            utterance.lang = 'zh-TW';
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function setBreakTarget(type) {
+            currentBreakType = type;
+            const winterBtn = document.getElementById('winterBtn');
+            const summerBtn = document.getElementById('summerBtn');
+            const semesterProgressLabel = document.getElementById('semesterProgressLabel');
+            const semesterProgressNum = document.getElementById('semesterProgressNum');
+            const semesterProgressBar = document.getElementById('semesterProgressBar');
+            const semesterProgressDesc = document.getElementById('semesterProgressDesc');
+            const classDaysLabel = document.getElementById('classDaysLabel');
+            const classDaysNum = document.getElementById('classDaysNum');
+
+            if (type === 'winter') {
+                winterBtn.className = "bg-gray-900 text-white hover:bg-black px-4 py-3 rounded-2xl text-xs font-medium transition flex items-center space-x-2 shadow active:scale-95";
+                summerBtn.className = "bg-apricot/80 text-white hover:bg-apricot px-4 py-3 rounded-2xl text-xs font-medium transition flex items-center space-x-2 shadow active:scale-95";
+                document.getElementById('countdownTitleLabel').innerText = "距離寒假還有";
+                document.getElementById('countdownTargetDateText').innerText = "目標日 2027/1/21";
+
+                semesterProgressLabel.innerText = "學期進度";
+                semesterProgressNum.innerText = "31%";
+                semesterProgressBar.style.width = "31%";
+                semesterProgressDesc.innerText = "進度開始有感，同學也開始有感。";
+                classDaysLabel.innerText = "真正剩餘上課天";
+                classDaysNum.innerText = "67 天";
+            } else {
+                summerBtn.className = "bg-gray-900 text-white hover:bg-black px-4 py-3 rounded-2xl text-xs font-medium transition flex items-center space-x-2 shadow active:scale-95";
+                winterBtn.className = "bg-lake/80 text-white hover:bg-lake px-4 py-3 rounded-2xl text-xs font-medium transition flex items-center space-x-2 shadow active:scale-95";
+                document.getElementById('countdownTitleLabel').innerText = "距離暑假還有";
+                document.getElementById('countdownTargetDateText').innerText = "目標日 2027/7/1";
+
+                semesterProgressLabel.innerText = "學年進度";
+                semesterProgressNum.innerText = "78%";
+                semesterProgressBar.style.width = "78%";
+                semesterProgressDesc.innerText = "衝刺學年尾聲，迎接美好暑假！";
+                classDaysLabel.innerText = "真正剩餘上課天";
+                classDaysNum.innerText = "142 天";
+            }
+            updateCountdown();
+        }
+
+        function startCountdownTimer() {
+            setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const target = currentBreakType === 'winter' ? winterTargetDate : summerTargetDate;
+            const diff = target - now;
+
+            if (diff <= 0) {
+                document.getElementById('countdownDaysNum').innerText = "0 天";
+                document.getElementById('countdownClockStr').innerText = "00 : 00 : 00";
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('countdownDaysNum').innerText = `${days} 天`;
+            document.getElementById('countdownClockStr').innerText = 
+                `${String(hours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')}`;
         }
 
         // ================= 心情打卡邏輯 =================
@@ -1099,9 +1513,8 @@
             document.getElementById('resultTimestamp').innerText = dateStr;
 
             let feedback = `今天你選擇了心情<strong>「${selectedMood}」</strong>，壓力指數評估為 <strong>${stressLevelVal}/5</strong>。<br><br>`;
-            
             if (stressLevelVal >= 4) {
-                feedback += `看起來最近承受了比較大的重量呢。請記得，允許自己疲憊、允許事情慢慢來是沒問題的。<br><br>`;
+                feedback += `看起來最近承受了比較大的重量呢。請記得，允許自己疲憊、允許事情慢慢來是完全沒問題的。<br><br>`;
                 feedback += `<strong>溫柔小步驟：</strong>先給自己倒一杯溫水，走到窗邊深呼吸三次，今天只要照顧好當下的自己就好。`;
             } else {
                 feedback += `謝謝你願意停下來花幾分鐘做自我覺察。保持對自己的覺察就是最好的照顧。<br><br>`;
@@ -1128,11 +1541,9 @@
 
             document.querySelectorAll('.persona-btn').forEach(b => {
                 b.classList.remove('border-lake', 'bg-lake/5');
-                b.classList.add('border-gray-100');
             });
             const activeBtn = document.querySelector(`[data-id="${id}"]`);
             if (activeBtn) {
-                activeBtn.classList.remove('border-gray-100');
                 activeBtn.classList.add('border-lake', 'bg-lake/5');
             }
 
@@ -1196,7 +1607,7 @@
             } catch (error) {
                 console.error("Gemini API Error:", error);
                 document.getElementById('chatLoading').classList.add('hidden');
-                appendMessage('model', '哎呀，尚未設定 API Key 或金鑰無效。請點擊畫面右上方黃色「API」按鈕輸入您的 Gemini API Key 即可正常對話！');
+                appendMessage('model', '哎呀，小棧的連線好像稍微晃動了一下。請確認上方「API」金鑰是否已填入，稍後再試一次喔！');
             }
         }
 
@@ -1238,11 +1649,7 @@
             2. 一個實際方法：提供一個具體且做得到的方向。
             3. 一個簡短追問：溫柔地問一個能引導對方思考或舒緩的問題。`;
 
-            const apiKey = runtimeApiKey;
-            if (!apiKey) {
-                throw new Error("尚未設定 API Key");
-            }
-
+            const apiKey = runtimeApiKey || ""; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             const payload = {
@@ -1260,11 +1667,6 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    
-                    if (!response.ok) {
-                        throw new Error(`API 錯誤 (${response.status})`);
-                    }
-
                     const result = await response.json();
                     const candidate = result.candidates?.[0];
                     if (candidate && candidate.content?.parts?.[0]?.text) {
@@ -1294,7 +1696,7 @@
                         <p class="whitespace-pre-wrap leading-relaxed">${escapeHtml(text)}</p>
                         ${!isUser ? `
                             <div class="flex items-center space-x-3 pt-2 border-t border-gray-100 text-xs">
-                                <button onclick="speakText(this)" class="text-gray-500 hover:text-lake transition"><i class="fa-solid fa-volume-high mr-1"></i>朗讀</button>
+                                <button onclick="speakText(this)" class="text-gray-500 hover:text-lake transition active:scale-95"><i class="fa-solid fa-volume-high mr-1"></i>朗讀</button>
                             </div>
                         ` : ''}
                     </div>
@@ -1335,7 +1737,7 @@
 
         function downloadChatTxt() {
             if (chatHistory.length === 0) {
-                alertBox("目前尚無對話紀錄可供下載。");
+                showCustomNotice("目前尚無對話紀錄可供下載。");
                 return;
             }
             let content = "--- 心情小棧｜解憂對話紀錄 ---\n\n";
@@ -1373,7 +1775,7 @@
             listEl.innerHTML = '';
             q.options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = "w-full text-left p-4 rounded-2xl bg-white hover:bg-lake/5 border border-gray-200 hover:border-lake text-sm font-medium text-warmText transition flex items-center space-x-3 shadow-sm active:scale-[0.99]";
+                btn.className = "w-full text-left p-4 rounded-2xl bg-white hover:bg-lake/5 border border-gray-200 hover:border-lake text-sm font-medium text-warmText transition flex items-center space-x-3 shadow-sm active:scale-95";
                 btn.innerHTML = `<span class="w-7 h-7 rounded-full bg-lake/10 text-lake flex items-center justify-center text-xs font-bold flex-shrink-0">${String.fromCharCode(65 + idx)}</span><span>${opt.text}</span>`;
                 btn.onclick = () => answerQuiz(opt.type);
                 listEl.appendChild(btn);
@@ -1525,7 +1927,7 @@
 
         function exportDashboardData() {
             if (checkinRecords.length === 0) {
-                alertBox("目前尚無打卡記錄可供匯出。");
+                showCustomNotice("目前尚無打卡記錄可供匯出。");
                 return;
             }
             let content = "--- 心情小棧｜心情打卡與儀表板記錄 ---\n\n";
@@ -1573,7 +1975,7 @@
 
         function toggleSpeechInput() {
             if (!recognition) {
-                alertBox("您的裝置或瀏覽器不支援語音辨識功能。");
+                showCustomNotice("您的裝置或瀏覽器不支援語音辨識功能。");
                 return;
             }
             if (isRecording) {
@@ -1596,7 +1998,7 @@
 
         function speakText(btnEl) {
             if (!('speechSynthesis' in window)) {
-                alertBox("您的瀏覽器不支援語音朗讀功能。");
+                showCustomNotice("您的瀏覽器不支援語音朗讀功能。");
                 return;
             }
             const textBlock = btnEl.closest('.space-y-2').querySelector('p').innerText;
@@ -1719,7 +2121,7 @@
             textarea.select();
             document.execCommand('copy');
             document.body.removeChild(textarea);
-            alertBox("已成功複製句子到剪貼簿！");
+            showCustomNotice("已成功複製句子到剪貼簿！");
         }
 
         // ================= 隱私與紀錄 =================
@@ -1731,13 +2133,13 @@
             const camGroup = document.getElementById('campusInputGroup');
 
             if (mode === 'general') {
-                genBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white active:scale-95";
-                camBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white active:scale-95";
+                genBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white";
+                camBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white";
                 genGroup.classList.remove('hidden');
                 camGroup.classList.add('hidden');
             } else {
-                camBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white active:scale-95";
-                genBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white active:scale-95";
+                camBtn.className = "p-4 rounded-2xl border-2 border-lake bg-lake/5 text-left transition bg-white";
+                genBtn.className = "p-4 rounded-2xl border-2 border-gray-100 text-left transition bg-white";
                 camGroup.classList.remove('hidden');
                 genGroup.classList.add('hidden');
             }
@@ -1747,10 +2149,10 @@
             isSavingEnabled = checked;
             if (checked) {
                 saveToLocalStorage('checkinRecords', checkinRecords);
-                alertBox("已啟用本機儲存功能。紀錄將僅存於此瀏覽器的 LocalStorage 中。");
+                showCustomNotice("已啟用本機儲存功能。紀錄將僅存於此瀏覽器的 LocalStorage 中。");
             } else {
                 localStorage.removeItem('mood_station_data');
-                alertBox("已關閉本機儲存，並清空已保存紀錄。");
+                showCustomNotice("已關閉本機儲存，並清空已保存紀錄。");
             }
         }
 
@@ -1776,24 +2178,19 @@
         }
 
         function clearAllDataPrompt() {
-            if (confirm("確定要清除本機的所有紀錄嗎？此動作無法復原。")) {
-                localStorage.removeItem('mood_station_data');
-                checkinRecords = [];
-                chatHistory = [];
-                document.getElementById('saveToggle').checked = false;
-                isSavingEnabled = false;
-                alertBox("已清除所有本機紀錄。");
-                renderDashboard();
-            }
+            localStorage.removeItem('mood_station_data');
+            checkinRecords = [];
+            chatHistory = [];
+            document.getElementById('saveToggle').checked = false;
+            isSavingEnabled = false;
+            showCustomNotice("已清除所有本機紀錄。");
+            renderDashboard();
         }
 
         function endSessionAction() {
-            if (confirm("即將結束使用並清空當次記憶體與暫存。若這是共用裝置，建議您確認已關閉分頁。")) {
-                chatHistory = [];
-                checkinRecords = [];
-                runtimeApiKey = "";
-                location.reload();
-            }
+            chatHistory = [];
+            checkinRecords = [];
+            location.reload();
         }
 
         // ================= 校園求助卡 =================
@@ -1823,7 +2220,7 @@
         }
 
         function downloadHelpCardTxt() {
-            const content = `--- 心情小棧｜準備給老師的求助卡 ---\n日期：${new Date().toLocaleDateString('zh-TW')}\n身份：${document.getElementById('cardUserIdentifier').innerText}\nStatus：${document.getElementById('cardUserMoodSummary').innerText}\n\n內容：\n${document.getElementById('cardUserNote').innerText}\n\n* 註：請將此卡片交給信任的輔導老師或導師。`;
+            const content = `--- 心情小棧｜準備給老師的求助卡 ---\n日期：${new Date().toLocaleDateString('zh-TW')}\n身份：${document.getElementById('cardUserIdentifier').innerText}\n狀態：${document.getElementById('cardUserMoodSummary').innerText}\n\n內容：\n${document.getElementById('cardUserNote').innerText}\n\n* 註：請將此卡片交給信任的輔導老師或導師。`;
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -1833,8 +2230,15 @@
             URL.revokeObjectURL(url);
         }
 
-        function alertBox(msg) {
-            alert(msg);
+        function showCustomNotice(msg) {
+            const notice = document.createElement('div');
+            notice.className = 'fixed top-20 right-6 z-50 bg-lake text-white px-5 py-3 rounded-2xl shadow-xl text-sm font-medium transition-all transform duration-300';
+            notice.innerHTML = `<i class="fa-solid fa-circle-check mr-2"></i>${msg}`;
+            document.body.appendChild(notice);
+            setTimeout(() => {
+                notice.style.opacity = '0';
+                setTimeout(() => notice.remove(), 300);
+            }, 3000);
         }
 
         function escapeHtml(text) {
