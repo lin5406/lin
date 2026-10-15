@@ -129,7 +129,7 @@
                 <p class="text-xs text-gray-500">當您將網頁部署至 GitHub Pages 等個人網域時，需填入 API Key 才能正常與 AI 夥伴對話。</p>
             </div>
 
-            <!-- 輸入框區塊 -->
+            <!-- 輸入框區塊 (不儲存至本機，每次打開皆為空白) -->
             <div class="space-y-2 bg-softYellow/40 p-4 rounded-2xl border border-lake/15">
                 <label class="block text-xs font-bold text-lakeDark" for="floatingApiKeyInput">
                     <i class="fa-solid fa-key mr-1 text-apricot"></i> 輸入您的 Gemini API Key
@@ -137,10 +137,10 @@
                 <div class="flex space-x-2">
                     <input type="password" id="floatingApiKeyInput" placeholder="請貼上您的 AIzaSy... 金鑰" class="flex-grow rounded-xl border border-gray-200 p-2.5 text-xs focus:outline-none focus:border-lake bg-white">
                     <button onclick="saveFloatingApiKey()" class="bg-lake hover:bg-lakeDark text-white px-4 py-2 rounded-xl text-xs font-medium transition whitespace-nowrap">
-                        儲存金鑰
+                        暫存並套用
                     </button>
                 </div>
-                <p class="text-[10px] text-gray-500">🔒 金鑰僅儲存於您當前瀏覽器的本機儲存空間（LocalStorage），絕不會外流。</p>
+                <p class="text-[10px] text-gray-500">🔒 基於安全考量，金鑰絕不儲存於本機裝置。每次重新整理或離開頁面即自動清除，防止被盜用。</p>
             </div>
 
             <!-- 教學與說明區塊 -->
@@ -153,7 +153,7 @@
                     <li>點擊左上角的 <strong>"Get API key"</strong>（取得 API 金鑰）按鈕。</li>
                     <li>點擊 <strong>"Create API key in new project"</strong>（在新專案中建立金鑰）。</li>
                     <li>將產生的長串英數字金鑰（以 <code class="bg-gray-100 text-red-600 px-1 rounded">AIzaSy...</code> 開頭）複製起來。</li>
-                    <li>貼到上方欄位並點擊「儲存金鑰」即可開始暢聊！</li>
+                    <li>貼到上方欄位並點擊「暫存並套用」即可開始暢聊！</li>
                 </ol>
             </div>
 
@@ -912,6 +912,7 @@
         let recognition = null;
         let isRecording = false;
         let isDopaminePanelOpen = false;
+        let runtimeApiKey = ""; // 僅暫存於記憶體，絕不寫入 localStorage
 
         let currentQuizQuestion = 0;
         let quizScores = { otter: 0, owl: 0, bear: 0, rabbit: 0 };
@@ -969,18 +970,13 @@
             loadDashboardData();
         };
 
-        // ================= API Key 浮動彈窗與儲存 =================
+        // ================= API Key 浮動彈窗與暫存 (絕不寫入 LocalStorage) =================
         function toggleApiKeyModal(open) {
             const modal = document.getElementById('apiKeyModal');
             if (open) {
+                // 每次打開必定清空輸入框，絕不留存舊金鑰
+                document.getElementById('floatingApiKeyInput').value = "";
                 modal.classList.remove('hidden');
-                // 載入已儲存的金鑰顯示在浮動輸入框中
-                try {
-                    const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
-                    if (stored.userApiKey) {
-                        document.getElementById('floatingApiKeyInput').value = stored.userApiKey;
-                    }
-                } catch (e) {}
             } else {
                 modal.classList.add('hidden');
             }
@@ -988,15 +984,14 @@
 
         function saveFloatingApiKey() {
             const keyInput = document.getElementById('floatingApiKeyInput').value.trim();
-            try {
-                const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
-                stored.userApiKey = keyInput;
-                localStorage.setItem('mood_station_data', JSON.stringify(stored));
-                alertBox("Gemini API 金鑰已成功儲存至瀏覽器！您現在可以正常與 AI 對話了。");
-                toggleApiKeyModal(false);
-            } catch (e) {
-                alertBox("儲存失敗，請檢查瀏覽器隱私設定。");
+            if (!keyInput) {
+                alertBox("請先輸入有效的 API Key。");
+                return;
             }
+            // 僅暫存於記憶體變數中，絕不寫入 localStorage
+            runtimeApiKey = keyInput;
+            alertBox("API 金鑰已暫時套用至當前分頁！關閉或離開網頁後即會自動銷毀。");
+            toggleApiKeyModal(false);
         }
 
         // ================= 強效多巴胺漸層控制 (6個主題) =================
@@ -1205,7 +1200,7 @@
             } catch (error) {
                 console.error("Gemini API Error:", error);
                 document.getElementById('chatLoading').classList.add('hidden');
-                appendMessage('model', '哎呀，小棧的連線好像稍微晃動了一下。請點擊畫面右側的「API 設定」按鈕填入您的 Gemini API Key 即可正常使用喔！');
+                appendMessage('model', '哎呀，尚未設定 API Key 或金鑰無效。請點擊畫面右側的「API 設定」按鈕輸入您的 Gemini API Key 即可正常對話！');
             }
         }
 
@@ -1247,13 +1242,11 @@
             2. 一個實際方法：提供一個具體且做得到的方向。
             3. 一個簡短追問：溫柔地問一個能引導對方思考或舒緩的問題。`;
 
-            let apiKey = ""; 
-            try {
-                const stored = JSON.parse(localStorage.getItem('mood_station_data') || '{}');
-                if (stored.userApiKey) {
-                    apiKey = stored.userApiKey;
-                }
-            } catch (e) {}
+            // 使用暫存於記憶體中的 runtimeApiKey
+            const apiKey = runtimeApiKey;
+            if (!apiKey) {
+                throw new Error("尚未設定 API Key");
+            }
 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
@@ -1803,6 +1796,7 @@
             if (confirm("即將結束使用並清空當次記憶體與暫存。若這是共用裝置，建議您確認已關閉分頁。")) {
                 chatHistory = [];
                 checkinRecords = [];
+                runtimeApiKey = "";
                 location.reload();
             }
         }
