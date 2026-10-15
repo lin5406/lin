@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心情小棧｜我的解憂雜貨店</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
         tailwind.config = {
@@ -36,6 +33,7 @@
             background-color: #FDFBF7;
             color: #2B3A42;
             font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+            transition: background 0.5s ease;
         }
         .card-shadow {
             box-shadow: 0 4px 15px -3px rgba(74, 124, 89, 0.08);
@@ -50,16 +48,20 @@
             background: #4A7C59;
             border-radius: 3px;
         }
-        /* 優化手機點擊無延遲 */
         button, a, input, select, textarea {
             touch-action: manipulation;
+        }
+        @keyframes dopamineFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
     </style>
 </head>
 <body id="appBody" class="min-h-screen flex flex-col selection:bg-lake selection:text-white relative">
 
-    <!-- ================= 浮動按鈕群組 (手機版優化：調低位置、改為半透明或緊湊排列避免遮擋) ================= -->
-    <div class="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex flex-col space-y-2 items-end scale-90 sm:scale-100 origin-right">
+    <!-- ================= 浮動按鈕群組 (手機版優化：調低位置、改為緊湊排列避免遮擋主內容) ================= -->
+    <div class="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex flex-col space-y-2 items-end scale-90 sm:scale-100 origin-right pointer-events-auto">
         
         <!-- 1. API Key 浮動按鈕 -->
         <button onclick="toggleApiKeyModal(true)" class="bg-gradient-to-r from-amber-500 to-apricot text-white p-2.5 sm:p-3 rounded-l-2xl shadow-lg flex flex-col items-center justify-center space-y-1 active:scale-95 transition opacity-90 hover:opacity-100">
@@ -112,7 +114,7 @@
 
     </div>
 
-    <!-- ================= API Key 設定與教學互動彈窗 ================= -->
+    <!-- ================= API Key 設定與教學互動彈窗 (每次開啟皆為空白，絕不儲存) ================= -->
     <div id="apiKeyModal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-cardBg rounded-3xl card-shadow max-w-lg w-full p-6 md:p-8 space-y-6 border border-lake/20 relative max-h-[90vh] overflow-y-auto">
             <button onclick="toggleApiKeyModal(false)" class="absolute top-5 right-5 text-gray-400 hover:text-warmText text-lg p-2">
@@ -908,7 +910,7 @@
         let recognition = null;
         let isRecording = false;
         let isDopaminePanelOpen = false;
-        let runtimeApiKey = ""; // 僅暫存於記憶體，絕不寫入 localStorage
+        let runtimeApiKey = ""; // 僅暫存於記憶體，絕不儲存
 
         let currentQuizQuestion = 0;
         let quizScores = { otter: 0, owl: 0, bear: 0, rabbit: 0 };
@@ -993,11 +995,11 @@
             isDopaminePanelOpen = !isDopaminePanelOpen;
             const panel = document.getElementById('dopamineFloatingPanel');
             if (isDopaminePanelOpen) {
-                panel.classList.remove('translate-x-[calc(100%-40px)]');
+                panel.classList.remove('translate-x-[calc(100%-36px)]');
                 panel.classList.add('translate-x-0');
             } else {
                 panel.classList.remove('translate-x-0');
-                panel.classList.add('translate-x-[calc(100%-40px)]');
+                panel.classList.add('translate-x-[calc(100%-36px)]');
             }
         }
 
@@ -1822,7 +1824,7 @@
         }
 
         function downloadHelpCardTxt() {
-            const content = `--- 心情小棧｜準備給老師的求助卡 ---\n日期：${new Date().toLocaleDateString('zh-TW')}\n身份：${document.getElementById('cardUserIdentifier').innerText}\n狀態：${document.getElementById('cardUserMoodSummary').innerText}\n\n內容：\n${document.getElementById('cardUserNote').innerText}\n\n* 註：請將此卡片交給信任的輔導老師或導師。`;
+            const content = `--- 心情小棧｜準備給老師的求助卡 ---\n日期：${new Date().toLocaleDateString('zh-TW')}\n身份：${document.getElementById('cardUserIdentifier').innerText}\nStatus：${document.getElementById('cardUserMoodSummary').innerText}\n\n內容：\n${document.getElementById('cardUserNote').innerText}\n\n* 註：請將此卡片交給信任的輔導老師或導師。`;
             const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
