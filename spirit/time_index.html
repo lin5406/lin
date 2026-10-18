@@ -1446,8 +1446,9 @@
     // 依照舊 viewBox 的比例換算圓角與留白 → 外觀與原本的長方框一致
     var sx = W / 1000;
     var sy = H / 260;
-    var padX = Math.max(6 * sx, thickness * 0.5 + 1);   // 留白給粗框與發光
-    var padY = Math.max(6 * sy, thickness * 0.5 + 1);
+    // 留白給粗框與發光：減少一點，避免在某些螢幕上看起來左側「少一點」
+    var padX = Math.max(4 * sx, 1);
+    var padY = Math.max(4 * sy, 1);
     var x0 = padX, y0 = padY, x1 = W - padX, y1 = H - padY;
 
     /** 圓角矩形路徑（橢圓角）：同一支產生器，底板／倒角／凹槽圓角才會完全一致 */
