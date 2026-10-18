@@ -1415,7 +1415,8 @@
    * 立體感靠「四層堆疊」做出來：
    *   1) 底板：垂直漸層（上緣受光、下緣沉暗）＋外描邊 → 浮起來的厚板。
    *   2) 倒角：內縮一圈的細高光，模擬板材倒角（bevel）。
-   *   3) 凹槽：深色陰影墊底、淺色軌道壓上，中間形成內凹的溝。
+   *   3) 凹槽：深色陰影墊底、軌道用同一條漸層壓 30% 不透明度 → 內凹的溝，
+   *      未走完的一側只是同色系變暗，不會灰白斑駁像壞掉。
    *   4) 進度條：彩色漸層圓管，再疊一層「上亮下暗」打光，圓頭收尾。
    *
    * 注意：底板與外框一定「整圈」都要畫。進度條的缺口固定落在路徑尾端
@@ -1425,15 +1426,22 @@
    *   框的尺寸由 EC.Hooks.useElementSize 量到後傳進來（props.size），
    *   圓角與留白再依原本 1000×260 的比例換算，
    *   所以任何寬扁比例都不會變形，線寬也固定等於 thickness 像素。
-   * props：ratio（0~1）、tone、thickness(px)、radius（若給＝1000×260 比例下的圓角）、
-   *   size（量到的容器尺寸 { width, height }）、trackClass、boxRef、className、style、children
+   * props：ratio（0~1）、tone（沒給 colors 時的階段色）、colors（可選：2~3 個色的陣列，
+   *   給了就用它當漸層、框色不再跟階段走——投影畫面用背景色票餵進來）、
+   *   thickness(px)、radius（若給＝1000×260 比例下的圓角）、
+   *   size（量到的容器尺寸 { width, height }）、boxRef、className、style、children
    */
   UI.ProgressBox = function ProgressBox(props) {
     var tone = props.tone || 'indigo';
     var ratio = Math.min(1, Math.max(0, props.ratio || 0));
     var thickness = props.thickness || 10;
     var gid = 'ec-box-' + (++ringSeq);
-    var stops = RING_STOPS[tone] || RING_STOPS.indigo;
+    // 顏色：優先吃呼叫端給的 colors 陣列（投影畫面讓框「跟著背景色票走」），
+    // 沒給才退回依階段的 tone 色。colors 可給 2~3 個色，漸層會平均鋪開。
+    var stops = (props.colors && props.colors.length >= 2)
+      ? props.colors
+      : (RING_STOPS[tone] || RING_STOPS.indigo);
+    var endStop = stops[stops.length - 1];
 
     // 座標系＝容器實際像素（1:1）。舊版用 viewBox 1000×260 加
     // preserveAspectRatio="none" 非等比拉伸、再靠 vector-effect 固定線寬；
@@ -1488,10 +1496,11 @@
             className="absolute inset-0 h-full w-full"
             style={{ overflow: 'visible', filter: 'drop-shadow(0 18px 26px rgba(2,6,23,0.55))' }}>
             <defs>
-              {/* 進度條顏色（橫向斜向漸層） */}
+              {/* 進度條顏色（橫向斜向漸層）：colors 給 2~3 色就平均鋪開 */}
               <linearGradient id={gid} x1="0" y1="0" x2="1" y2="0.7">
-                <stop offset="0%" stopColor={stops[0]} />
-                <stop offset="100%" stopColor={stops[1]} />
+                {stops.map(function (c, i) {
+                  return <stop key={i} offset={(i * 100 / (stops.length - 1)) + '%'} stopColor={c} />;
+                })}
               </linearGradient>
               {/* 進度條打光（垂直）：上緣亮、下緣暗 → 圓管立體感 */}
               <linearGradient id={gid + '-lit'} x1="0" y1="0" x2="0" y2="1">
@@ -1515,18 +1524,20 @@
             <path d={dIn} fill="none" stroke="rgba(255,255,255,0.10)"
               strokeWidth="1" vectorEffect="non-scaling-stroke" />
 
-            {/* 3) 凹槽：深色墊底 ＋ 淺色軌道 → 內凹的溝 */}
+            {/* 3) 凹槽：深色墊底 ＋ 淡色軌道 → 內凹的溝。
+                軌道直接用「同一條進度漸層」壓 30% 不透明度，
+                未走完的一側只是同色系變暗，不會出現灰白斑塊像壞掉。 */}
             <path d={d} fill="none" stroke="rgba(2,6,23,0.40)" strokeWidth={thickness + 5}
               vectorEffect="non-scaling-stroke" />
-            <path d={d} fill="none" stroke="currentColor" strokeWidth={thickness}
-              vectorEffect="non-scaling-stroke" className={props.trackClass || 'text-slate-100'} />
+            <path d={d} fill="none" stroke={'url(#' + gid + ')'} strokeOpacity="0.30"
+              strokeWidth={thickness} vectorEffect="non-scaling-stroke" />
 
             {/* 4) 進度條：彩色圓管 ＋ 打光疊層 */}
             <path d={d} fill="none" stroke={'url(#' + gid + ')'} strokeWidth={thickness}
               strokeLinecap="round" vectorEffect="non-scaling-stroke"
               pathLength={dash.pathLength} strokeDasharray={dash.strokeDasharray}
               strokeDashoffset={dash.strokeDashoffset} style={Object.assign({
-                filter: 'drop-shadow(0 0 12px ' + stops[1] + '66)'
+                filter: 'drop-shadow(0 0 12px ' + endStop + '66)'
               }, anim)} />
             <path d={d} fill="none" stroke={'url(#' + gid + '-lit)'} strokeWidth={thickness}
               strokeLinecap="round" vectorEffect="non-scaling-stroke"
@@ -2724,6 +2735,10 @@
  *      （框不再是一整條扁長條、框內不留大片空白），小叮嚀則在剩餘空間置中；
  *      背景色票在手機改為底部橫向一排，不會蓋住倒數框。規則都在
  *      index.html 的 .ec-count-box / .ec-announce-card。
+ *      長方框的顏色「跟著左側背景色票走」：用背景的三個色停點鋪成漸層，
+ *      未走完的一側＝同色系壓 30% 不透明度（整圈同一色系、不會灰白斑駁）。
+ *      （過去按階段換色（灰／琥珀／藍／粉紅），現改為與背景一致；
+ *      warning 狀態仍由老師操控台的圓環與鈴聲提示，投影面不再變色。）
  *   2. 字級有下限：文字一律用 clamp()，隨 vmin 縮放的同時保留最小 px，
  *      小視窗也不會出現 8px 的螞蟻字。
  *   3. 高對比：深色遮罩＋四周暗角墊底，所有文字提亮（白／slate-100），
@@ -2783,10 +2798,6 @@
     // 字級同時受「框高」與「框寬」限制：框變扁、變窄都不會擠出框外
     var timePx = Math.max(30, Math.round(Math.min(boxH * 0.48, (boxW - 48) / (0.62 * len))));
 
-    var warn = !!(p.warning && p.info.phase === 'live');
-    var ringTone = p.info.phase === 'idle' ? 'slate'
-      : p.info.phase === 'done' ? 'rose'
-      : warn ? 'amber' : 'indigo';
     var thickness = Math.max(8, Math.min(16, Math.round(boxH / 20)));
     var phase = PHASE[p.info.phase] || PHASE.idle;
 
@@ -2893,12 +2904,12 @@
           ) : null}
 
           {/* 倒數圓角長方框：大螢幕＝滿版寬的扁長方框（上限 32vh）；
-              手機＝縮到內容大小、置中（尺寸與比例定義在 index.html 的 .ec-count-box） */}
+              手機＝縮到內容大小、置中（尺寸與比例定義在 index.html 的 .ec-count-box）
+              框色「跟著背景色票走」（bg 三個色停點鋪成漸層），未走完的一側是同色系淡色 */}
           <UI.ProgressBox boxRef={ringBoxRef}
             className="ec-count-box"
             size={box}
-            ratio={p.info.elapsedRatio} tone={ringTone} thickness={thickness}
-            trackClass="text-white/20">
+            ratio={p.info.elapsedRatio} colors={bg} thickness={thickness}>
             <p className="font-mono font-black leading-none tabular-nums text-white"
               style={{ fontSize: timePx, textShadow: '0 4px 26px rgba(2,6,23,0.92)' }}>
               {time}
