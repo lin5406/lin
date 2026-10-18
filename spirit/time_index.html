@@ -8,9 +8,11 @@
   <meta name="supported-color-schemes" content="light">
   <meta name="description" content="考場計時台 — 課堂與考試倒數、投影顯示與考場紀錄">
   <title>考場計時台 · ExamClock</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,6 +29,7 @@
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
   <script>
     if (window.Babel) {
       Babel.registerPreset('jsx-classic', {
@@ -34,6 +37,7 @@
       });
     }
   </script>
+
   <style>
     :root { color-scheme: light; }
     html, body { margin: 0; }
@@ -54,6 +58,29 @@
     .ec-float { animation: ec-float 14s ease-in-out infinite; }
     .ec-float-slow { animation: ec-float 22s ease-in-out infinite; }
 
+    /* 投影倒數外框：桌機／大螢幕＝滿版寬的扁長方框（寬度優先，省下的高度留給小叮嚀）。
+       手機（<768px）＝縮到「進度＋倒數數字」內容的大小、置中，比例約 2.3:1，
+       框內不再留一大片空白，數字也會跟著放大。 */
+    .ec-count-box {
+      width: 100%;
+      max-width: 1180px;
+      aspect-ratio: 1000 / 260;
+      max-height: 32vh;
+    }
+    @media (max-width: 767px) {
+      .ec-count-box {
+        width: 66vw;
+        max-height: 42vh;
+        aspect-ratio: 1000 / 440;
+      }
+    }
+
+    /* 手機：老師小叮嚀卡片在剩下的空間置中；內容太長時 auto margin 會自動歸零，
+       改回由頂端排列，不會像 justify-center 那樣把上面幾行裁掉。 */
+    @media (max-width: 767px) {
+      .ec-announce-card { margin-top: auto; margin-bottom: auto; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .ec-float, .ec-float-slow { animation: none; }
     }
@@ -61,7 +88,17 @@
 </head>
 <body class="bg-[#f4fbfe]">
   <div id="root"></div>
-  <script type="text/babel" data-presets="env,jsx-classic">
+
+  <!-- 核心 -->
+
+  <!-- 圖示 / Hook / 狀態 / 基礎元件 -->
+
+  <!-- 功能面板 -->
+
+  <!-- 檢視畫面 -->
+
+  <!-- 應用 -->
+<script type="text/babel" data-presets="env,jsx-classic">
 
 /* ===================== 00-core-namespace.js ===================== */
 /**
@@ -95,7 +132,7 @@
 
     // 場次快速套用範本（分鐘制）
     presets: [
-      { key: 'p40', label: '標準 40 分鐘 ×3', build: function () { return buildRun('08:40', 40, 10, 3); } },
+      { key: 'p40', label: '標準 40 分鐘 ×3', build: function () { return buildRun('08:30', 40, [10, 20], 3); } },
       { key: 'p50', label: '大考 50 分鐘 ×2', build: function () { return buildRun('09:00', 50, 15, 2); } },
       { key: 'p30', label: '短測 30 分鐘 ×3', build: function () { return buildRun('13:20', 30, 10, 3); } }
     ],
@@ -176,9 +213,9 @@
     initial: {
       version: 2,
       sessions: [
-        { id: 's1', title: '第一節', start: '08:40', end: '09:20', tint: 'indigo' },
-        { id: 's2', title: '第二節', start: '09:30', end: '10:10', tint: 'teal' },
-        { id: 's3', title: '第三節', start: '10:30', end: '11:10', tint: 'amber' }
+        { id: 's1', title: '第一節', start: '08:30', end: '09:10', tint: 'indigo' },
+        { id: 's2', title: '第二節', start: '09:20', end: '10:00', tint: 'teal' },
+        { id: 's3', title: '第三節', start: '10:20', end: '11:00', tint: 'amber' }
       ],
       activeSessionId: 's1',
       attendance: { expected: '', present: '', excused: '', excusedSeats: '' },
@@ -206,7 +243,11 @@
     }
   };
 
-  /** 產生等距場次：起始時間 + 每節長度 + 節間休息 + 節數 */
+  /**
+   * 依「開始時間＋每節長度＋下課長度」生出連續場次。
+   * gap 可傳單一數字（每節下課都一樣），或陣列（依序套用、用完沿用最後一個），
+   * 例如 [10, 20] = 第一次下課 10 分、之後 20 分。
+   */
   function buildRun(startAt, minutes, gap, count) {
     var out = [];
     var cursor = toMinutes(startAt);
@@ -222,9 +263,16 @@
         end: toClock(e),
         tint: tints[i % tints.length]
       });
-      cursor = e + gap;
+      cursor = e + gapAfter(gap, i);
     }
     return out;
+  }
+
+  /** 取得第 i 次下課長度：gap 可為數字，或陣列（用完沿用最後一個） */
+  function gapAfter(gap, i) {
+    if (!gap || !gap.length) return gap || 0;
+    var v = gap[i];
+    return v == null ? gap[gap.length - 1] : v;
   }
 
   function toMinutes(hhmm) {
@@ -1373,11 +1421,12 @@
    * 注意：底板與外框一定「整圈」都要畫。進度條的缺口固定落在路徑尾端
    * （畫面左側），若只畫進度條，框在低進度時左邊會空一圈、像壞掉。
    *
-   * 作法是 SVG 圓角矩形描邊：
-   *   preserveAspectRatio="none" 讓框可以隨容器任意拉寬／壓扁；
-   *   vector-effect="non-scaling-stroke" 讓邊框粗細維持一致（不會被拉寬變形）。
-   * props：ratio（0~1）、tone、thickness(px)、radius（viewBox 單位）、
-   *   trackClass、boxRef、className、style、children
+   * 作法是 SVG 圓角矩形描邊，座標系直接等於容器像素（1:1）：
+   *   框的尺寸由 EC.Hooks.useElementSize 量到後傳進來（props.size），
+   *   圓角與留白再依原本 1000×260 的比例換算，
+   *   所以任何寬扁比例都不會變形，線寬也固定等於 thickness 像素。
+   * props：ratio（0~1）、tone、thickness(px)、radius（若給＝1000×260 比例下的圓角）、
+   *   size（量到的容器尺寸 { width, height }）、trackClass、boxRef、className、style、children
    */
   UI.ProgressBox = function ProgressBox(props) {
     var tone = props.tone || 'indigo';
@@ -1386,28 +1435,44 @@
     var gid = 'ec-box-' + (++ringSeq);
     var stops = RING_STOPS[tone] || RING_STOPS.indigo;
 
-    var W = 1000;
-    var H = 260;
-    var inset = 6;                                  // 留白給粗框與發光，避免被裁掉
-    var x0 = inset, y0 = inset, x1 = W - inset, y1 = H - inset;
+    // 座標系＝容器實際像素（1:1）。舊版用 viewBox 1000×260 加
+    // preserveAspectRatio="none" 非等比拉伸、再靠 vector-effect 固定線寬；
+    // 這組合下「虛線長度」會被當成畫面像素，與使用者座標的路徑長度不一致，
+    // 於是進度 100% 時左側會缺一角（框寬超過 1000px 時特別明顯）。
+    // 改成量測容器後 1:1 繪製：路徑長度與虛線長度在同一個空間，缺口自然消失。
+    var measured = props.size || {};
+    var W = Math.max(220, Math.round(measured.width || 900));
+    var H = Math.max(110, Math.round(measured.height || 240));
+    // 依照舊 viewBox 的比例換算圓角與留白 → 外觀與原本的長方框一致
+    var sx = W / 1000;
+    var sy = H / 260;
+    var padX = Math.max(6 * sx, thickness * 0.5 + 1);   // 留白給粗框與發光
+    var padY = Math.max(6 * sy, thickness * 0.5 + 1);
+    var x0 = padX, y0 = padY, x1 = W - padX, y1 = H - padY;
 
-    /** 圓角矩形路徑：同一支產生器，底板／倒角／凹槽圓角才會完全一致 */
-    function rrect(ax0, ay0, ax1, ay1, rr) {
-      return 'M ' + (ax0 + rr) + ' ' + ay0 +
-        'H ' + (ax1 - rr) + 'a ' + rr + ' ' + rr + ' 0 0 1 ' + rr + ' ' + rr +
-        'V ' + (ay1 - rr) + 'a ' + rr + ' ' + rr + ' 0 0 1 ' + (-rr) + ' ' + rr +
-        'H ' + (ax0 + rr) + 'a ' + rr + ' ' + rr + ' 0 0 1 ' + (-rr) + ' ' + (-rr) +
-        'V ' + (ay0 + rr) + 'a ' + rr + ' ' + rr + ' 0 0 1 ' + rr + ' ' + (-rr) + 'Z';
+    /** 圓角矩形路徑（橢圓角）：同一支產生器，底板／倒角／凹槽圓角才會完全一致 */
+    function rrect(ax0, ay0, ax1, ay1, rx, ry) {
+      return 'M ' + (ax0 + rx) + ' ' + ay0 +
+        'H ' + (ax1 - rx) +
+        'A ' + rx + ' ' + ry + ' 0 0 1 ' + ax1 + ' ' + (ay0 + ry) +
+        'V ' + (ay1 - ry) +
+        'A ' + rx + ' ' + ry + ' 0 0 1 ' + (ax1 - rx) + ' ' + ay1 +
+        'H ' + (ax0 + rx) +
+        'A ' + rx + ' ' + ry + ' 0 0 1 ' + ax0 + ' ' + (ay1 - ry) +
+        'V ' + (ay0 + ry) +
+        'A ' + rx + ' ' + ry + ' 0 0 1 ' + (ax0 + rx) + ' ' + ay0 + 'Z';
     }
 
-    var maxR = Math.min((y1 - y0) / 2, (x1 - x0) / 2);
-    var r = Math.min(props.radius == null ? 46 : props.radius, maxR);
-    var rIn = Math.max(4, Math.min(r - 12, maxR - 12));
-    var d = rrect(x0, y0, x1, y1, r);
-    var dIn = rrect(x0 + 11, y0 + 11, x1 - 11, y1 - 11, rIn);
+    var rx = Math.min(props.radius == null ? 46 * sx : props.radius, (x1 - x0) / 2);
+    var ry = Math.min(46 * sy, (y1 - y0) / 2);
+    var inX = Math.min(11 * sx, (x1 - x0) / 4);
+    var inY = Math.min(11 * sy, (y1 - y0) / 4);
+    var d = rrect(x0, y0, x1, y1, rx, ry);
+    var dIn = rrect(x0 + inX, y0 + inY, x1 - inX, y1 - inY,
+      Math.max(1, rx - inX), Math.max(1, ry - inY));
 
-    // pathLength=100：把路徑長度正規化，進度用 0~100 計算，
-    // 不會因為圓角、非等比拉伸、non-scaling-stroke 而頭尾接不起來。
+    // pathLength=100：把路徑長度正規化，進度用 0~100 計算；
+    // 1:1 座標系下虛線與路徑同一個空間，任何框寬都不會缺一角。
     var dash = {
       pathLength: 100,
       strokeDasharray: 100,
@@ -1418,7 +1483,7 @@
     return (
       <div ref={props.boxRef} className={props.className || ''} style={props.style}>
         <div className="relative h-full w-full">
-          <svg viewBox={'0 0 ' + W + ' ' + H} preserveAspectRatio="none"
+          <svg viewBox={'0 0 ' + W + ' ' + H}
             className="absolute inset-0 h-full w-full"
             style={{ overflow: 'visible', filter: 'drop-shadow(0 18px 26px rgba(2,6,23,0.55))' }}>
             <defs>
@@ -1429,9 +1494,9 @@
               </linearGradient>
               {/* 進度條打光（垂直）：上緣亮、下緣暗 → 圓管立體感 */}
               <linearGradient id={gid + '-lit'} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.40" />
-                <stop offset="42%" stopColor="#ffffff" stopOpacity="0.04" />
-                <stop offset="100%" stopColor="#020617" stopOpacity="0.34" />
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.26" />
+                <stop offset="45%" stopColor="#ffffff" stopOpacity="0.03" />
+                <stop offset="100%" stopColor="#020617" stopOpacity="0.30" />
               </linearGradient>
               {/* 底板立體漸層：上緣受光、下緣沉入 */}
               <linearGradient id={gid + '-panel'} x1="0" y1="0" x2="0" y2="1">
@@ -2474,22 +2539,42 @@
   };
 
   /** 投影畫面：左側直條色票（平時淡出，滑過才明顯） */
+  /**
+   * 投影畫面的背景色票（兩種變體，依畫面寬度選用）：
+   *   variant="rail"（預設）＝左側直條，只在 xl（≥1280px）出現，
+   *     此時倒數框左右還有足夠留白，色票才不會蓋到框。
+   *   variant="bar"＝手機／窄螢幕用的橫向色票列（放在控制列裡，不遮住內容）。
+   * props：value, customColors, onChange, variant
+   */
   EC.UI.BackgroundStrip = function BackgroundStrip(props) {
+    var bar = props.variant === 'bar';
+
+    var chips = EC.Config.backgrounds.map(function (bg) {
+      var active = bg.key === props.value;
+      return (
+        <button key={bg.key} type="button" title={bg.label}
+          onClick={function () { props.onChange(bg.key); }}
+          className={[
+            bar ? 'h-6 w-6 rounded-lg' : 'h-8 w-8 rounded-xl',
+            'shrink-0 border-2 transition hover:scale-110',
+            active ? 'border-white ring-2 ring-white/70' : 'border-white/40'
+          ].join(' ')}
+          style={{ backgroundImage: gradientOf(bg.key, props.customColors) }} />
+      );
+    });
+
+    if (props.variant === 'bar') {
+      return (
+        <div className="flex flex-wrap items-center justify-center gap-1 rounded-full border border-white/15 bg-slate-900/25 px-2 py-1.5 backdrop-blur-md">
+          {chips}
+        </div>
+      );
+    }
+
     return (
-      <div className="fixed left-0 top-1/2 z-20 -translate-y-1/2">
+      <div className="fixed left-0 top-1/2 z-20 hidden -translate-y-1/2 xl:block">
         <div className="flex max-h-[86vh] flex-col items-center gap-2 overflow-y-auto rounded-r-2xl border border-l-0 border-white/15 bg-slate-900/25 p-2 opacity-40 backdrop-blur-md transition-opacity duration-200 hover:opacity-100">
-          {EC.Config.backgrounds.map(function (bg) {
-            var active = bg.key === props.value;
-            return (
-              <button key={bg.key} type="button" title={bg.label}
-                onClick={function () { props.onChange(bg.key); }}
-                className={[
-                  'h-8 w-8 shrink-0 rounded-xl border-2 transition hover:scale-110',
-                  active ? 'border-white ring-2 ring-white/70' : 'border-white/40'
-                ].join(' ')}
-                style={{ backgroundImage: gradientOf(bg.key, props.customColors) }} />
-            );
-          })}
+          {chips}
         </div>
       </div>
     );
@@ -2634,6 +2719,10 @@
  *      高度以 aspect-ratio ＋ 32vh 限高，不像圓環那樣佔滿整個畫面，
  *      多出來的縱向空間全部讓給「老師小叮嚀」，也不會擠壓或疊字。
  *      長方框大小由 EC.Hooks.useElementSize 量測，任何視窗比例都安全。
+ *      手機（<768px）改成「內容大小」的框：約 66vw、比例 2.3:1 並置中
+ *      （框不再是一整條扁長條、框內不留大片空白），小叮嚀則在剩餘空間置中；
+ *      背景色票在手機改為底部橫向一排，不會蓋住倒數框。規則都在
+ *      index.html 的 .ec-count-box / .ec-announce-card。
  *   2. 字級有下限：文字一律用 clamp()，隨 vmin 縮放的同時保留最小 px，
  *      小視窗也不會出現 8px 的螞蟻字。
  *   3. 高對比：深色遮罩＋四周暗角墊底，所有文字提亮（白／slate-100），
@@ -2802,10 +2891,11 @@
             </div>
           ) : null}
 
-          {/* 倒數圓角長方框：寬度優先、上限 32vh，多出的高度留給小叮嚀 */}
+          {/* 倒數圓角長方框：大螢幕＝滿版寬的扁長方框（上限 32vh）；
+              手機＝縮到內容大小、置中（尺寸與比例定義在 index.html 的 .ec-count-box） */}
           <UI.ProgressBox boxRef={ringBoxRef}
-            className="w-full max-w-[1180px]"
-            style={{ aspectRatio: '1000 / 260', maxHeight: '32vh' }}
+            className="ec-count-box"
+            size={box}
             ratio={p.info.elapsedRatio} tone={ringTone} thickness={thickness}
             trackClass="text-white/20">
             <p className="font-mono font-black leading-none tabular-nums text-white"
@@ -2839,7 +2929,7 @@
             佔用主區以外的剩餘高度 → 長方框省下的空間都在這裡 */}
         {ordered.length > 0 ? (
           <section className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-[1.4vmin] md:px-12">
-            <div className="w-full rounded-3xl border border-white/20 bg-white/10 p-[1.5vmin] backdrop-blur-md">
+            <div className="ec-announce-card w-full rounded-3xl border border-white/20 bg-white/10 p-[1.5vmin] backdrop-blur-md">
               <p className="mb-[1.1vmin] flex items-center gap-[0.7vmin] font-black text-white"
                 style={{ fontSize: fs(2.3, 15, 30) }}>
                 <UI.IconBadge icon="megaphone" tone="rose"
@@ -2874,13 +2964,18 @@
           </section>
         ) : null}
 
-        {/* 控制列 */}
-        <footer className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-[0.9vmin] px-6 pb-[1.4vmin] md:px-12">
+        {/* 控制列：手機置中換行、大螢幕靠右；色票在手機改成橫向一排，不遮住倒數框 */}
+        <footer className="relative z-10 flex shrink-0 flex-wrap items-center justify-center gap-[0.9vmin] px-6 pb-[1.4vmin] md:justify-end md:px-12">
+          <div className="flex w-full justify-center xl:hidden">
+            <UI.BackgroundStrip variant="bar" value={p.bgSkin} customColors={p.bgCustom}
+              onChange={p.onChangeBackground} />
+          </div>
+
           <div className="flex items-center gap-1 rounded-full border border-white/25 bg-white/10 p-1 backdrop-blur-md"
             style={{ fontSize: fs(1.9, 12, 21) }}>
             <span className="flex items-center gap-[0.45em] pl-[0.5em] pr-1 font-black text-white">
               <UI.IconBadge icon="note" tone="violet" round size="h-[1.7em] w-[1.7em]" iconSize="1.05em" />
-              叮嚀字級
+              <span className="hidden sm:inline">叮嚀字級</span>
             </span>
             <button type="button" onClick={function () { p.onAdjustFont(-1); }}
               title="縮小叮嚀字級"
@@ -3254,6 +3349,6 @@
   root.render(<EC.App />);
 })();
 
-  </script>
+</script>
 </body>
 </html>
