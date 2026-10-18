@@ -1,0 +1,3259 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f4fbfe">
+  <meta name="supported-color-schemes" content="light">
+  <meta name="description" content="考場計時台 — 課堂與考試倒數、投影顯示與考場紀錄">
+  <title>考場計時台 · ExamClock</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script>
+    if (window.Babel) {
+      Babel.registerPreset('jsx-classic', {
+        presets: [[Babel.availablePresets['react'], { runtime: 'classic' }]]
+      });
+    }
+  </script>
+  <style>
+    :root { color-scheme: light; }
+    html, body { margin: 0; }
+    body {
+      font-family: 'Inter', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
+    ::-webkit-scrollbar-thumb:hover { background: #7dd3fc; background-clip: content-box; }
+    ::-webkit-scrollbar-track { background: transparent; }
+
+    @keyframes ec-float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(0, -26px) scale(1.07); }
+    }
+    .ec-float { animation: ec-float 14s ease-in-out infinite; }
+    .ec-float-slow { animation: ec-float 22s ease-in-out infinite; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ec-float, .ec-float-slow { animation: none; }
+    }
+  </style>
+</head>
+<body class="bg-[#f4fbfe]">
+  <div id="root"></div>
+  <script type="text/babel" data-presets="env,jsx-classic">
+
+/* ===================== 00-core-namespace.js ===================== */
+/**
+ * ExamClock — 命名空間與版本
+ * ------------------------------------------------------------------
+ * 這是一套原創實作，採「核心引擎 / 圖示 / 介面元件 / 檢視畫面」四層分工。
+ * 所有子模組掛載於 window.ExamClock，彼此只透過公開介面互動。
+ */
+(function () {
+  'use strict';
+  var root = (window.ExamClock = window.ExamClock || {});
+  root.APP = 'ExamClock';
+  root.VERSION = '2.0.0';
+})();
+
+
+/* ===================== 01-core-config.js ===================== */
+/**
+ * 核心：組態（Config）
+ * ------------------------------------------------------------------
+ * 一處集中管理：儲存金鑰、預設狀態、場次預設組、音色清單、限制值。
+ * 調整預設值或新增音色，只需要改這個檔。
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+
+  EC.Config = {
+    SCHEMA_VERSION: 2,
+    STORE_KEY: 'examclock.v2',
+
+    // 場次快速套用範本（分鐘制）
+    presets: [
+      { key: 'p40', label: '標準 40 分鐘 ×3', build: function () { return buildRun('08:40', 40, 10, 3); } },
+      { key: 'p50', label: '大考 50 分鐘 ×2', build: function () { return buildRun('09:00', 50, 15, 2); } },
+      { key: 'p30', label: '短測 30 分鐘 ×3', build: function () { return buildRun('13:20', 30, 10, 3); } }
+    ],
+
+    tones: [
+      { key: 'chime', label: '鐘聲（四音）' },
+      { key: 'pulse', label: '脈衝（兩短）' },
+      { key: 'rise', label: '遞升（三音）' }
+    ],
+
+    // 背景色彩：8 組多巴胺漸層 + 1 組原色 + 1 組自訂（共 10 組，順序即色票順序）
+    // 每組三個色停點（135 度線性漸層）；「自訂」的顏色存在 settings.bgCustom。
+    backgrounds: [
+      { key: 'peach',  label: '蜜桃夕陽', colors: ['#ff9a8b', '#ff6a88', '#ff99ac'] },
+      { key: 'candy',  label: '糖果粉紅', colors: ['#ff9a9e', '#fecfef', '#fbc2eb'] },
+      { key: 'lemon',  label: '檸檬派對', colors: ['#f6d365', '#fda085', '#f9d423'] },
+      { key: 'mint',   label: '薄荷微風', colors: ['#43e97b', '#38f9d7', '#a8e6cf'] },
+      { key: 'ocean',  label: '海洋之心', colors: ['#4facfe', '#00f2fe', '#3b82f6'] },
+      { key: 'grape',  label: '葡萄蘇打', colors: ['#a18cd1', '#fbc2eb', '#8e2de2'] },
+      { key: 'mango',  label: '熱帶芒果', colors: ['#fad961', '#f76b1c', '#ff6b6b'] },
+      { key: 'berry',  label: '莓果優格', colors: ['#f093fb', '#f5576c', '#f093fb'] },
+      { key: 'origin', label: '原色', colors: ['#eef4ff', '#fef3e2', '#e8fbf2'] },
+      { key: 'custom', label: '自訂', colors: ['#8b5cf6', '#ec4899', '#f59e0b'] }
+    ],
+
+    /** 是否為 #rrggbb 色碼 */
+    isHexColor: function (c) {
+      return typeof c === 'string' && /^#[0-9a-fA-F]{6}$/.test(c);
+    },
+
+    /** 正規化三個色停點（壞值用 fallback 補上） */
+    normalizeColors: function (list, fallback) {
+      var fb = fallback || ['#8b5cf6', '#ec4899', '#f59e0b'];
+      var out = [];
+      for (var i = 0; i < 3; i++) {
+        var c = list && list[i];
+        out.push(EC.Config.isHexColor(c) ? c.toLowerCase() : fb[i]);
+      }
+      return out;
+    },
+
+    /**
+     * 取得背景設定（找不到時回退第一組）。
+     * key 為 'custom' 且有自訂色時，回傳使用者的自訂漸層。
+     */
+    background: function (key, customColors) {
+      var list = EC.Config.backgrounds;
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].key === key) {
+          if (key === 'custom' && customColors) {
+            return {
+              key: 'custom',
+              label: list[i].label,
+              colors: EC.Config.normalizeColors(customColors, list[i].colors)
+            };
+          }
+          return list[i];
+        }
+      }
+      return list[0];
+    },
+
+    limits: {
+      minWarnMinutes: 0,
+      maxWarnMinutes: 30,
+      minAdvanceSec: 0,
+      maxAdvanceSec: 120,
+      // 小叮嚀（提醒）字級：50% ~ 700%（1 = 100%）
+      minFontScale: 0.5,
+      maxFontScale: 7,
+      fontStep: 0.5,
+      // 設定備份插槽：固定 5 組（名稱長度上限）
+      slotCount: 5,
+      slotNameMax: 20
+    },
+
+    // 全新安裝時的預設資料
+    initial: {
+      version: 2,
+      sessions: [
+        { id: 's1', title: '第一節', start: '08:40', end: '09:20', tint: 'indigo' },
+        { id: 's2', title: '第二節', start: '09:30', end: '10:10', tint: 'teal' },
+        { id: 's3', title: '第三節', start: '10:30', end: '11:10', tint: 'amber' }
+      ],
+      activeSessionId: 's1',
+      attendance: { expected: '', present: '', excused: '', excusedSeats: '' },
+      announcements: [
+        { id: 'a1', text: '寫完別急著交卷，從頭再檢查一遍', enabled: true, pinned: false }
+      ],
+      notes: [],
+      settings: {
+        tone: 'chime',
+        volume: 0.8,
+        bellAtStart: false,
+        bellAtEnd: true,
+        warnMinutes: 5,
+        advanceDelaySec: 12,
+        autoAdvanceNext: true,
+        autoStage: true,
+        clock24: true,
+        fontScale: 1,
+        // 設定備份插槽（5 組，載入時會自動補齊；結構：{ name, savedAt, data }）
+        slots: [],
+        bgSkin: 'peach',
+        // 「自訂」背景的三個色停點（#rrggbb）
+        bgCustom: ['#8b5cf6', '#ec4899', '#f59e0b']
+      }
+    }
+  };
+
+  /** 產生等距場次：起始時間 + 每節長度 + 節間休息 + 節數 */
+  function buildRun(startAt, minutes, gap, count) {
+    var out = [];
+    var cursor = toMinutes(startAt);
+    var tints = ['indigo', 'teal', 'amber', 'rose', 'violet', 'cyan'];
+    var names = ['第一節', '第二節', '第三節', '第四節', '第五節', '第六節'];
+    for (var i = 0; i < count; i++) {
+      var s = cursor;
+      var e = cursor + minutes;
+      out.push({
+        id: 'pre' + Date.now().toString(36) + i,
+        title: names[i] || '第' + (i + 1) + '節',
+        start: toClock(s),
+        end: toClock(e),
+        tint: tints[i % tints.length]
+      });
+      cursor = e + gap;
+    }
+    return out;
+  }
+
+  function toMinutes(hhmm) {
+    var p = hhmm.split(':');
+    return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+  }
+
+  function toClock(mins) {
+    mins = ((mins % 1440) + 1440) % 1440;
+    var h = Math.floor(mins / 60);
+    var m = mins % 60;
+    return (h < 10 ? '0' : '') + h + ':' + (m < 10 ? '0' : '') + m;
+  }
+})();
+
+
+/* ===================== 02-core-storage.js ===================== */
+/**
+ * 核心：儲存層（Storage）
+ * ------------------------------------------------------------------
+ * 單一 JSON 文件存於 localStorage，含結構版本與簡易修補（migration）。
+ * 讀取失敗一律回退到安全預設值，不讓壞資料拖垮程式。
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+
+  function readRaw() {
+    var raw = null;
+    try { raw = localStorage.getItem(EC.Config.STORE_KEY); } catch (e) { return null; }
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  }
+
+  function writeRaw(obj) {
+    try { localStorage.setItem(EC.Config.STORE_KEY, JSON.stringify(obj)); } catch (e) { /* 空間不足或私密模式 */ }
+  }
+
+  /** 深拷貝（僅處理本專案用到的純資料結構） */
+  function clone(v) {
+    return JSON.parse(JSON.stringify(v));
+  }
+
+  /**
+   * 設定備份插槽：固定 5 組，缺的補齊、壞的修掉。
+   * 每組＝{ name:代表名稱, savedAt:儲存時間, data:完整資料快照 }
+   */
+  function normalizeSlots(raw) {
+    var n = EC.Config.limits.slotCount || 5;
+    var max = EC.Config.limits.slotNameMax || 20;
+    var list = Array.isArray(raw) ? raw : [];
+    var out = [];
+    for (var i = 0; i < n; i++) {
+      var s = (list[i] && typeof list[i] === 'object') ? list[i] : {};
+      out.push({
+        name: typeof s.name === 'string' ? s.name.slice(0, max) : '',
+        savedAt: typeof s.savedAt === 'string' ? s.savedAt : null,
+        data: (s.data && typeof s.data === 'object') ? s.data : null
+      });
+    }
+    return out;
+  }
+
+  /**
+   * 把任意（可能不完整／壞掉的）資料整理成完整可用的狀態。
+   * 匯入備份檔、從備份插槽還原、回復預設值都走這支，壞資料不會拖垮畫面。
+   * keepSlots＝要保留的插槽陣列（還原／重設時不要把其他備份一起蓋掉）。
+   */
+  function buildState(raw, keepSlots) {
+    var base = clone(EC.Config.initial);
+    var src = (raw && typeof raw === 'object') ? raw : {};
+    var state = {
+      version: EC.Config.SCHEMA_VERSION,
+      sessions: Array.isArray(src.sessions) ? src.sessions.map(normalizeSession) : base.sessions,
+      activeSessionId: src.activeSessionId || (base.sessions[0] && base.sessions[0].id) || null,
+      attendance: Object.assign({}, base.attendance, src.attendance || {}),
+      announcements: Array.isArray(src.announcements) ? src.announcements.map(normalizeAnnouncement) : base.announcements,
+      notes: Array.isArray(src.notes) ? src.notes : base.notes,
+      settings: normalizeSettings(Object.assign({}, base.settings, src.settings || {}))
+    };
+
+    if (state.sessions.length === 0) state.activeSessionId = null;
+    else if (!state.sessions.some(function (s) { return s.id === state.activeSessionId; })) {
+      state.activeSessionId = state.sessions[0].id;
+    }
+    if (Array.isArray(keepSlots)) state.settings.slots = normalizeSlots(keepSlots);
+    return state;
+  }
+
+  /**
+   * 取出可備份的內容（＝目前的資料快照，不含 5 組插槽自己）。
+   * 匯出檔案與「存到備份插槽」共用同一份格式。
+   */
+  function snapshot(state) {
+    var settings = Object.assign({}, state.settings);
+    delete settings.slots;
+    return {
+      app: 'ExamClock',
+      version: EC.VERSION,
+      exportedAt: new Date().toISOString(),
+      sessions: clone(state.sessions),
+      activeSessionId: state.activeSessionId,
+      attendance: clone(state.attendance),
+      announcements: clone(state.announcements),
+      notes: clone(state.notes),
+      settings: settings
+    };
+  }
+
+
+  /** 讀取並正規化整份狀態 */
+  function load() {
+    var saved = readRaw();
+    if (!saved || typeof saved !== 'object') return buildState(EC.Config.initial, []);
+    return buildState(saved);
+  }
+
+  function normalizeSession(s) {
+    return {
+      id: s.id || ('s' + Math.random().toString(36).slice(2, 9)),
+      title: s.title || '未命名場次',
+      start: s.start || '08:00',
+      end: s.end || '08:40',
+      tint: s.tint || 'indigo'
+    };
+  }
+
+  function normalizeAnnouncement(a) {
+    return {
+      id: a.id || ('a' + Math.random().toString(36).slice(2, 9)),
+      text: a.text || '',
+      enabled: a.enabled !== false,
+      pinned: !!a.pinned
+    };
+  }
+
+  /** 設定值一律夾在合法範圍，避免匯入壞資料造成畫面爆掉 */
+  function normalizeSettings(s) {
+    var lim = EC.Config.limits;
+
+    var fs = parseFloat(s.fontScale);
+    if (!isFinite(fs)) fs = 1;
+    s.fontScale = Math.min(lim.maxFontScale, Math.max(lim.minFontScale, fs));
+
+    var vol = parseFloat(s.volume);
+    if (!isFinite(vol)) vol = 0.8;
+    s.volume = Math.min(1, Math.max(0, vol));
+
+    var known = EC.Config.backgrounds.some(function (b) { return b.key === s.bgSkin; });
+    if (!known) s.bgSkin = EC.Config.backgrounds[0].key;
+
+    // 自訂背景三色（壞資料一律回退成預設，不讓畫面爆掉）
+    s.bgCustom = EC.Config.normalizeColors(s.bgCustom);
+
+    // 設定備份插槽：固定 5 組
+    s.slots = normalizeSlots(s.slots);
+
+    return s;
+  }
+
+  function save(state) {
+    writeRaw(state);
+  }
+
+  function clear() {
+    try { localStorage.removeItem(EC.Config.STORE_KEY); } catch (e) { /* 忽略 */ }
+  }
+
+  EC.Storage = {
+    load: load,
+    save: save,
+    clear: clear,
+    clone: clone,
+    // 匯入檔案 / 備份插槽 / 回復預設值共用的工具
+    buildState: buildState,
+    snapshot: snapshot,
+    normalizeSlots: normalizeSlots
+  };
+})();
+
+/* ===================== 03-core-time.js ===================== */
+/**
+ * 核心：時間引擎（TimeEngine）
+ * ------------------------------------------------------------------
+ * 純函式、無副作用，負責所有時間換算與「場次階段」判定。
+ * 上層只呼叫 compute() 取得畫面需要的一切，不自行算時間。
+ *
+ * 階段（phase）：
+ *   idle   未選擇場次
+ *   before 尚未開始
+ *   live   進行中
+ *   done   已結束
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+  /** "HH:MM" → 當日 0 時起算的分鐘數 */
+  function toMinutes(hhmm) {
+    if (!hhmm || hhmm.indexOf(':') === -1) return 0;
+    var p = hhmm.split(':');
+    return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+  }
+
+  /** 分鐘數 → "HH:MM" */
+  function toClock(minutes) {
+    var m = ((Math.round(minutes) % 1440) + 1440) % 1440;
+    return pad2(Math.floor(m / 60)) + ':' + pad2(m % 60);
+  }
+
+  /** Date → 當日秒數（含秒） */
+  function daySeconds(date) {
+    return date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
+  }
+
+  /** 秒數 → "MM:SS"，超過一小時顯示 "H:MM:SS" */
+  function formatDuration(totalSec) {
+    var sec = Math.max(0, Math.floor(totalSec));
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    var s = sec % 60;
+    if (h > 0) return h + ':' + pad2(m) + ':' + pad2(s);
+    return pad2(m) + ':' + pad2(s);
+  }
+
+  /** 秒數 → "H 時 M 分" 或 "M 分 S 秒" 的親切描述 */
+  function humanize(totalSec) {
+    var sec = Math.max(0, Math.floor(totalSec));
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    if (h > 0) return h + ' 小時 ' + m + ' 分';
+    if (m > 0) return m + ' 分 ' + (sec % 60) + ' 秒';
+    return sec + ' 秒';
+  }
+
+  function sessionSeconds(session) {
+    return (toMinutes(session.end) - toMinutes(session.start)) * 60;
+  }
+
+  /**
+   * 計算指定場次在 now 當下的完整狀態。
+   * 回傳 { phase, label, remainingSec, elapsedRatio, startClock, endClock, durationSec, overrunSec }
+   */
+  function compute(session, now) {
+    if (!session) {
+      return {
+        phase: 'idle', label: '等待選擇場次', remainingSec: 0, elapsedRatio: 0,
+        startClock: '--:--', endClock: '--:--', durationSec: 0, overrunSec: 0
+      };
+    }
+    var startSec = toMinutes(session.start) * 60;
+    var endSec = toMinutes(session.end) * 60;
+    if (endSec <= startSec) endSec += 86400; // 跨午夜保護
+    var nowSec = daySeconds(now);
+    if (nowSec < startSec - 21600) nowSec += 86400; // 深夜時區容錯
+    var duration = Math.max(1, endSec - startSec);
+
+    var phase, remainingSec, ratio;
+    if (nowSec < startSec) {
+      phase = 'before';
+      remainingSec = startSec - nowSec;
+      ratio = 0;
+    } else if (nowSec < endSec) {
+      phase = 'live';
+      remainingSec = endSec - nowSec;
+      ratio = (nowSec - startSec) / duration;
+    } else {
+      phase = 'done';
+      remainingSec = 0;
+      ratio = 1;
+    }
+
+    return {
+      phase: phase,
+      label: labelFor(phase),
+      remainingSec: remainingSec,
+      elapsedRatio: Math.min(1, Math.max(0, ratio)),
+      startClock: session.start,
+      endClock: session.end,
+      durationSec: duration,
+      overrunSec: phase === 'done' ? nowSec - endSec : 0
+    };
+  }
+
+  function labelFor(phase) {
+    if (phase === 'before') return '距離開始';
+    if (phase === 'live') return '剩餘時間';
+    if (phase === 'done') return '時間到';
+    return '待機中';
+  }
+
+  /** 依 warningMinutes 判斷是否進入最後警示區間 */
+  function isWarningPhase(info, warningMinutes) {
+    return info.phase === 'live' && info.remainingSec <= warningMinutes * 60;
+  }
+
+  /** 找下一個場次（依清單順序） */
+  function nextSession(sessions, activeId) {
+    var i = sessions.findIndex(function (s) { return s.id === activeId; });
+    if (i === -1 || i >= sessions.length - 1) return null;
+    return sessions[i + 1];
+  }
+
+  EC.TimeEngine = {
+    toMinutes: toMinutes,
+    toClock: toClock,
+    daySeconds: daySeconds,
+    formatDuration: formatDuration,
+    humanize: humanize,
+    sessionSeconds: sessionSeconds,
+    compute: compute,
+    isWarningPhase: isWarningPhase,
+    nextSession: nextSession
+  };
+})();
+
+
+/* ===================== 04-core-audio.js ===================== */
+/**
+ * 核心：音效引擎（AudioEngine）
+ * ------------------------------------------------------------------
+ * 以 Web Audio 合成提示音，不依賴任何外部音檔。共用單一 AudioContext。
+ * 提供三種音色、音量控制、單發提示與試聽。
+ *
+ * 音量：所有音符先經過限制器（compressor）再套用補償增益（makeup），
+ * 因此在不會破音的前提下，實際音量比單純正弦波大得多。
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+
+  var ctx = null;
+  var chainIn = null;
+
+  function context() {
+    var Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return null;
+    if (!ctx) ctx = new Ctor();
+    if (ctx.state === 'suspended' && ctx.resume) ctx.resume();
+    return ctx;
+  }
+
+  /** 主輸出鏈：限制器 + 補償增益（延遲建立、共用） */
+  function output(ac) {
+    if (!chainIn) {
+      var comp = ac.createDynamicsCompressor();
+      comp.threshold.value = -6;
+      comp.knee.value = 12;
+      comp.ratio.value = 8;
+      comp.attack.value = 0.003;
+      comp.release.value = 0.25;
+
+      var makeup = ac.createGain();
+      makeup.gain.value = 1.6;
+
+      comp.connect(makeup);
+      makeup.connect(ac.destination);
+      chainIn = comp;
+    }
+    return chainIn;
+  }
+
+  function clamp01(v, fallback) {
+    var n = parseFloat(v);
+    if (!isFinite(n)) n = fallback;
+    return Math.min(1, Math.max(0, n));
+  }
+
+  /** 單一音符（正弦 + 八度泛音，聽起來更飽滿） */
+  function note(ac, freq, at, dur, vol) {
+    var node = ac.createGain();
+    node.connect(output(ac));
+
+    var main = ac.createOscillator();
+    main.type = 'sine';
+    main.frequency.value = freq;
+    main.connect(node);
+
+    var body = ac.createOscillator();
+    body.type = 'sine';
+    body.frequency.value = freq * 2;
+    var bodyGain = ac.createGain();
+    bodyGain.gain.value = 0.3;
+    body.connect(bodyGain);
+    bodyGain.connect(node);
+
+    node.gain.setValueAtTime(0.0001, at);
+    node.gain.exponentialRampToValueAtTime(Math.max(0.0002, vol), at + 0.03);
+    node.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+
+    main.start(at); main.stop(at + dur + 0.05);
+    body.start(at); body.stop(at + dur + 0.05);
+  }
+
+  var RECIPES = {
+    chime: function (ac, t0, vol) {
+      note(ac, 587.33, t0 + 0.0, 1.1, vol);
+      note(ac, 493.88, t0 + 0.85, 1.1, vol);
+      note(ac, 392.00, t0 + 1.70, 1.8, vol);
+    },
+    pulse: function (ac, t0, vol) {
+      note(ac, 880.00, t0 + 0.0, 0.18, vol);
+      note(ac, 880.00, t0 + 0.32, 0.18, vol);
+    },
+    rise: function (ac, t0, vol) {
+      note(ac, 523.25, t0 + 0.0, 0.20, vol);
+      note(ac, 659.25, t0 + 0.22, 0.20, vol);
+      note(ac, 783.99, t0 + 0.44, 0.45, vol);
+    }
+  };
+
+  /**
+   * 播放指定音色。
+   * @param {string} tone  chime | pulse | rise
+   * @param {number} volume 0~1
+   * @param {boolean} repeat 是否在 6 秒後重播一次
+   */
+  function play(tone, volume, repeat) {
+    try {
+      var ac = context();
+      if (!ac) return;
+      var vol = clamp01(volume, 0.8);
+      var recipe = RECIPES[tone] || RECIPES.chime;
+      var t0 = ac.currentTime + 0.05;
+      recipe(ac, t0, vol);
+      if (repeat) recipe(ac, t0 + 6, vol);
+    } catch (e) {
+      console.warn('[ExamClock] 音效播放失敗：', e);
+    }
+  }
+
+  /** 短促警示音（用於最後倒數提醒） */
+  function warn(volume) {
+    try {
+      var ac = context();
+      if (!ac) return;
+      var vol = clamp01(volume, 0.8) * 0.85;
+      note(ac, 880.00, ac.currentTime + 0.02, 0.16, vol);
+      note(ac, 880.00, ac.currentTime + 0.30, 0.16, vol);
+    } catch (e) {
+      console.warn('[ExamClock] 音效播放失敗：', e);
+    }
+  }
+
+  EC.Audio = EC.Audio || {};
+  EC.AudioEngine = {
+    play: play,
+    warn: warn,
+    unlock: function () { context(); }
+  };
+})();
+
+/* ===================== 05-ui-icons.js ===================== */
+/**
+ * 圖示：IconSet（原創 SVG 圖示集）
+ * ------------------------------------------------------------------
+ * 全部為自繪的 24×24 線性圖示，統一以 currentColor 上色。
+ * 用法：<EC.Icons.clock /> 或 EC.Icons.get('clock', { size: 20 })
+ * 想換圖示風格只需改這裡，介面完全不受影響。
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+
+  function svg(children) {
+    return function Icon(props) {
+      props = props || {};
+      var size = props.size || 24;
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={props.weight || 1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={props.className || ''}
+          style={props.style}
+          aria-hidden="true"
+          focusable="false"
+        >
+          {children}
+        </svg>
+      );
+    };
+  }
+
+  var set = {
+    clock: svg(<g><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></g>),
+    calendar: svg(<g><rect x="3.5" y="5" width="17" height="15" rx="2.5" /><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" /></g>),
+    play: svg(<path d="M8 5.5l10 6.5-10 6.5z" />),
+    stop: svg(<rect x="7" y="7" width="10" height="10" rx="2" />),
+    bell: svg(<g><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2.5h-15z" /><path d="M10 20.5a2 2 0 0 0 4 0" /></g>),
+    bellOff: svg(<g><path d="M6 16v-5a6 6 0 0 1 9.2-5.1" /><path d="M17.8 10.3c0 .3.2.5.2.7v5l1.5 2.5h-15" /><path d="M10 20.5a2 2 0 0 0 4 0" /><path d="M4 4l16 16" /></g>),
+    volume: svg(<g><path d="M5 10v4h3l4 3.5v-11L8 10z" /><path d="M15.5 9.5a4 4 0 0 1 0 5" /><path d="M18 7.5a7 7 0 0 1 0 9" /></g>),
+    plus: svg(<path d="M12 5.5v13M5.5 12h13" />),
+    minus: svg(<path d="M5.5 12h13" />),
+    trash: svg(<g><path d="M4.5 7h15" /><path d="M9 7V5h6v2" /><path d="M6.5 7l1 12h9l1-12" /><path d="M10.5 11v5M13.5 11v5" /></g>),
+    pencil: svg(<g><path d="M4.5 19.5l1-4 10-10 3 3-10 10z" /><path d="M14.5 6.5l3 3" /></g>),
+    chevronUp: svg(<path d="M6 14.5l6-6 6 6" />),
+    chevronDown: svg(<path d="M6 9.5l6 6 6-6" />),
+    copy: svg(<g><rect x="8.5" y="8.5" width="11" height="11" rx="2.5" /><path d="M15.5 8.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v7a2.5 2.5 0 0 0 2.5 2.5h2" /></g>),
+    download: svg(<g><path d="M12 4v10" /><path d="M8 10.5l4 4 4-4" /><path d="M5 19.5h14" /></g>),
+    upload: svg(<g><path d="M12 15V5" /><path d="M8 8.5l4-4 4 4" /><path d="M5 19.5h14" /></g>),
+    users: svg(<g><circle cx="9.5" cy="9" r="3" /><path d="M4 19c.6-3 2.8-4.5 5.5-4.5S14.4 16 15 19" /><path d="M16 6.2a3 3 0 0 1 0 5.6" /><path d="M17.5 14.8c1.5.6 2.3 1.9 2.5 4.2" /></g>),
+    megaphone: svg(<g><path d="M4 10.5v3l11 4.5V6z" /><path d="M15 8.5h3.5a2 2 0 0 1 0 4H15" /><path d="M6.5 14.2V19h2.5v-3.6" /></g>),
+    note: svg(<g><path d="M6 3.5h9l4 4v13H6z" /><path d="M15 3.5v4h4" /><path d="M9 13h7M9 16.5h5" /></g>),
+    expand: svg(<path d="M4.5 9V4.5H9M15 4.5h4.5V9M19.5 15v4.5H15M9 19.5H4.5V15" />),
+    shrink: svg(<path d="M9 4.5V9H4.5M19.5 9H15V4.5M15 19.5V15h4.5M4.5 15H9v4.5" />),
+    check: svg(<path d="M5 12.5l4.5 4.5L19 7.5" />),
+    close: svg(<path d="M6 6l12 12M18 6L6 18" />),
+    sun: svg(<g><circle cx="12" cy="12" r="4" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4" /></g>),
+    moon: svg(<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />),
+    star: svg(<path d="M12 4.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 10.2l5.4-.8z" />),
+    sparkles: svg(<g><path d="M12 4l1.5 3.5L17 9l-3.5 1.5L12 14l-1.5-3.5L7 9l3.5-1.5z" /><path d="M18 15l.8 1.7L20.5 18l-1.7.8L18 20.5l-.8-1.7L15.5 18l1.7-.8z" /></g>),
+    grip: svg(<g><circle cx="9" cy="7" r="1.2" /><circle cx="15" cy="7" r="1.2" /><circle cx="9" cy="12" r="1.2" /><circle cx="15" cy="12" r="1.2" /><circle cx="9" cy="17" r="1.2" /><circle cx="15" cy="17" r="1.2" /></g>),
+    list: svg(<g><path d="M8 6.5h12M8 12h12M8 17.5h12" /><circle cx="4.5" cy="6.5" r="1" /><circle cx="4.5" cy="12" r="1" /><circle cx="4.5" cy="17.5" r="1" /></g>),
+    settings: svg(<g><circle cx="12" cy="12" r="3.2" /><path d="M12 3.5l1.2 2.6 2.8-.6.6 2.8 2.6 1.2-1.6 2.4 1.6 2.4-2.6 1.2-.6 2.8-2.8-.6L12 20.5l-1.2-2.6-2.8.6-.6-2.8L4.8 14.5 6.4 12 4.8 9.6l2.6-1.2.6-2.8 2.8.6z" /></g>),
+    refresh: svg(<g><path d="M19 12a7 7 0 1 1-2.1-5" /><path d="M19.5 5v4h-4" /></g>),
+    target: svg(<g><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3.2" /></g>),
+    pin: svg(<g><path d="M12 20.5v-6" /><path d="M8 4.5h8l-1 5 2 2.5H7L9 9.5z" /></g>),
+    arrowRight: svg(<g><path d="M4.5 12h13" /><path d="M12.5 6.5l5.5 5.5-5.5 5.5" /></g>),
+    hourglass: svg(<g><path d="M7.5 3.5h9M7.5 20.5h9" /><path d="M8.5 3.5c0 4 3.5 5.6 3.5 8.5s-3.5 4.5-3.5 8.5" /><path d="M15.5 3.5c0 4-3.5 5.6-3.5 8.5s3.5 4.5 3.5 8.5" /></g>),
+    flag: svg(<g><path d="M6 3.5v17" /><path d="M6 5h11l-1.8 4L17 13H6z" /></g>),
+    badgeCheck: svg(<g><circle cx="12" cy="12" r="8.5" /><path d="M8.4 12.3l2.5 2.5 4.7-5.2" /></g>),
+    hash: svg(<g><path d="M9.5 4l-2 16M16.5 4l-2 16" /><path d="M4.5 9h15M3.5 15h15" /></g>),
+    heart: svg(<path d="M12 20.2S4.5 15.6 4.5 10.4A3.9 3.9 0 0 1 12 7.9a3.9 3.9 0 0 1 7.5 2.5c0 5.2-7.5 9.8-7.5 9.8z" />),
+    question: svg(<g><circle cx="12" cy="12" r="8.5" /><path d="M9.6 9.2a2.5 2.5 0 1 1 3.5 2.4c-.7.3-1.1.8-1.1 1.6v.5" /><path d="M12 16.9h.01" /></g>),
+    warning: svg(<g><path d="M12 4.2 20.8 19.4H3.2z" /><path d="M12 10v4.1" /><path d="M12 16.9h.01" /></g>)
+  };
+
+  EC.Icons = set;
+  EC.Icons.get = function (name, props) {
+    var Icon = set[name];
+    return Icon ? <Icon {...props} /> : null;
+  };
+})();
+
+
+/* ===================== 06-core-hooks.js ===================== */
+/**
+ * 核心：React Hooks 工具箱
+ * ------------------------------------------------------------------
+ * useTicker      每秒（或指定間隔）更新一次的 Date
+ * useFullscreen  全螢幕切換
+ * useWakeLock    投影時避免螢幕休眠（若瀏覽器支援）
+ * useDebouncedSave 將狀態變更延遲寫入儲存層
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var useState = React.useState;
+  var useEffect = React.useEffect;
+  var useRef = React.useRef;
+  var useCallback = React.useCallback;
+
+  function useTicker(intervalMs) {
+    var pair = useState(function () { return new Date(); });
+    var now = pair[0];
+    var setNow = pair[1];
+    useEffect(function () {
+      var ms = intervalMs || 1000;
+      var id = setInterval(function () { setNow(new Date()); }, ms);
+      return function () { clearInterval(id); };
+    }, [intervalMs]);
+    return now;
+  }
+
+  function useFullscreen(targetRef) {
+    var pair = useState(false);
+    var isFull = pair[0];
+    var setFull = pair[1];
+
+    useEffect(function () {
+      function onChange() { setFull(!!document.fullscreenElement); }
+      document.addEventListener('fullscreenchange', onChange);
+      return function () { document.removeEventListener('fullscreenchange', onChange); };
+    }, []);
+
+    var toggle = useCallback(function () {
+      var el = (targetRef && targetRef.current) || document.documentElement;
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) document.exitFullscreen();
+      } else if (el.requestFullscreen) {
+        el.requestFullscreen().catch(function () { /* 使用者拒絕或不支援 */ });
+      }
+    }, [targetRef]);
+
+    return [isFull, toggle];
+  }
+
+  function useWakeLock() {
+    var ref = useRef(null);
+    var pair = useState(false);
+    var active = pair[0];
+    var setActive = pair[1];
+
+    var request = useCallback(function () {
+      if (!('wakeLock' in navigator)) return;
+      navigator.wakeLock.request('screen').then(function (lock) {
+        ref.current = lock;
+        setActive(true);
+        lock.addEventListener('release', function () { setActive(false); });
+      }).catch(function () { /* 被拒絕 */ });
+    }, []);
+
+    var release = useCallback(function () {
+      if (ref.current) {
+        try { ref.current.release(); } catch (e) { /* 忽略 */ }
+        ref.current = null;
+      }
+      setActive(false);
+    }, []);
+
+    return [active, request, release];
+  }
+
+  /** 狀態變更後延遲寫入，避免每秒都寫 localStorage */
+  function useDebouncedEffect(effect, deps, delayMs) {
+    useEffect(function () {
+      var id = setTimeout(effect, delayMs == null ? 300 : delayMs);
+      return function () { clearTimeout(id); };
+    }, deps);
+  }
+
+  /**
+   * 量測某個元素的可用尺寸（回傳 [ref, { width, height }]）。
+   * 給「要依剩餘空間自動縮放」的畫面用，例如投影的倒數圓環；
+   * 視窗縮放或版面變動時會自動重新量測。
+   */
+  function useElementSize() {
+    var ref = useRef(null);
+    var pair = useState({ width: 0, height: 0 });
+    var size = pair[0];
+    var setSize = pair[1];
+
+    useEffect(function () {
+      var el = ref.current;
+      if (!el) return undefined;
+
+      function measure() {
+        var r = el.getBoundingClientRect();
+        setSize(function (prev) {
+          if (Math.abs(prev.width - r.width) < 1 && Math.abs(prev.height - r.height) < 1) return prev;
+          return { width: r.width, height: r.height };
+        });
+      }
+
+      measure();
+
+      var ro = null;
+      if (typeof ResizeObserver !== 'undefined') {
+        ro = new ResizeObserver(measure);
+        ro.observe(el);
+      }
+      window.addEventListener('resize', measure);
+      window.addEventListener('orientationchange', measure);
+      return function () {
+        if (ro) ro.disconnect();
+        window.removeEventListener('resize', measure);
+        window.removeEventListener('orientationchange', measure);
+      };
+    }, []);
+
+    return [ref, size];
+  }
+
+  EC.Hooks = {
+    useTicker: useTicker,
+    useFullscreen: useFullscreen,
+    useWakeLock: useWakeLock,
+    useDebouncedEffect: useDebouncedEffect,
+    useElementSize: useElementSize
+  };
+})();
+
+
+/* ===================== 10-store.js ===================== */
+/**
+ * 狀態：Store（reducer 與動作建立器）
+ * ------------------------------------------------------------------
+ * 全應用只有這一個 reducer。畫面元件不直接改狀態，
+ * 一律 dispatch 動作，讓資料流單純、可預期、易除錯。
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+
+  var A = {
+    selectSession: function (id) { return { type: 'SELECT_SESSION', id: id }; },
+    addSession: function (session) { return { type: 'ADD_SESSION', session: session }; },
+    updateSession: function (session) { return { type: 'UPDATE_SESSION', session: session }; },
+    deleteSession: function (id) { return { type: 'DELETE_SESSION', id: id }; },
+    moveSession: function (id, delta) { return { type: 'MOVE_SESSION', id: id, delta: delta }; },
+    duplicateSession: function (id) { return { type: 'DUPLICATE_SESSION', id: id }; },
+    applyPreset: function (sessions) { return { type: 'APPLY_PRESET', sessions: sessions }; },
+    setAttendance: function (key, value) { return { type: 'SET_ATTENDANCE', key: key, value: value }; },
+    addAnnouncement: function (text) { return { type: 'ADD_ANNOUNCEMENT', text: text }; },
+    updateAnnouncement: function (id, patch) { return { type: 'UPDATE_ANNOUNCEMENT', id: id, patch: patch }; },
+    deleteAnnouncement: function (id) { return { type: 'DELETE_ANNOUNCEMENT', id: id }; },
+    addNote: function (text) { return { type: 'ADD_NOTE', text: text }; },
+    deleteNote: function (id) { return { type: 'DELETE_NOTE', id: id }; },
+    clearNotes: function () { return { type: 'CLEAR_NOTES' }; },
+    updateSettings: function (patch) { return { type: 'UPDATE_SETTINGS', patch: patch }; },
+    saveSlot: function (index, name, data) { return { type: 'SAVE_SLOT', index: index, name: name, data: data }; },
+    updateSlot: function (index, patch) { return { type: 'UPDATE_SLOT', index: index, patch: patch }; },
+    clearSlot: function (index) { return { type: 'CLEAR_SLOT', index: index }; },
+    replaceAll: function (state) { return { type: 'REPLACE_ALL', state: state }; },
+    reset: function () { return { type: 'RESET' }; }
+  };
+
+  /** 只改「設定備份插槽」的共用寫法（其餘狀態完全不動） */
+  function withSlot(state, index, patch) {
+    var slots = (state.settings.slots || []).map(function (s, i) {
+      return i === index ? Object.assign({}, s, patch) : s;
+    });
+    return Object.assign({}, state, {
+      settings: Object.assign({}, state.settings, { slots: slots })
+    });
+  }
+
+  function uid(prefix) {
+    return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function reducer(state, action) {
+    switch (action.type) {
+      case 'SELECT_SESSION':
+        return Object.assign({}, state, { activeSessionId: action.id });
+
+      case 'ADD_SESSION': {
+        var added = state.sessions.concat([action.session]);
+        return Object.assign({}, state, {
+          sessions: added,
+          activeSessionId: state.activeSessionId || action.session.id
+        });
+      }
+
+      case 'UPDATE_SESSION':
+        return Object.assign({}, state, {
+          sessions: state.sessions.map(function (s) {
+            return s.id === action.session.id ? action.session : s;
+          })
+        });
+
+      case 'DELETE_SESSION': {
+        var remain = state.sessions.filter(function (s) { return s.id !== action.id; });
+        var active = state.activeSessionId;
+        if (active === action.id) active = remain.length ? remain[0].id : null;
+        return Object.assign({}, state, { sessions: remain, activeSessionId: active });
+      }
+
+      case 'MOVE_SESSION': {
+        var list = state.sessions.slice();
+        var i = list.findIndex(function (s) { return s.id === action.id; });
+        var j = i + action.delta;
+        if (i === -1 || j < 0 || j >= list.length) return state;
+        var tmp = list[i];
+        list[i] = list[j];
+        list[j] = tmp;
+        return Object.assign({}, state, { sessions: list });
+      }
+
+      case 'DUPLICATE_SESSION': {
+        var idx = state.sessions.findIndex(function (s) { return s.id === action.id; });
+        if (idx === -1) return state;
+        var src = state.sessions[idx];
+        var copy = Object.assign({}, src, { id: uid('s'), title: src.title + '（複本）' });
+        var next = state.sessions.slice();
+        next.splice(idx + 1, 0, copy);
+        return Object.assign({}, state, { sessions: next });
+      }
+
+      case 'APPLY_PRESET':
+        return Object.assign({}, state, {
+          sessions: action.sessions,
+          activeSessionId: action.sessions.length ? action.sessions[0].id : null
+        });
+
+      case 'SET_ATTENDANCE': {
+        var att = Object.assign({}, state.attendance);
+        att[action.key] = action.value;
+        return Object.assign({}, state, { attendance: att });
+      }
+
+      case 'ADD_ANNOUNCEMENT':
+        return Object.assign({}, state, {
+          announcements: state.announcements.concat([
+            { id: uid('a'), text: action.text, enabled: true, pinned: false }
+          ])
+        });
+
+      case 'UPDATE_ANNOUNCEMENT':
+        return Object.assign({}, state, {
+          announcements: state.announcements.map(function (a) {
+            return a.id === action.id ? Object.assign({}, a, action.patch) : a;
+          })
+        });
+
+      case 'DELETE_ANNOUNCEMENT':
+        return Object.assign({}, state, {
+          announcements: state.announcements.filter(function (a) { return a.id !== action.id; })
+        });
+
+      case 'ADD_NOTE': {
+        var note = { id: uid('n'), at: new Date().toISOString(), text: action.text };
+        return Object.assign({}, state, { notes: [note].concat(state.notes).slice(0, 200) });
+      }
+
+      case 'DELETE_NOTE':
+        return Object.assign({}, state, {
+          notes: state.notes.filter(function (n) { return n.id !== action.id; })
+        });
+
+      case 'CLEAR_NOTES':
+        return Object.assign({}, state, { notes: [] });
+
+      case 'UPDATE_SETTINGS':
+        return Object.assign({}, state, { settings: Object.assign({}, state.settings, action.patch) });
+
+      // 設定備份插槽：存到第 N 組 / 改名稱 / 清除第 N 組
+      case 'SAVE_SLOT':
+        return withSlot(state, action.index, {
+          name: action.name,
+          savedAt: new Date().toISOString(),
+          data: action.data
+        });
+
+      case 'UPDATE_SLOT':
+        return withSlot(state, action.index, action.patch);
+
+      case 'CLEAR_SLOT':
+        return withSlot(state, action.index, { savedAt: null, data: null });
+
+      case 'REPLACE_ALL':
+        return action.state;
+
+      // 回復預設值：固定回到「最原始出廠狀態」，但保留 5 組備份插槽
+      case 'RESET':
+        return EC.Storage.buildState(EC.Config.initial, state.settings.slots);
+
+      default:
+        return state;
+    }
+  }
+
+  EC.Store = { actions: A, reducer: reducer, uid: uid };
+})();
+
+
+/* ===================== 11-ui-primitives.js ===================== */
+/**
+ * 介面基礎元件（UI Primitives）— 淺色柔和粉彩設計系統
+ * ------------------------------------------------------------------
+ * 配色取自參考風格：白底 + 淡藍 / 淡杏 / 淡薄荷 + 灰字。
+ * 全站外觀的唯一來源；面板只使用這些積木，換風格不動邏輯。
+ *
+ * 對外 API（面板依賴，請保持穩定）：
+ *   Button / IconButton / Card / Field / Toggle / Stepper / Segmented
+ *   ProgressRing / toneClasses / inputClass
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = (EC.UI = EC.UI || {});
+  var Icons = EC.Icons;
+
+  var VARIANTS = {
+    primary: 'border-transparent bg-gradient-to-r from-sky-400 to-indigo-400 text-white shadow-lg shadow-sky-300/50 hover:shadow-xl hover:shadow-sky-300/60 hover:-translate-y-0.5',
+    ghost: 'border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5',
+    soft: 'border-transparent bg-slate-100 text-slate-600 hover:bg-slate-200',
+    danger: 'border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100',
+    accent: 'border-transparent bg-gradient-to-r from-amber-300 to-orange-300 text-amber-900 shadow-lg shadow-amber-200/60 hover:shadow-xl hover:-translate-y-0.5'
+  };
+
+  var BTN_BASE =
+    'inline-flex select-none items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 ' +
+    'text-sm font-bold transition-all duration-200 active:scale-[0.97] ' +
+    'disabled:pointer-events-none disabled:opacity-40';
+
+  UI.Button = function Button(props) {
+    var variant = props.variant || 'ghost';
+    return (
+      <button
+        type="button"
+        onClick={props.onClick}
+        disabled={props.disabled}
+        title={props.title}
+        className={[BTN_BASE, VARIANTS[variant] || VARIANTS.ghost,
+          props.full ? 'w-full' : '', props.className || ''].join(' ')}
+      >
+        {props.icon ? Icons.get(props.icon, { size: props.iconSize || 18 }) : null}
+        {props.children}
+      </button>
+    );
+  };
+
+  UI.IconButton = function IconButton(props) {
+    var box = props.compact ? 'h-8 w-8' : 'h-10 w-10';
+    return (
+      <button
+        type="button"
+        onClick={props.onClick}
+        title={props.title}
+        aria-label={props.title}
+        className={[
+          'inline-flex items-center justify-center rounded-xl border transition-all duration-200 active:scale-95 ' + box,
+          props.active
+            ? 'border-transparent bg-gradient-to-br from-sky-400 to-indigo-400 text-white shadow-md shadow-sky-300/50'
+            : 'border-slate-200 bg-white text-slate-400 hover:border-slate-300 hover:text-sky-500 hover:shadow-sm',
+          props.className || ''
+        ].join(' ')}
+      >
+        {Icons.get(props.icon, { size: props.size || (props.compact ? 15 : 18) })}
+      </button>
+    );
+  };
+
+  /**
+   * 彩色圖示徽章：每個面板的圖示都有自己的顏色，讓介面更活潑、更好辨識。
+   * 由 props.tone 指定色系；未指定時依 props.icon 自動對應；再否則預設天空藍。
+   * 面板不需修改即可獲得彩色圖示（保持模組獨立）。
+   */
+  var ICON_TONE = {
+    calendar: 'sky', clock: 'indigo', bell: 'amber', users: 'emerald',
+    megaphone: 'rose', note: 'violet', settings: 'slate', sparkles: 'fuchsia',
+    list: 'cyan', target: 'indigo', pin: 'amber', check: 'emerald',
+    arrowRight: 'cyan', hourglass: 'amber', flag: 'rose', badgeCheck: 'emerald',
+    hash: 'violet', play: 'emerald', star: 'amber', volume: 'sky',
+    heart: 'amber', question: 'violet', warning: 'rose'
+  };
+
+  var BADGE_TONE = {
+    sky: 'from-sky-400 to-blue-500 shadow-sky-300/50',
+    indigo: 'from-indigo-400 to-violet-500 shadow-indigo-300/50',
+    amber: 'from-amber-400 to-orange-500 shadow-amber-300/50',
+    emerald: 'from-emerald-400 to-teal-500 shadow-emerald-300/50',
+    rose: 'from-rose-400 to-pink-500 shadow-rose-300/50',
+    violet: 'from-violet-400 to-purple-500 shadow-violet-300/50',
+    fuchsia: 'from-fuchsia-400 to-pink-500 shadow-fuchsia-300/50',
+    cyan: 'from-cyan-400 to-sky-500 shadow-cyan-300/50',
+    slate: 'from-slate-400 to-slate-500 shadow-slate-300/50'
+  };
+
+  /** 彩色圖示徽章（投影／操控台共用；色系與 Card 標題徽章同一套） */
+  UI.IconBadge = function IconBadge(props) {
+    var tone = BADGE_TONE[props.tone || ICON_TONE[props.icon] || 'sky'] || BADGE_TONE.sky;
+    return (
+      <span
+        className={[
+          'inline-flex shrink-0 items-center justify-center bg-gradient-to-br text-white shadow-md',
+          tone,
+          props.round ? 'rounded-full' : 'rounded-xl',
+          props.size || 'h-9 w-9',
+          props.className || ''
+        ].join(' ')}
+      >
+        {Icons.get(props.icon, { size: props.iconSize || '1.05em' })}
+      </span>
+    );
+  };
+
+  /** 數字徽章（與 IconBadge 同一套漸層）：用於編號，例如備份第 1～5 組 */
+  UI.NumberBadge = function NumberBadge(props) {
+    var tone = BADGE_TONE[props.tone] || BADGE_TONE.sky;
+    return (
+      <span
+        className={[
+          'inline-flex shrink-0 items-center justify-center bg-gradient-to-br font-black tabular-nums text-white shadow-md',
+          tone,
+          props.square ? 'rounded-xl' : 'rounded-full',
+          props.size || 'h-7 w-7',
+          props.className || ''
+        ].join(' ')}
+        style={{ fontSize: props.fontSize || '0.78rem', lineHeight: 1 }}
+      >
+        {props.children}
+      </span>
+    );
+  };
+
+  UI.Card = function Card(props) {
+    var tone = BADGE_TONE[props.tone || ICON_TONE[props.icon] || 'sky'] || BADGE_TONE.sky;
+    return (
+      <section className="relative overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-[0_16px_40px_-26px_rgba(100,140,180,0.55)]">
+        {(props.title || props.actions) && (
+          <header className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+            <h2 className="flex items-center gap-3">
+              {props.icon ? (
+                <span className={'flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-md ' + tone}>
+                  {Icons.get(props.icon, { size: 18 })}
+                </span>
+              ) : null}
+              <span className="text-base font-black tracking-tight text-slate-700">{props.title}</span>
+            </h2>
+            <div className="flex items-center gap-1.5">{props.actions}</div>
+          </header>
+        )}
+        <div className={props.pad === false ? '' : 'p-5'}>{props.children}</div>
+      </section>
+    );
+  };
+
+  UI.Field = function Field(props) {
+    return (
+      <label className="block">
+        <span className="mb-1.5 block text-xs font-bold tracking-wide text-slate-500">{props.label}</span>
+        {props.children}
+      </label>
+    );
+  };
+
+  UI.inputClass =
+    'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm ' +
+    'outline-none transition placeholder:text-slate-400 ' +
+    'focus:border-sky-300 focus:ring-4 focus:ring-sky-100';
+
+  UI.Toggle = function Toggle(props) {
+    return (
+      <button
+        type="button"
+        role="switch"
+        aria-checked={!!props.checked}
+        onClick={function () { props.onChange(!props.checked); }}
+        className="flex w-full items-center justify-between gap-3 text-left"
+      >
+        <span className="text-sm font-semibold text-slate-600">{props.label}</span>
+        <span className={[
+          'relative h-7 w-12 shrink-0 rounded-full transition-colors duration-200',
+          props.checked ? 'bg-gradient-to-r from-sky-400 to-indigo-400' : 'bg-slate-200'
+        ].join(' ')}>
+          <span className={[
+            'absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all duration-200',
+            props.checked ? 'left-6' : 'left-1'
+          ].join(' ')} />
+        </span>
+      </button>
+    );
+  };
+
+  UI.Stepper = function Stepper(props) {
+    var value = typeof props.value === 'number' ? props.value : 0;
+    var display = props.format ? props.format(value) : String(value);
+    var btn = 'flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-white hover:text-sky-500 hover:shadow-sm';
+    return (
+      <div className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
+        <button type="button" className={btn} onClick={function () { props.onChange(value - props.step); }}>
+          {Icons.get('minus', { size: 16 })}
+        </button>
+        <span className="w-16 text-center text-sm font-black tabular-nums text-slate-700">{display}</span>
+        <button type="button" className={btn} onClick={function () { props.onChange(value + props.step); }}>
+          {Icons.get('plus', { size: 16 })}
+        </button>
+      </div>
+    );
+  };
+
+  UI.Segmented = function Segmented(props) {
+    return (
+      <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+        {props.options.map(function (opt) {
+          var on = opt.value === props.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={function () { props.onChange(opt.value); }}
+              className={[
+                'rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all',
+                on ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'
+              ].join(' ')}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  /**
+   * 發光圓環進度（倒數視覺主角）
+   * props：size(px 或 字串), ratio(0~1), tone, thickness, trackClass, children
+   */
+  var RING_STOPS = {
+    indigo: ['#38bdf8', '#818cf8'],
+    teal: ['#2dd4bf', '#22d3ee'],
+    amber: ['#fbbf24', '#fb923c'],
+    rose: ['#fb7185', '#f472b6'],
+    slate: ['#cbd5e1', '#94a3b8']
+  };
+
+  var ringSeq = 0;
+
+  UI.ProgressRing = function ProgressRing(props) {
+    var size = props.size || 220;
+    var thickness = props.thickness || 12;
+    var tone = props.tone || 'indigo';
+    var ratio = Math.min(1, Math.max(0, props.ratio || 0));
+    var r = 88;
+    var C = 2 * Math.PI * r;
+    var gid = 'ec-ring-' + (++ringSeq);
+    var stops = RING_STOPS[tone] || RING_STOPS.indigo;
+
+    return (
+      <div className="relative aspect-square" style={{ width: size }}>
+        <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90">
+          <defs>
+            <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor={stops[0]} />
+              <stop offset="100%" stopColor={stops[1]} />
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="100" r={r} fill="none" strokeWidth={thickness}
+            className={props.trackClass || 'text-slate-100'} stroke="currentColor" />
+          <circle cx="100" cy="100" r={r} fill="none" strokeWidth={thickness} strokeLinecap="round"
+            stroke={'url(#' + gid + ')'}
+            strokeDasharray={C} strokeDashoffset={C * (1 - ratio)}
+            style={{
+              transition: 'stroke-dashoffset 700ms cubic-bezier(.4,0,.2,1)',
+              filter: 'drop-shadow(0 0 10px ' + stops[1] + '55)'
+            }} />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">{props.children}</div>
+      </div>
+    );
+  };
+
+  /**
+   * 投影用倒數外框：圓角「長方框」（ProgressBox）
+   * ------------------------------------------------------------------
+   * 與 ProgressRing 同一套視覺語言，差別在形狀：
+   *   圓環是正方形 → 高度吃掉整個主區；長方框是寬扁形，
+   *   高度只需少少幾成，剩下的高度就留給「老師小叮嚀」。
+   *
+   * 立體感靠「四層堆疊」做出來：
+   *   1) 底板：垂直漸層（上緣受光、下緣沉暗）＋外描邊 → 浮起來的厚板。
+   *   2) 倒角：內縮一圈的細高光，模擬板材倒角（bevel）。
+   *   3) 凹槽：深色陰影墊底、淺色軌道壓上，中間形成內凹的溝。
+   *   4) 進度條：彩色漸層圓管，再疊一層「上亮下暗」打光，圓頭收尾。
+   *
+   * 注意：底板與外框一定「整圈」都要畫。進度條的缺口固定落在路徑尾端
+   * （畫面左側），若只畫進度條，框在低進度時左邊會空一圈、像壞掉。
+   *
+   * 作法是 SVG 圓角矩形描邊：
+   *   preserveAspectRatio="none" 讓框可以隨容器任意拉寬／壓扁；
+   *   vector-effect="non-scaling-stroke" 讓邊框粗細維持一致（不會被拉寬變形）。
+   * props：ratio（0~1）、tone、thickness(px)、radius（viewBox 單位）、
+   *   trackClass、boxRef、className、style、children
+   */
+  UI.ProgressBox = function ProgressBox(props) {
+    var tone = props.tone || 'indigo';
+    var ratio = Math.min(1, Math.max(0, props.ratio || 0));
+    var thickness = props.thickness || 10;
+    var gid = 'ec-box-' + (++ringSeq);
+    var stops = RING_STOPS[tone] || RING_STOPS.indigo;
+
+    var W = 1000;
+    var H = 260;
+    var inset = 6;                                  // 留白給粗框與發光，避免被裁掉
+    var x0 = inset, y0 = inset, x1 = W - inset, y1 = H - inset;
+
+    /** 圓角矩形路徑：同一支產生器，底板／倒角／凹槽圓角才會完全一致 */
+    function rrect(ax0, ay0, ax1, ay1, rr) {
+      return 'M ' + (ax0 + rr) + ' ' + ay0 +
+        'H ' + (ax1 - rr) + 'a ' + rr + ' ' + rr + ' 0 0 1 ' + rr + ' ' + rr +
+        'V ' + (ay1 - rr) + 'a ' + rr + ' ' + rr + ' 0 0 1 ' + (-rr) + ' ' + rr +
+        'H ' + (ax0 + rr) + 'a ' + rr + ' ' + rr + ' 0 0 1 ' + (-rr) + ' ' + (-rr) +
+        'V ' + (ay0 + rr) + 'a ' + rr + ' ' + rr + ' 0 0 1 ' + rr + ' ' + (-rr) + 'Z';
+    }
+
+    var maxR = Math.min((y1 - y0) / 2, (x1 - x0) / 2);
+    var r = Math.min(props.radius == null ? 46 : props.radius, maxR);
+    var rIn = Math.max(4, Math.min(r - 12, maxR - 12));
+    var d = rrect(x0, y0, x1, y1, r);
+    var dIn = rrect(x0 + 11, y0 + 11, x1 - 11, y1 - 11, rIn);
+
+    // pathLength=100：把路徑長度正規化，進度用 0~100 計算，
+    // 不會因為圓角、非等比拉伸、non-scaling-stroke 而頭尾接不起來。
+    var dash = {
+      pathLength: 100,
+      strokeDasharray: 100,
+      strokeDashoffset: 100 - ratio * 100
+    };
+    var anim = { transition: 'stroke-dashoffset 700ms cubic-bezier(.4,0,.2,1)' };
+
+    return (
+      <div ref={props.boxRef} className={props.className || ''} style={props.style}>
+        <div className="relative h-full w-full">
+          <svg viewBox={'0 0 ' + W + ' ' + H} preserveAspectRatio="none"
+            className="absolute inset-0 h-full w-full"
+            style={{ overflow: 'visible', filter: 'drop-shadow(0 18px 26px rgba(2,6,23,0.55))' }}>
+            <defs>
+              {/* 進度條顏色（橫向斜向漸層） */}
+              <linearGradient id={gid} x1="0" y1="0" x2="1" y2="0.7">
+                <stop offset="0%" stopColor={stops[0]} />
+                <stop offset="100%" stopColor={stops[1]} />
+              </linearGradient>
+              {/* 進度條打光（垂直）：上緣亮、下緣暗 → 圓管立體感 */}
+              <linearGradient id={gid + '-lit'} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.40" />
+                <stop offset="42%" stopColor="#ffffff" stopOpacity="0.04" />
+                <stop offset="100%" stopColor="#020617" stopOpacity="0.34" />
+              </linearGradient>
+              {/* 底板立體漸層：上緣受光、下緣沉入 */}
+              <linearGradient id={gid + '-panel'} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.20" />
+                <stop offset="34%" stopColor="#ffffff" stopOpacity="0.06" />
+                <stop offset="100%" stopColor="#020617" stopOpacity="0.34" />
+              </linearGradient>
+            </defs>
+
+            {/* 1) 底板＋外描邊：整圈都在，低進度時框也不會缺一角 */}
+            <path d={d} fill={'url(#' + gid + '-panel)'}
+              stroke="rgba(255,255,255,0.10)" strokeWidth="1.25" vectorEffect="non-scaling-stroke" />
+
+            {/* 2) 倒角：內縮一圈的細高光，做出板材厚度 */}
+            <path d={dIn} fill="none" stroke="rgba(255,255,255,0.10)"
+              strokeWidth="1" vectorEffect="non-scaling-stroke" />
+
+            {/* 3) 凹槽：深色墊底 ＋ 淺色軌道 → 內凹的溝 */}
+            <path d={d} fill="none" stroke="rgba(2,6,23,0.40)" strokeWidth={thickness + 5}
+              vectorEffect="non-scaling-stroke" />
+            <path d={d} fill="none" stroke="currentColor" strokeWidth={thickness}
+              vectorEffect="non-scaling-stroke" className={props.trackClass || 'text-slate-100'} />
+
+            {/* 4) 進度條：彩色圓管 ＋ 打光疊層 */}
+            <path d={d} fill="none" stroke={'url(#' + gid + ')'} strokeWidth={thickness}
+              strokeLinecap="round" vectorEffect="non-scaling-stroke"
+              pathLength={dash.pathLength} strokeDasharray={dash.strokeDasharray}
+              strokeDashoffset={dash.strokeDashoffset} style={Object.assign({
+                filter: 'drop-shadow(0 0 12px ' + stops[1] + '66)'
+              }, anim)} />
+            <path d={d} fill="none" stroke={'url(#' + gid + '-lit)'} strokeWidth={thickness}
+              strokeLinecap="round" vectorEffect="non-scaling-stroke"
+              pathLength={dash.pathLength} strokeDasharray={dash.strokeDasharray}
+              strokeDashoffset={dash.strokeDashoffset} style={anim} />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">{props.children}</div>
+        </div>
+      </div>
+    );
+  };
+
+  var TONES_LIGHT = {
+    indigo: 'border-sky-100 bg-sky-50 text-sky-600',
+    teal: 'border-teal-100 bg-teal-50 text-teal-600',
+    amber: 'border-amber-100 bg-amber-50 text-amber-600',
+    rose: 'border-rose-100 bg-rose-50 text-rose-500',
+    violet: 'border-indigo-100 bg-indigo-50 text-indigo-500',
+    cyan: 'border-cyan-100 bg-cyan-50 text-cyan-600',
+    slate: 'border-slate-200 bg-slate-100 text-slate-500'
+  };
+
+  // 投影／深色底用的高對比膠囊：底色更實、文字更亮（遠距離也要看得清楚）
+  var TONES_DARK = {
+    indigo: 'border-indigo-300/40 bg-indigo-500/25 text-indigo-50',
+    teal: 'border-teal-300/40 bg-teal-500/25 text-teal-50',
+    amber: 'border-amber-300/50 bg-amber-500/25 text-amber-50',
+    rose: 'border-rose-300/40 bg-rose-500/25 text-rose-50',
+    violet: 'border-violet-300/40 bg-violet-500/25 text-violet-50',
+    cyan: 'border-cyan-300/40 bg-cyan-500/25 text-cyan-50',
+    slate: 'border-white/25 bg-white/15 text-white'
+  };
+
+  UI.toneClasses = function (tone, dark) {
+    var map = dark ? TONES_DARK : TONES_LIGHT;
+    return 'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-bold ' +
+      (map[tone] || map.slate);
+  };
+})();
+
+
+/* ===================== 12-ui-dialog.js ===================== */
+/**
+ * 介面：確認對話框（ConfirmDialog）
+ * ------------------------------------------------------------------
+ * 通用確認視窗，供刪除、清空、重設等破壞性操作使用。
+ * props：open, title, message, confirmLabel, cancelLabel, tone,
+ *        hideCancel, onConfirm, onCancel
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+
+  EC.UI.ConfirmDialog = function ConfirmDialog(props) {
+    if (!props.open) return null;
+    var danger = props.tone === 'danger';
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+        onClick={props.onCancel}>
+        <div className="w-full max-w-sm overflow-hidden rounded-3xl border border-white/70 bg-white/95 p-6 shadow-2xl shadow-sky-900/20 backdrop-blur-xl"
+          onClick={function (e) { e.stopPropagation(); }}>
+          <div className="mb-3 flex items-center gap-3">
+            <span className={['flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg',
+              danger ? 'bg-gradient-to-br from-rose-400 to-pink-500 shadow-rose-300/40'
+                     : 'bg-gradient-to-br from-sky-400 to-indigo-400 shadow-sky-300/40'].join(' ')}>
+              {Icons.get(danger ? 'trash' : 'target', { size: 20 })}
+            </span>
+            <h3 className="text-lg font-black tracking-tight text-slate-800">{props.title}</h3>
+          </div>
+          <p className="mb-6 text-sm font-medium text-slate-500">{props.message}</p>
+          <div className="flex justify-end gap-2">
+            {!props.hideCancel && (
+              <UI.Button icon="close" onClick={props.onCancel}>{props.cancelLabel || '取消'}</UI.Button>
+            )}
+            <UI.Button variant={danger ? 'danger' : 'primary'} icon="check" onClick={props.onConfirm}>
+              {props.confirmLabel || '確定'}
+            </UI.Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+})();
+
+
+/* ===================== 20-panel-sessions.js ===================== */
+/**
+ * 面板：場次排程（SessionsPanel）
+ * ------------------------------------------------------------------
+ * 新增 / 編輯 / 排序 / 複製 / 刪除考試場次，並提供快速套用範本。
+ *
+ * 選取回饋（重點）：
+ *   選取中的場次使用「漸層外框 + 白底 + 陰影 + 目前標籤」強烈標示，
+ *   並以時間即時判斷該場次是否「進行中」，讓老師一眼分辨。
+ *
+ * props：
+ *   sessions, activeId,
+ *   onSelect(id), onAdd(session), onUpdate(session), onDelete(id),
+ *   onMove(id, delta), onDuplicate(id), onApplyPreset(sessions)
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+  var useState = React.useState;
+
+  var TINTS = ['indigo', 'teal', 'amber', 'rose', 'violet', 'cyan'];
+  var BLANK = { title: '', start: '08:00', end: '08:40', tint: 'indigo' };
+
+  var DOT = {
+    indigo: 'bg-sky-500', teal: 'bg-teal-400', amber: 'bg-amber-400',
+    rose: 'bg-rose-400', violet: 'bg-indigo-400', cyan: 'bg-cyan-400'
+  };
+
+  EC.UI.SessionsPanel = function SessionsPanel(props) {
+    var editingPair = useState(null); // null | 'new' | id
+    var editing = editingPair[0];
+    var setEditing = editingPair[1];
+
+    var formPair = useState(BLANK);
+    var form = formPair[0];
+    var setForm = formPair[1];
+
+    var errPair = useState('');
+    var error = errPair[0];
+    var setError = errPair[1];
+
+    var presetPair = useState(EC.Config.presets[0].key);
+    var presetKey = presetPair[0];
+    var setPresetKey = presetPair[1];
+
+    function openNew() { setEditing('new'); setForm(BLANK); setError(''); }
+    function openEdit(s) {
+      setEditing(s.id);
+      setForm({ title: s.title, start: s.start, end: s.end, tint: s.tint });
+      setError('');
+    }
+    function close() { setEditing(null); setError(''); }
+
+    function submit() {
+      if (!form.title.trim()) { setError('請輸入場次名稱'); return; }
+      if (EC.TimeEngine.toMinutes(form.end) <= EC.TimeEngine.toMinutes(form.start)) {
+        setError('結束時間需晚於開始時間'); return;
+      }
+      var payload = {
+        id: editing === 'new' ? EC.Store.uid('s') : editing,
+        title: form.title.trim(),
+        start: form.start, end: form.end, tint: form.tint
+      };
+      if (editing === 'new') props.onAdd(payload); else props.onUpdate(payload);
+      close();
+    }
+
+    var now = new Date();
+
+    return (
+      <UI.Card title="考試場次" icon="calendar"
+        actions={<UI.Button variant="primary" icon="plus" onClick={openNew}>新增</UI.Button>}>
+        {editing && (
+          <div className="mb-4 space-y-3 rounded-2xl border border-sky-100 bg-sky-50/70 p-4">
+            <UI.Field label="場次名稱">
+              <input className={UI.inputClass} value={form.title} placeholder="例如：第一節"
+                onChange={function (e) { setForm(Object.assign({}, form, { title: e.target.value })); }} />
+            </UI.Field>
+            <div className="grid grid-cols-2 gap-3">
+              <UI.Field label="開始時間">
+                <input type="time" className={UI.inputClass} value={form.start}
+                  onChange={function (e) { setForm(Object.assign({}, form, { start: e.target.value })); }} />
+              </UI.Field>
+              <UI.Field label="結束時間">
+                <input type="time" className={UI.inputClass} value={form.end}
+                  onChange={function (e) { setForm(Object.assign({}, form, { end: e.target.value })); }} />
+              </UI.Field>
+            </div>
+            <UI.Field label="標籤顏色">
+              <div className="flex flex-wrap gap-2">
+                {TINTS.map(function (t) {
+                  return (
+                    <button key={t} type="button"
+                      title={t}
+                      onClick={function () { setForm(Object.assign({}, form, { tint: t })); }}
+                      className={['h-8 w-8 rounded-xl transition-transform hover:scale-110 ' + (DOT[t] || 'bg-slate-400'),
+                        form.tint === t ? 'ring-2 ring-slate-500 ring-offset-2' : ''].join(' ')} />
+                  );
+                })}
+              </div>
+            </UI.Field>
+            {error && <p className="text-xs font-bold text-rose-600">{error}</p>}
+            <div className="flex gap-2">
+              <UI.Button variant="primary" icon="check" onClick={submit}>儲存</UI.Button>
+              <UI.Button icon="close" onClick={close}>取消</UI.Button>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2.5">
+          {props.sessions.length === 0 && (
+            <p className="rounded-2xl border border-dashed border-slate-300 py-8 text-center text-sm font-semibold text-slate-400">
+              尚未建立場次，點右上角「新增」
+            </p>
+          )}
+
+          {props.sessions.map(function (s, i) {
+            var active = s.id === props.activeId;
+            var live = EC.TimeEngine.compute(s, now).phase === 'live';
+            var mins = Math.round(EC.TimeEngine.sessionSeconds(s) / 60);
+
+            return (
+              <div key={s.id}
+                onClick={function () { props.onSelect(s.id); }}
+                className={['group cursor-pointer rounded-2xl transition-all duration-200 ',
+                  active
+                    ? 'bg-gradient-to-r from-sky-400 to-indigo-400 p-[2.5px] shadow-lg shadow-sky-300/40'
+                    : 'p-[2.5px] hover:shadow-md'].join(' ')}>
+                <div className={['flex items-center gap-3 rounded-[14px] p-3.5 transition-colors',
+                  active ? 'bg-white' : 'border border-slate-200 bg-white/70 group-hover:border-sky-200'].join(' ')}>
+
+                  {/* 顏色指示 */}
+                  <span className={['h-10 w-1.5 shrink-0 rounded-full ' + (DOT[s.tint] || 'bg-slate-400')].join(' ')} />
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className={['truncate font-black tracking-tight',
+                        active ? 'text-base text-slate-800' : 'text-sm text-slate-700'].join(' ')}>
+                        {s.title}
+                      </p>
+                      {active && (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gradient-to-r from-sky-400 to-indigo-400 px-2 py-0.5 text-[10px] font-black text-white">
+                          <span className="h-1.5 w-1.5 rounded-full bg-white" />目前
+                        </span>
+                      )}
+                      {live && !active && (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-teal-200 bg-teal-50 px-2 py-0.5 text-[10px] font-black text-teal-600">
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-teal-500" />進行中
+                        </span>
+                      )}
+                    </div>
+                    <p className={['mt-0.5 font-mono text-xs font-bold tabular-nums',
+                      active ? 'text-sky-500' : 'text-slate-400'].join(' ')}>
+                      {s.start} – {s.end} · {mins} 分
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-1 opacity-50 transition-opacity group-hover:opacity-100">
+                    <UI.IconButton icon="chevronUp" title="上移" compact
+                      onClick={function (e) { e.stopPropagation(); props.onMove(s.id, -1); }} />
+                    <UI.IconButton icon="chevronDown" title="下移" compact
+                      onClick={function (e) { e.stopPropagation(); props.onMove(s.id, 1); }} />
+                    <UI.IconButton icon="copy" title="複製" compact
+                      onClick={function (e) { e.stopPropagation(); props.onDuplicate(s.id); }} />
+                    <UI.IconButton icon="pencil" title="編輯" compact
+                      onClick={function (e) { e.stopPropagation(); openEdit(s); }} />
+                    <UI.IconButton icon="trash" title="刪除" compact className="hover:text-rose-500"
+                      onClick={function (e) { e.stopPropagation(); props.onDelete(s); }} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 flex items-center gap-2 border-t border-slate-100 pt-4">
+          <span className="shrink-0 text-xs font-bold text-slate-400">快速範本</span>
+          <select className={UI.inputClass + ' flex-1'}
+            value={presetKey} onChange={function (e) { setPresetKey(e.target.value); }}>
+            {EC.Config.presets.map(function (p) {
+              return <option key={p.key} value={p.key}>{p.label}</option>;
+            })}
+          </select>
+          <UI.Button icon="sparkles"
+            onClick={function () {
+              var found = EC.Config.presets.filter(function (p) { return p.key === presetKey; })[0];
+              if (found) props.onApplyPreset(found.build());
+            }}>套用</UI.Button>
+        </div>
+      </UI.Card>
+    );
+  };
+})();
+
+
+/* ===================== 21-panel-timer.js ===================== */
+/**
+ * 面板：主計時（TimerPanel）— 發光圓環主角
+ * ------------------------------------------------------------------
+ * 以大圓環 + 漸層數字呈現剩餘時間，右側為場次資訊、進度與操作。
+ * props：
+ *   session, info(TimeEngine.compute 結果), next, warning,
+ *   onOpenStage(), onPrev(), onNext()
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+
+  var PHASE_META = {
+    idle: { text: '待機', tone: 'slate', ring: 'slate', num: 'from-slate-400 to-slate-500' },
+    before: { text: '準備中', tone: 'amber', ring: 'slate', num: 'from-slate-400 to-slate-600' },
+    live: { text: '進行中', tone: 'teal', ring: 'indigo', num: 'from-sky-500 to-indigo-500' },
+    done: { text: '已結束', tone: 'rose', ring: 'rose', num: 'from-rose-400 to-pink-500' }
+  };
+
+  EC.UI.TimerPanel = function TimerPanel(props) {
+    var info = props.info;
+    var session = props.session;
+    var warn = props.warning && info.phase === 'live';
+    var meta = PHASE_META[info.phase] || PHASE_META.idle;
+    var ring = warn ? 'amber' : meta.ring;
+    var numTone = warn ? 'from-amber-500 to-orange-500' : meta.num;
+    var time = EC.TimeEngine.formatDuration(info.remainingSec);
+    var numSize = time.length > 5 ? 'text-4xl' : 'text-5xl sm:text-[3.4rem]';
+    var pct = Math.round(info.elapsedRatio * 100);
+
+    return (
+      <UI.Card pad={false}>
+        <div className="grid items-center gap-6 p-6 sm:grid-cols-[auto_1fr]">
+          {/* 圓環 */}
+          <div className="mx-auto">
+            <UI.ProgressRing size={236} ratio={info.elapsedRatio} tone={ring} thickness={13}>
+              <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-500">{info.label}</p>
+              <p className={['mt-1 bg-gradient-to-r bg-clip-text font-mono font-black tabular-nums leading-none text-transparent ' + numTone + ' ' + numSize].join(' ')}>
+                {time}
+              </p>
+              <p className="mt-1.5 text-xs font-bold text-slate-500 tabular-nums">{pct}%</p>
+            </UI.ProgressRing>
+          </div>
+
+          {/* 資訊 */}
+          <div className="min-w-0 space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={UI.toneClasses(meta.tone)}>
+                <span className={['h-2 w-2 rounded-full bg-current', info.phase === 'live' ? 'animate-pulse' : 'opacity-50'].join(' ')} />
+                {meta.text}
+              </span>
+              {session ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-1 font-mono text-sm font-bold text-slate-500 tabular-nums">
+                  {Icons.get('clock', { size: 15 })}
+                  {session.start} – {session.end}
+                </span>
+              ) : null}
+            </div>
+
+            <div>
+              <h2 className="truncate text-2xl font-black tracking-tight text-slate-800 sm:text-3xl">
+                {session ? session.title : '尚未選擇場次'}
+              </h2>
+              {session ? (
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  全長 {Math.round(info.durationSec / 60)} 分鐘
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-slate-500">請從左側場次清單選擇</p>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <UI.Button icon="chevronUp" onClick={props.onPrev}>上一場</UI.Button>
+              <UI.Button icon="chevronDown" onClick={props.onNext}>下一場</UI.Button>
+              <UI.Button variant="primary" icon="expand" onClick={props.onOpenStage}>投影模式</UI.Button>
+            </div>
+
+            {props.next && (
+              <div className="flex items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-2.5 text-sm">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white text-sky-500 shadow-sm">
+                  {Icons.get('chevronDown', { size: 15 })}
+                </span>
+                <span className="font-bold text-slate-500">下一場</span>
+                <span className="truncate font-bold text-slate-700">{props.next.title}</span>
+                <span className="ml-auto font-mono text-slate-500 tabular-nums">{props.next.start}–{props.next.end}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </UI.Card>
+    );
+  };
+})();
+
+
+/* ===================== 22-panel-alerts.js ===================== */
+/**
+ * 面板：提示音設定（AlertsPanel）
+ * ------------------------------------------------------------------
+ * 選擇音色與音量、試聽、設定開始／結束提醒與最後倒數警示、自動換場延遲。
+ * props：settings, onUpdate(patch), onTest(tone, volume)
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+  var lim = EC.Config.limits;
+
+  EC.UI.AlertsPanel = function AlertsPanel(props) {
+    var s = props.settings;
+    var set = function (patch) { props.onUpdate(patch); };
+
+    return (
+      <UI.Card title="提示音" icon="bell"
+        actions={<UI.Button icon="volume" onClick={function () { props.onTest(s.tone, s.volume); }}>試聽</UI.Button>}>
+        <div className="space-y-4">
+          <UI.Field label="音色">
+            <select className={UI.inputClass} value={s.tone}
+              onChange={function (e) { set({ tone: e.target.value }); }}>
+              {EC.Config.tones.map(function (t) {
+                return <option key={t.key} value={t.key}>{t.label}</option>;
+              })}
+            </select>
+          </UI.Field>
+
+          <div>
+            <div className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-500">
+              <span>音量</span>
+              <span className="tabular-nums">{Math.round(s.volume * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.05" value={s.volume}
+              onChange={function (e) { set({ volume: parseFloat(e.target.value) }); }}
+              className="w-full accent-sky-500" />
+          </div>
+
+          <div className="space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <UI.Toggle label="開始時響鈴" checked={s.bellAtStart}
+              onChange={function (v) { set({ bellAtStart: v }); }} />
+            <UI.Toggle label="結束時響鈴" checked={s.bellAtEnd}
+              onChange={function (v) { set({ bellAtEnd: v }); }} />
+            <UI.Toggle label="進入投影模式" checked={s.autoStage}
+              onChange={function (v) { set({ autoStage: v }); }} />
+            <UI.Toggle label="結束後自動換下一場" checked={s.autoAdvanceNext !== false}
+              onChange={function (v) { set({ autoAdvanceNext: v }); }} />
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-slate-700">最後警示（分）</span>
+            <UI.Stepper value={s.warnMinutes} step={1}
+              format={function (v) { return v + ' 分'; }}
+              onChange={function (v) {
+                set({ warnMinutes: Math.min(lim.maxWarnMinutes, Math.max(lim.minWarnMinutes, Math.round(v))) });
+              }} />
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-slate-700">結束後自動換場（秒）</span>
+            <UI.Stepper value={s.advanceDelaySec} step={2}
+              format={function (v) { return v + ' 秒'; }}
+              onChange={function (v) {
+                set({ advanceDelaySec: Math.min(lim.maxAdvanceSec, Math.max(lim.minAdvanceSec, Math.round(v))) });
+              }} />
+          </div>
+        </div>
+      </UI.Card>
+    );
+  };
+})();
+
+
+/* ===================== 23-panel-announcements.js ===================== */
+/**
+ * 面板：老師小叮嚀（AnnouncementsPanel）
+ * ------------------------------------------------------------------
+ * 管理者新增提醒事項、開關顯示、設為「聚焦」（投影時放大強調）。
+ * 另有「建議用語」：常用提醒一鍵帶入輸入框，可再修改後按「加入」。
+ * 投影端字級（小叮嚀字級）由設定面板調整、各檢視畫面套用。
+ * props：announcements, onAdd(text), onUpdate(id, patch), onDelete(id)
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+  var useState = React.useState;
+
+  /**
+   * 建議用語：教師常用的考前／考中提醒，點一下帶入輸入框（可再修改後按「加入」）。
+   * 每個句子都有自己的彩色圖示（tone 對應 UI.BADGE_TONE）。
+   * 要增減句子只改這個陣列，其他功能不受影響。
+   */
+  var SUGGEST = [
+    { text: '寫完別急著交卷，從頭再檢查一遍', icon: 'check', tone: 'emerald' },
+    { text: '交卷前，確認班級、姓名、座號都寫了', icon: 'pencil', tone: 'fuchsia' },
+    { text: '不會的先跳過，回頭再想，別卡住', icon: 'refresh', tone: 'sky' },
+    { text: '畫卡請對準題號，小心不要跳格', icon: 'target', tone: 'indigo' },
+    { text: '注意時間，預留 5 分鐘再檢查一次', icon: 'clock', tone: 'amber' },
+    { text: '有問題請舉手，保持安靜', icon: 'users', tone: 'violet' }
+  ];
+
+  EC.UI.AnnouncementsPanel = function AnnouncementsPanel(props) {
+    var inputPair = useState('');
+    var text = inputPair[0];
+    var setText = inputPair[1];
+    var inputRef = React.useRef(null);
+
+    function submit(e) {
+      e.preventDefault();
+      if (!text.trim()) return;
+      props.onAdd(text.trim());
+      setText('');
+    }
+
+    /** 建議用語：帶入輸入框並把游標放到最後，方便直接修改或按「加入」。 */
+    function useSuggestion(s) {
+      setText(s.text);
+      if (inputRef.current) {
+        inputRef.current.focus();
+        var n = s.text.length;
+        try { inputRef.current.setSelectionRange(n, n); } catch (err) { /* 忽略 */ }
+      }
+    }
+
+    var enabledCount = props.announcements.filter(function (a) { return a.enabled; }).length;
+
+    return (
+      <UI.Card title="老師小叮嚀" icon="megaphone"
+        actions={<span className="text-xs font-semibold text-slate-400">{enabledCount} / {props.announcements.length} 顯示中</span>}>
+        <form onSubmit={submit} className="mb-2 flex gap-2">
+          <input ref={inputRef} className={UI.inputClass} placeholder="輸入提醒文字…" value={text}
+            onChange={function (e) { setText(e.target.value); }} />
+          <UI.Button variant="primary" icon="plus" onClick={submit}>加入</UI.Button>
+        </form>
+
+        <div className="mb-3">
+          <p className="mb-1.5 text-xs font-semibold text-slate-400">建議用語（點一下帶入，可再修改）</p>
+          <div className="flex flex-wrap gap-1.5">
+            {SUGGEST.map(function (s) {
+              return (
+                <button key={s.text} type="button"
+                  onClick={function () { useSuggestion(s); }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 text-xs font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-700 active:bg-sky-50">
+                  <UI.IconBadge icon={s.icon} tone={s.tone} round size="h-5 w-5" iconSize={12} />
+                  {s.text}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+          {props.announcements.length === 0 && (
+            <p className="rounded-xl border border-dashed border-slate-200 py-5 text-center text-sm text-slate-400">
+              目前沒有公告
+            </p>
+          )}
+          {props.announcements.map(function (a) {
+            return (
+              <div key={a.id}
+                className={[
+                  'flex items-center gap-2 rounded-xl border p-2.5 transition',
+                  a.enabled ? 'border-slate-200 bg-white' : 'border-dashed border-slate-200 bg-slate-50 opacity-60'
+                ].join(' ')}>
+                <button type="button" onClick={function () { props.onUpdate(a.id, { enabled: !a.enabled }); }}
+                  title={a.enabled ? '點擊隱藏' : '點擊顯示'}
+                  className={['flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border',
+                    a.enabled ? 'border-teal-200 bg-teal-50 text-teal-600' : 'border-slate-200 bg-white text-slate-300'].join(' ')}>
+                  {Icons.get('check', { size: 16 })}
+                </button>
+                <span className={['min-w-0 flex-1 text-sm', a.enabled ? 'text-slate-700' : 'text-slate-400 line-through'].join(' ')}>
+                  {a.text}
+                </span>
+                <UI.IconButton icon="star" title="聚焦強調" active={a.pinned}
+                  onClick={function () { props.onUpdate(a.id, { pinned: !a.pinned }); }} />
+                <UI.IconButton icon="trash" title="刪除" className="text-rose-500"
+                  onClick={function () { props.onDelete(a.id); }} />
+              </div>
+            );
+          })}
+        </div>
+      </UI.Card>
+    );
+  };
+})();
+
+
+/* ===================== 24-panel-attendance.js ===================== */
+/**
+ * 面板：出缺席（AttendancePanel）
+ * ------------------------------------------------------------------
+ * 輸入應到 / 實到 / 請假人數與請假座號，並提供「自動計算請假」小工具。
+ * props：attendance, onChange(key, value)
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+
+  var ROWS = [
+    { key: 'expected', label: '應到人數', tone: 'slate', type: 'number' },
+    { key: 'present', label: '實到人數', tone: 'teal', type: 'number' },
+    { key: 'excused', label: '請假人數', tone: 'rose', type: 'number' },
+    { key: 'excusedSeats', label: '請假座號', tone: 'rose', type: 'text', placeholder: '以逗號分隔，例：5, 12' }
+  ];
+
+  EC.UI.AttendancePanel = function AttendancePanel(props) {
+    var a = props.attendance;
+
+    function autoCompute() {
+      var exp = parseInt(a.expected, 10);
+      var pre = parseInt(a.present, 10);
+      if (!isNaN(exp) && !isNaN(pre)) props.onChange('excused', String(Math.max(0, exp - pre)));
+    }
+
+    return (
+      <UI.Card title="出缺席" icon="users"
+        actions={<UI.Button icon="refresh" onClick={autoCompute} title="以『應到 − 實到』計算請假">自動計算</UI.Button>}>
+        <div className="space-y-2.5">
+          {ROWS.map(function (r) {
+            return (
+              <div key={r.key} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-2.5">
+                <span className="w-20 shrink-0 text-sm font-semibold text-slate-600">{r.label}</span>
+                <input
+                  type={r.type}
+                  min={r.type === 'number' ? '0' : undefined}
+                  placeholder={r.placeholder || ''}
+                  value={a[r.key] || ''}
+                  onChange={function (e) { props.onChange(r.key, e.target.value); }}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-center text-sm font-semibold tabular-nums text-slate-800 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-100"
+                />
+              </div>
+            );
+          })}
+        </div>
+      </UI.Card>
+    );
+  };
+})();
+
+
+/* ===================== 25-panel-notes.js ===================== */
+/**
+ * 面板：即時紀錄（NotesPanel）
+ * ------------------------------------------------------------------
+ * 以帶時間戳的條目記錄考場事件（如廁、交卷、試題疑義）。
+ *
+ * 輸入流程（重點）：
+ *   1. 點下方標籤，只會把文字「帶入輸入框」，不會立刻存檔。
+ *   2. 使用者接著補上座號（例如「提早交卷：」後輸入「1號」）。
+ *   3. 按 Enter 或「記錄」才存檔，並自動清空、重新聚焦，方便連續輸入。
+ *
+ * props：notes, onAdd(text), onDelete(id), onClear()
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+  var useState = React.useState;
+  var useRef = React.useRef;
+
+  /**
+   * 即時紀錄的快速標籤：以「學生在考場可能發生的情況」設計。
+   * 每個標籤都有專屬彩色圖示（tone 對應 UI.BADGE_TONE）。
+   * text 結尾固定用「：」，方便接著輸入座號（例：提早交卷：1號）。
+   */
+  var QUICK = [
+    { label: '提早交卷', text: '提早交卷：', icon: 'check', tone: 'emerald' },
+    { label: '如廁', text: '如廁：', icon: 'arrowRight', tone: 'cyan' },
+    { label: '身體不適', text: '身體不適：', icon: 'heart', tone: 'amber' },
+    { label: '試題疑義', text: '試題疑義：', icon: 'question', tone: 'violet' },
+    { label: '遲到入場', text: '遲到入場：', icon: 'clock', tone: 'sky' },
+    { label: '文具借用', text: '文具借用：', icon: 'pencil', tone: 'fuchsia' },
+    { label: '中途離場', text: '中途離場：', icon: 'flag', tone: 'indigo' },
+    { label: '違規處理', text: '違規處理：', icon: 'warning', tone: 'rose' }
+  ];
+
+  function timeOf(iso) {
+    var d = new Date(iso);
+    return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+  }
+
+  EC.UI.NotesPanel = function NotesPanel(props) {
+    var draftPair = useState('');
+    var draft = draftPair[0];
+    var setDraft = draftPair[1];
+
+    var inputRef = useRef(null);
+
+    /** 把文字插入輸入框目前的游標位置（若無游標則接在最後） */
+    function insertText(text) {
+      var el = inputRef.current;
+      var start = el && el.selectionStart != null ? el.selectionStart : draft.length;
+      var end = el && el.selectionEnd != null ? el.selectionEnd : draft.length;
+      var next = draft.slice(0, start) + text + draft.slice(end);
+      setDraft(next);
+      var caret = start + text.length;
+      window.requestAnimationFrame(function () {
+        if (!el) return;
+        el.focus();
+        try { el.setSelectionRange(caret, caret); } catch (e) { /* 忽略 */ }
+      });
+    }
+
+    function onQuick(q) {
+      if (q.now) {
+        var d = new Date();
+        insertText(('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2));
+      } else {
+        insertText(q.text);
+      }
+    }
+
+    function record() {
+      if (!draft.trim()) return;
+      props.onAdd(draft.trim());
+      setDraft('');
+      window.requestAnimationFrame(function () {
+        if (inputRef.current) inputRef.current.focus();
+      });
+    }
+
+    return (
+      <UI.Card title="即時紀錄" icon="note"
+        actions={
+          <UI.Button icon="trash" variant="danger"
+            onClick={function () { if (props.notes.length) props.onClear(); }}>清空</UI.Button>
+        }>
+        <p className="mb-2 text-xs text-slate-400">
+          點標籤帶入文字，補上座號後按 Enter 儲存。
+        </p>
+
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {QUICK.map(function (q) {
+            return (
+              <button key={q.label} type="button"
+                onClick={function () { onQuick(q); }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-3 text-xs font-semibold text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-700 active:bg-sky-50">
+                <UI.IconBadge icon={q.icon} tone={q.tone} round size="h-5 w-5" iconSize={12} />
+                {q.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex gap-2">
+          <input ref={inputRef} className={UI.inputClass}
+            placeholder="例：提早交卷：1號" value={draft}
+            onChange={function (e) { setDraft(e.target.value); }}
+            onKeyDown={function (e) { if (e.key === 'Enter') record(); }} />
+          <UI.Button variant="primary" icon="plus" onClick={record}>記錄</UI.Button>
+        </div>
+
+        <ul className="mt-3 max-h-48 space-y-1.5 overflow-y-auto pr-1">
+          {props.notes.length === 0 && (
+            <li className="rounded-xl border border-dashed border-slate-200 py-5 text-center text-sm text-slate-400">
+              尚無紀錄
+            </li>
+          )}
+          {props.notes.map(function (n) {
+            return (
+              <li key={n.id} className="group flex items-start gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50">
+                <span className="mt-0.5 font-mono text-xs font-semibold text-sky-500 tabular-nums">{timeOf(n.at)}</span>
+                <span className="min-w-0 flex-1 break-words text-sm text-slate-700">{n.text}</span>
+                <button type="button" onClick={function () { props.onDelete(n.id); }}
+                  className="shrink-0 text-slate-300 opacity-0 transition group-hover:opacity-100 hover:text-rose-500">
+                  {Icons.get('close', { size: 15 })}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </UI.Card>
+    );
+  };
+})();
+
+
+/* ===================== 26-panel-settings.js ===================== */
+/**
+ * 面板：設定與備份（SettingsPanel）
+ * ------------------------------------------------------------------
+ * 1. 一般設定（24 小時制、小叮嚀字級）。
+ * 2. 設定備份：固定 5 組插槽，每組可自己命名，可選「存到哪一組」、
+ *    「從哪一組還原」，還原時其他 4 組備份不會被蓋掉。
+ * 3. 匯出／匯入成 JSON 檔案（換裝置用）。
+ * 4. 回復預設值：固定回到最原始出廠狀態（不是任何一組備份），
+ *    但保留 5 組備份插槽，讓使用者還原得回來。
+ * props：settings, onUpdate(patch), onSaveSlot(i, name), onRenameSlot(i, name),
+ *   onRestoreSlot(i), onClearSlot(i), onExport, onImportFile, onReset
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+  var useRef = React.useRef;
+
+  var lim = EC.Config.limits;
+
+  /** 每一組插槽的代表色（依序循環） */
+  var SLOT_TONES = ['indigo', 'sky', 'emerald', 'amber', 'rose'];
+
+  /** 小圓角按鈕（比 UI.Button 更精簡，5 組排起來才不會太擠） */
+  var PILL = {
+    sky: 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100',
+    emerald: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+    rose: 'border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100'
+  };
+  var PILL_BASE = 'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40';
+
+  var NAME_INPUT =
+    'w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold ' +
+    'text-slate-700 outline-none transition placeholder:font-normal placeholder:text-slate-300 ' +
+    'focus:border-sky-300 focus:ring-2 focus:ring-sky-100';
+
+  function savedLabel(iso) {
+    if (!iso) return '尚未儲存';
+    var d = new Date(iso);
+    function p(n) { return ('0' + n).slice(-2); }
+    return '已存 ' + (d.getMonth() + 1) + '/' + d.getDate() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  EC.UI.SettingsPanel = function SettingsPanel(props) {
+    var s = props.settings;
+    var fileRef = useRef(null);
+    var slots = s.slots || [];
+
+    return (
+      <UI.Card title="設定與備份" icon="settings">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm font-medium text-slate-700">24 小時制</span>
+            <UI.Toggle label="" checked={s.clock24}
+              onChange={function (v) { props.onUpdate({ clock24: v }); }} />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm font-medium text-slate-700">小叮嚀字級</span>
+              <span className="font-mono text-sm font-black tabular-nums text-sky-600">{Math.round(s.fontScale * 100)}%</span>
+            </div>
+            <input type="range" min={lim.minFontScale * 100} max={lim.maxFontScale * 100} step={5}
+              value={Math.round(s.fontScale * 100)}
+              onChange={function (e) {
+                props.onUpdate({ fontScale: Math.min(lim.maxFontScale, Math.max(lim.minFontScale, parseInt(e.target.value, 10) / 100)) });
+              }}
+              className="w-full accent-sky-500" />
+            <p className="text-xs text-slate-400">調整投影畫面上「老師小叮嚀」的文字大小（{Math.round(lim.minFontScale * 100)}%～{Math.round(lim.maxFontScale * 100)}%）。</p>
+          </div>
+
+          {/* 設定備份：固定 5 組，自己命名、自己選存到哪一組 */}
+          <div className="border-t border-slate-100 pt-4">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                <UI.IconBadge icon="copy" tone="indigo" round size="h-6 w-6" iconSize={14} />
+                設定備份（5 組）
+              </span>
+              <span className="text-xs text-slate-400">存到哪一組自己選</span>
+            </div>
+
+            <div className="space-y-2">
+              {slots.map(function (slot, i) {
+                return (
+                  <div key={i} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-2.5">
+                    <div className="flex items-center gap-2">
+                      <UI.NumberBadge tone={SLOT_TONES[i % SLOT_TONES.length]} size="h-7 w-7">{i + 1}</UI.NumberBadge>
+                      <input className={NAME_INPUT} value={slot.name}
+                        placeholder={'第 ' + (i + 1) + ' 組名稱（例：期中考）'}
+                        maxLength={lim.slotNameMax || 20}
+                        onChange={function (e) { props.onRenameSlot(i, e.target.value); }} />
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <button type="button" title={'把目前所有設定與資料存到第 ' + (i + 1) + ' 組'}
+                        onClick={function () { props.onSaveSlot(i, slot.name); }}
+                        className={PILL_BASE + ' ' + PILL.sky}>
+                        {Icons.get('download', { size: 14 })}存到這組
+                      </button>
+                      <button type="button" title={'用第 ' + (i + 1) + ' 組的內容覆蓋目前資料'}
+                        disabled={!slot.data}
+                        onClick={function () { props.onRestoreSlot(i); }}
+                        className={PILL_BASE + ' ' + PILL.emerald}>
+                        {Icons.get('upload', { size: 14 })}還原這組
+                      </button>
+                      <button type="button" title={'清除第 ' + (i + 1) + ' 組備份'}
+                        disabled={!slot.data}
+                        onClick={function () { props.onClearSlot(i); }}
+                        className={PILL_BASE + ' ' + PILL.rose}>
+                        {Icons.get('trash', { size: 14 })}清除
+                      </button>
+                      <span className="ml-auto text-xs font-semibold text-slate-400">{savedLabel(slot.savedAt)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 檔案備份（換裝置用）＋ 回復預設值 */}
+          <div className="grid grid-cols-2 gap-2 border-t border-slate-100 pt-4">
+            <UI.Button icon="download" onClick={props.onExport}>匯出成檔案</UI.Button>
+            <UI.Button icon="upload" onClick={function () { fileRef.current && fileRef.current.click(); }}>從檔案匯入</UI.Button>
+            <input ref={fileRef} type="file" accept=".json" className="hidden"
+              onChange={function (e) {
+                var f = e.target.files[0];
+                if (f) props.onImportFile(f);
+                e.target.value = null;
+              }} />
+            <UI.Button icon="refresh" variant="danger" full
+              onClick={props.onReset}>回復預設值</UI.Button>
+          </div>
+
+          <p className="flex items-start gap-2 rounded-lg bg-slate-50 p-2.5 text-xs text-slate-400">
+            {Icons.get('sparkles', { size: 15 })}
+            <span>
+              資料自動保存在此瀏覽器；「回復預設值」固定回到最原始出廠狀態（不會還原成某一組備份），
+              5 組備份插槽會保留。換裝置請用「匯出成檔案」。版本 {EC.VERSION}
+            </span>
+          </p>
+        </div>
+      </UI.Card>
+    );
+  };
+})();
+
+
+/* ===================== 27-panel-background.js ===================== */
+/**
+ * 面板：背景色彩（BackgroundPanel / BackgroundStrip）
+ * ------------------------------------------------------------------
+ * 背景選項共 10 組（清單定義在 Config.backgrounds）：
+ *   8 組「多巴胺漸層」＋ 1 組「原色」＋ 1 組「自訂（可自選三色）」。
+ *   - BackgroundPanel：操控台左欄的大卡片面板（10 格色票＋自訂調色）。
+ *   - BackgroundStrip：投影畫面左側的直條色票（平時半透明、滑過浮現）。
+ * 本模組只負責挑色與回報事件；實際背景由各檢視畫面用
+ * EC.UI.gradientStyle(key, customColors) 套用，換色不會動到其他面板。
+ * props（Panel）：value, customColors, onChange, onChangeCustom
+ * props（Strip）：value, customColors, onChange
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+
+  /** 由 key 產生 CSS 漸層字串（custom 會用傳入的自訂三色；找不到時回退第一組） */
+  function gradientOf(key, customColors) {
+    var p = EC.Config.background(key, customColors);
+    return 'linear-gradient(135deg, ' + p.colors.join(', ') + ')';
+  }
+
+  /** 讓檢視畫面直接套用的背景樣式物件 */
+  EC.UI.gradientStyle = function (key, customColors) {
+    return { backgroundImage: gradientOf(key, customColors) };
+  };
+
+  /** 操控台：左欄的「背景色彩」卡片 */
+  EC.UI.BackgroundPanel = function BackgroundPanel(props) {
+    var current = EC.Config.background(props.value, props.customColors);
+    var isCustom = props.value === 'custom';
+    var colors = EC.Config.normalizeColors(props.customColors);
+
+    function setColor(i, v) {
+      var next = colors.slice();
+      next[i] = v;
+      props.onChangeCustom(next);
+    }
+
+    return (
+      <UI.Card title="背景色彩" icon="sparkles"
+        actions={<span className="text-xs font-semibold text-slate-500">{current.label}</span>}>
+        <div className="grid grid-cols-5 gap-2">
+          {EC.Config.backgrounds.map(function (bg) {
+            var active = bg.key === props.value;
+            return (
+              <button key={bg.key} type="button" title={bg.label}
+                onClick={function () { props.onChange(bg.key); }}
+                className={[
+                  'group relative h-11 rounded-2xl border-2 shadow-sm transition',
+                  'hover:-translate-y-0.5 hover:shadow-md',
+                  active ? 'border-slate-700 ring-2 ring-slate-300' : 'border-slate-200'
+                ].join(' ')}
+                style={{ backgroundImage: gradientOf(bg.key, props.customColors) }}>
+                {active ? (
+                  <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-slate-800 shadow">
+                    {Icons.get('check', { size: 11 })}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+
+        {isCustom ? (
+          <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-600">自訂三色</span>
+              <span className="text-[11px] font-semibold text-slate-400">調整後立即套用</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {colors.map(function (c, i) {
+                return (
+                  <label key={i}
+                    className="flex h-11 flex-1 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 shadow-sm">
+                    <input type="color" value={c}
+                      aria-label={'自訂顏色 ' + (i + 1)}
+                      onChange={function (e) { setColor(i, e.target.value); }}
+                      className="h-7 w-8 cursor-pointer rounded-md border-0 bg-transparent p-0" />
+                    <span className="truncate font-mono text-[11px] font-bold uppercase text-slate-500">{c}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <p className="mt-3 text-xs text-slate-500">
+            8 組漸層 ＋ 原色 ＋ 自訂，投影與操控台共用。
+          </p>
+        )}
+      </UI.Card>
+    );
+  };
+
+  /** 投影畫面：左側直條色票（平時淡出，滑過才明顯） */
+  EC.UI.BackgroundStrip = function BackgroundStrip(props) {
+    return (
+      <div className="fixed left-0 top-1/2 z-20 -translate-y-1/2">
+        <div className="flex max-h-[86vh] flex-col items-center gap-2 overflow-y-auto rounded-r-2xl border border-l-0 border-white/15 bg-slate-900/25 p-2 opacity-40 backdrop-blur-md transition-opacity duration-200 hover:opacity-100">
+          {EC.Config.backgrounds.map(function (bg) {
+            var active = bg.key === props.value;
+            return (
+              <button key={bg.key} type="button" title={bg.label}
+                onClick={function () { props.onChange(bg.key); }}
+                className={[
+                  'h-8 w-8 shrink-0 rounded-xl border-2 transition hover:scale-110',
+                  active ? 'border-white ring-2 ring-white/70' : 'border-white/40'
+                ].join(' ')}
+                style={{ backgroundImage: gradientOf(bg.key, props.customColors) }} />
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+})();
+
+
+/* ===================== 30-view-console.js ===================== */
+/**
+ * 檢視：操控台（ConsoleView）— 淺色柔和粉彩風
+ * ------------------------------------------------------------------
+ * 老師端主畫面：可選的多巴胺背景漸層 + 白色柔光罩 + 玻璃質感頁首 + 左右兩欄大卡片。
+ * 左欄最上方提供「背景色彩」面板（10 組：8 漸層＋原色＋自訂）。
+ * 只負責排版與轉發事件，狀態全部來自 App。
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+
+  EC.Views = EC.Views || {};
+
+  EC.Views.ConsoleView = function ConsoleView(p) {
+    var live = p.info.phase === 'live';
+
+    return (
+      <div className="relative min-h-screen overflow-x-hidden text-slate-700">
+        {/* 背景：多巴胺漸層 + 白色柔光罩 + 光暈（固定在底層，不影響版面與閱讀） */}
+        <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+          <div className="absolute inset-0" style={UI.gradientStyle(p.bgSkin, p.bgCustom)} />
+          <div className="absolute inset-0 bg-white/20" />
+          <div className="absolute -left-32 -top-40 h-[28rem] w-[28rem] rounded-full bg-white/45 blur-3xl" />
+          <div className="absolute -right-24 top-1/4 h-[26rem] w-[26rem] rounded-full bg-white/35 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-[26rem] w-[26rem] rounded-full bg-white/35 blur-3xl" />
+        </div>
+
+        {/* 頁首 */}
+        <header className="sticky top-0 z-30 border-b border-white/60 bg-white/85 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-3.5">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-indigo-400 text-white shadow-lg shadow-sky-300/50">
+                {Icons.get('clock', { size: 26 })}
+              </span>
+              <div>
+                <h1 className="bg-gradient-to-r from-sky-500 to-indigo-500 bg-clip-text text-xl font-black leading-tight tracking-tight text-transparent">
+                  考場計時台
+                </h1>
+                <p className="text-xs font-semibold text-slate-500">ExamClock · 課堂與考試倒數</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <span className={UI.toneClasses(live ? 'teal' : p.info.phase === 'done' ? 'rose' : 'slate')}>
+                <span className={['h-2 w-2 rounded-full bg-current', live ? 'animate-pulse' : 'opacity-50'].join(' ')} />
+                {live ? '計時中' : p.info.phase === 'done' ? '已結束' : '待機'}
+              </span>
+              <span className="rounded-2xl border border-slate-100 bg-white px-4 py-2.5 font-mono text-xl font-black tabular-nums text-slate-700 shadow-sm">
+                {p.clockText}
+              </span>
+              <UI.Button variant="primary" icon="expand" onClick={p.onOpenStage}>投影模式</UI.Button>
+            </div>
+          </div>
+        </header>
+
+        <main className="mx-auto grid max-w-7xl grid-cols-1 gap-5 p-5 lg:grid-cols-12">
+          <div className="space-y-5 lg:col-span-4">
+            <UI.BackgroundPanel value={p.bgSkin} customColors={p.bgCustom}
+              onChange={p.onChangeBackground} onChangeCustom={p.onChangeCustomBackground} />
+            <UI.SessionsPanel
+              sessions={p.sessions}
+              activeId={p.activeId}
+              onSelect={p.onSelect}
+              onAdd={p.onAddSession}
+              onUpdate={p.onUpdateSession}
+              onDelete={p.onDeleteSession}
+              onMove={p.onMoveSession}
+              onDuplicate={p.onDuplicateSession}
+              onApplyPreset={p.onApplyPreset}
+            />
+            <UI.NotesPanel
+              notes={p.notes}
+              onAdd={p.onAddNote}
+              onDelete={p.onDeleteNote}
+              onClear={p.onClearNotes}
+            />
+          </div>
+
+          <div className="space-y-5 lg:col-span-8">
+            <UI.TimerPanel
+              session={p.session}
+              info={p.info}
+              next={p.next}
+              warning={p.warning}
+              onOpenStage={p.onOpenStage}
+              onPrev={p.onPrevSession}
+              onNext={p.onNextSession}
+            />
+
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <UI.AlertsPanel settings={p.settings} onUpdate={p.onUpdateSettings} onTest={p.onTestTone} />
+              <UI.AttendancePanel attendance={p.attendance} onChange={p.onAttendanceChange} />
+              <UI.AnnouncementsPanel
+                announcements={p.announcements}
+                onAdd={p.onAddAnnouncement}
+                onUpdate={p.onUpdateAnnouncement}
+                onDelete={p.onDeleteAnnouncement}
+              />
+              <UI.SettingsPanel
+                settings={p.settings}
+                onUpdate={p.onUpdateSettings}
+                onSaveSlot={p.onSaveSlot}
+                onRenameSlot={p.onRenameSlot}
+                onRestoreSlot={p.onRestoreSlot}
+                onClearSlot={p.onClearSlot}
+                onExport={p.onExport}
+                onImportFile={p.onImportFile}
+                onReset={p.onRequestReset}
+              />
+            </div>
+          </div>
+        </main>
+
+        <footer className="mx-auto max-w-7xl px-5 pb-10 pt-2 text-center">
+          <span className="inline-block rounded-full border border-white/70 bg-white/85 px-4 py-1.5 text-xs font-semibold text-slate-700 backdrop-blur">
+            💻 afu 製作，歡迎使用　·　ExamClock v{EC.VERSION}
+          </span>
+        </footer>
+      </div>
+    );
+  };
+})();
+
+
+/* ===================== 31-view-stage.js ===================== */
+/**
+ * 檢視：投影畫面（Stage）
+ * ------------------------------------------------------------------
+ * 設計原則（投影＝遠距離閱讀，清晰度優先）：
+ *   1. 版面不重疊：頁首／主區／叮嚀／控制列用 flex 分配高度，
+ *      倒數改為「寬度優先的圓角長方框」（UI.ProgressBox），
+ *      高度以 aspect-ratio ＋ 32vh 限高，不像圓環那樣佔滿整個畫面，
+ *      多出來的縱向空間全部讓給「老師小叮嚀」，也不會擠壓或疊字。
+ *      長方框大小由 EC.Hooks.useElementSize 量測，任何視窗比例都安全。
+ *   2. 字級有下限：文字一律用 clamp()，隨 vmin 縮放的同時保留最小 px，
+ *      小視窗也不會出現 8px 的螞蟻字。
+ *   3. 高對比：深色遮罩＋四周暗角墊底，所有文字提亮（白／slate-100），
+ *      膠囊底色更實、邊框更清楚；倒數用純白＋強陰影（最遠也讀得到）。
+ *   4. 彩色圖示輔助：每個區塊都有彩色圖示徽章，遠距離也能快速辨識。
+ * fontScale 只用於「老師小叮嚀」文字大小（50%~700%），不影響倒數數字。
+ * props：session, info, next, attendance, announcements, clockText,
+ *   warning, fontScale, bgSkin, bgCustom, isFullscreen, onToggleFullscreen,
+ *   onAdjustFont, onChangeBackground, onExit
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Icons = EC.Icons;
+
+  EC.Views = EC.Views || {};
+
+  /** 階段：文字 ＋ 彩色圖示 ＋ 色系 */
+  var PHASE = {
+    idle:   { text: '準備就緒', icon: 'sparkles', tone: 'indigo' },
+    before: { text: '即將開始', icon: 'hourglass', tone: 'amber' },
+    live:   { text: '考試進行中', icon: 'play', tone: 'emerald' },
+    done:   { text: '時間到', icon: 'flag', tone: 'rose' }
+  };
+
+  /** 一般叮嚀的粉彩底色 ＋ 對應彩色圖示（依序循環） */
+  var CHIP_STYLES = [
+    { tint: 'border-rose-200 bg-rose-50 text-rose-950', icon: 'note', tone: 'rose' },
+    { tint: 'border-sky-200 bg-sky-50 text-sky-950', icon: 'sparkles', tone: 'cyan' },
+    { tint: 'border-emerald-200 bg-emerald-50 text-emerald-950', icon: 'check', tone: 'emerald' },
+    { tint: 'border-amber-200 bg-amber-50 text-amber-950', icon: 'bell', tone: 'amber' },
+    { tint: 'border-violet-200 bg-violet-50 text-violet-950', icon: 'pin', tone: 'violet' }
+  ];
+
+  /** 投影字級：以 vmin 縮放，但不大於 max、不小於 min（遠近距離都清楚） */
+  function fs(vmin, min, max) {
+    return 'clamp(' + min + 'px, ' + vmin + 'vmin, ' + max + 'px)';
+  }
+
+  function hasAttendance(a) {
+    return !!(a && (a.expected || a.present || a.excused || a.excusedSeats));
+  }
+
+  EC.Views.StageView = function StageView(props) {
+    var p = props;
+    var sizePair = EC.Hooks.useElementSize();
+    var ringBoxRef = sizePair[0];
+    var box = sizePair[1];
+
+    // 倒數長方框：寬度優先（善用橫向空間），高度依 aspect-ratio、上限 32vh
+    var boxW = Math.max(280, Math.round(box.width || 900));
+    var boxH = Math.max(120, Math.round(box.height || 240));
+
+    var time = EC.TimeEngine.formatDuration(p.info.remainingSec);
+    var len = time.length;
+    // 字級同時受「框高」與「框寬」限制：框變扁、變窄都不會擠出框外
+    var timePx = Math.max(30, Math.round(Math.min(boxH * 0.48, (boxW - 48) / (0.62 * len))));
+
+    var warn = !!(p.warning && p.info.phase === 'live');
+    var ringTone = p.info.phase === 'idle' ? 'slate'
+      : p.info.phase === 'done' ? 'rose'
+      : warn ? 'amber' : 'indigo';
+    var thickness = Math.max(8, Math.min(16, Math.round(boxH / 20)));
+    var phase = PHASE[p.info.phase] || PHASE.idle;
+
+    var bg = EC.Config.background(p.bgSkin, p.bgCustom).colors;
+    var rootStyle = Object.assign(
+      { textShadow: '0 2px 22px rgba(2,6,23,0.75)' },
+      UI.gradientStyle(p.bgSkin, p.bgCustom)
+    );
+
+    // 老師小叮嚀：只顯示啟用中的，聚焦（pinned）優先
+    var on = (p.announcements || []).filter(function (a) { return a.enabled; });
+    var ordered = on.filter(function (a) { return a.pinned; })
+      .concat(on.filter(function (a) { return !a.pinned; }));
+
+    return (
+      <div className="relative flex h-screen w-screen flex-col overflow-hidden text-white"
+        style={rootStyle}>
+        {/* 動態光暈（顏色跟著背景走） */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="ec-float absolute -left-20 -top-40 h-[42rem] w-[42rem] rounded-full opacity-40 blur-[130px]"
+            style={{ backgroundColor: bg[0] }} />
+          <div className="ec-float-slow absolute -bottom-48 -right-24 h-[46rem] w-[46rem] rounded-full opacity-35 blur-[130px]"
+            style={{ backgroundColor: bg[2] }} />
+          <div className="ec-float-slow absolute left-1/3 top-1/4 h-[30rem] w-[30rem] rounded-full opacity-30 blur-[120px]"
+            style={{ backgroundColor: bg[1] }} />
+        </div>
+
+        {/* 暗色遮罩 + 四周暗角（務必壓在光暈之上，最後才套用） */}
+        <div className="pointer-events-none absolute inset-0 bg-slate-950/60" />
+        <div className="pointer-events-none absolute inset-0"
+          style={{ backgroundImage: 'radial-gradient(122% 104% at 50% 45%, rgba(2,6,23,0.10) 34%, rgba(2,6,23,0.72) 100%)' }} />
+
+        {/* 左側：背景色彩色票 */}
+        <UI.BackgroundStrip value={p.bgSkin} customColors={p.bgCustom} onChange={p.onChangeBackground} />
+
+        {/* 頁首 */}
+        <header className="relative z-10 flex shrink-0 items-center justify-between gap-4 px-6 py-[1.5vmin] md:px-12">
+          <div className="flex min-w-0 items-center gap-[1.3vmin]">
+            <UI.IconBadge icon="calendar" tone="indigo" className="text-[3.2vmin]"
+              size="h-[7.2vmin] w-[7.2vmin] min-h-9 min-w-9" iconSize="1.5em" />
+            <div className="min-w-0">
+              <h1 className="truncate font-black tracking-tight text-white"
+                style={{ fontSize: fs(3.4, 18, 46) }}>
+                {p.session ? p.session.title : '尚未選擇場次'}
+              </h1>
+              <p className="font-mono font-bold tabular-nums text-slate-200"
+                style={{ fontSize: fs(2.1, 13, 26) }}>
+                {p.session ? p.session.start + ' – ' + p.session.end : '請先到操控台設定場次'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-[1.1vmin]">
+            <UI.IconBadge icon="clock" tone="cyan" round className="text-[3vmin]"
+              size="h-[5.6vmin] w-[5.6vmin] min-h-8 min-w-8" iconSize="1.5em" />
+            <div className="text-right">
+              <p className="font-black uppercase tracking-[0.3em] text-slate-200"
+                style={{ fontSize: fs(1.8, 12, 20) }}>現在時間</p>
+              <p className="font-mono font-black leading-none tabular-nums text-white"
+                style={{ fontSize: fs(5.4, 24, 68) }}>{p.clockText}</p>
+            </div>
+          </div>
+        </header>
+
+        {/* 主區（內容高度；剩餘高度留給下方的小叮嚀） */}
+        <main className="relative z-10 flex shrink-0 flex-col items-center justify-center gap-[1.4vmin] px-6 py-[0.6vmin]">
+          {hasAttendance(p.attendance) ? (
+            <div className="flex flex-wrap items-center justify-center gap-[0.8vmin]">
+              {p.attendance.expected ? (
+                <span className={UI.toneClasses('amber', true)} style={{ fontSize: fs(2.1, 13, 26) }}>
+                  <UI.IconBadge icon="users" tone="amber" round size="h-[1.6em] w-[1.6em]" iconSize="1em" />
+                  應到 {p.attendance.expected}
+                </span>
+              ) : null}
+              {p.attendance.present ? (
+                <span className={UI.toneClasses('teal', true)} style={{ fontSize: fs(2.1, 13, 26) }}>
+                  <UI.IconBadge icon="badgeCheck" tone="emerald" round size="h-[1.6em] w-[1.6em]" iconSize="1em" />
+                  實到 {p.attendance.present}
+                </span>
+              ) : null}
+              {p.attendance.excused ? (
+                <span className={UI.toneClasses('rose', true)} style={{ fontSize: fs(2.1, 13, 26) }}>
+                  <UI.IconBadge icon="calendar" tone="rose" round size="h-[1.6em] w-[1.6em]" iconSize="1em" />
+                  請假 {p.attendance.excused}
+                </span>
+              ) : null}
+              {p.attendance.excusedSeats ? (
+                <span className={UI.toneClasses('rose', true)} style={{ fontSize: fs(2.1, 13, 26) }}>
+                  <UI.IconBadge icon="hash" tone="violet" round size="h-[1.6em] w-[1.6em]" iconSize="1em" />
+                  座號 {p.attendance.excusedSeats}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* 階段膠囊：彩色圖示＋白色文字 */}
+          {p.info.phase !== 'idle' ? (
+            <div className="flex items-center gap-[0.9vmin] rounded-full border border-white/25 bg-white/10 px-[1.5vmin] py-[0.6vmin] backdrop-blur-md"
+              style={{ fontSize: fs(2.2, 14, 28) }}>
+              <UI.IconBadge icon={phase.icon} tone={phase.tone} round
+                size="h-[2.3em] w-[2.3em]" iconSize="1.35em" />
+              <span className="font-black tracking-[0.12em] text-white">{phase.text}</span>
+            </div>
+          ) : null}
+
+          {/* 倒數圓角長方框：寬度優先、上限 32vh，多出的高度留給小叮嚀 */}
+          <UI.ProgressBox boxRef={ringBoxRef}
+            className="w-full max-w-[1180px]"
+            style={{ aspectRatio: '1000 / 260', maxHeight: '32vh' }}
+            ratio={p.info.elapsedRatio} tone={ringTone} thickness={thickness}
+            trackClass="text-white/20">
+            <p className="font-mono font-black leading-none tabular-nums text-white"
+              style={{ fontSize: timePx, textShadow: '0 4px 26px rgba(2,6,23,0.92)' }}>
+              {time}
+            </p>
+            <p className="mt-[0.8vmin] flex items-center gap-[0.5em] rounded-full border border-white/20 bg-white/15 py-[0.25em] pl-[0.3em] pr-[1em] font-black text-white"
+              style={{ fontSize: fs(2, 13, 26) }}>
+              <UI.IconBadge icon="target" tone="indigo" round size="h-[1.7em] w-[1.7em]" iconSize="1.05em" />
+              進度 {Math.round((p.info.elapsedRatio || 0) * 100)}%
+            </p>
+          </UI.ProgressBox>
+
+          {/* 下一場 */}
+          {p.next ? (
+            <p className="flex flex-wrap items-center justify-center gap-[0.7vmin] font-bold text-slate-100"
+              style={{ fontSize: fs(2.1, 13, 27) }}>
+              <span className="flex items-center gap-[0.45em] font-black text-amber-200">
+                <UI.IconBadge icon="arrowRight" tone="cyan" round size="h-[1.6em] w-[1.6em]" iconSize="1em" />
+                下一場
+              </span>
+              <span className="font-black text-white">{p.next.title}</span>
+              <span className="font-mono tabular-nums text-slate-200">
+                {p.next.start}–{p.next.end}
+              </span>
+            </p>
+          ) : null}
+        </main>
+
+        {/* 老師小叮嚀（字級 50%~700%；只有「聚焦」的再加放大與金色）
+            佔用主區以外的剩餘高度 → 長方框省下的空間都在這裡 */}
+        {ordered.length > 0 ? (
+          <section className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pb-[1.4vmin] md:px-12">
+            <div className="w-full rounded-3xl border border-white/20 bg-white/10 p-[1.5vmin] backdrop-blur-md">
+              <p className="mb-[1.1vmin] flex items-center gap-[0.7vmin] font-black text-white"
+                style={{ fontSize: fs(2.3, 15, 30) }}>
+                <UI.IconBadge icon="megaphone" tone="rose"
+                  size="h-[1.9em] w-[1.9em]" iconSize="1.25em" />
+                老師小叮嚀
+              </p>
+              <div className="flex flex-wrap items-center gap-[0.9vmin]">
+                {ordered.map(function (a, i) {
+                  var s = CHIP_STYLES[i % CHIP_STYLES.length];
+                  if (a.pinned) {
+                    return (
+                      <span key={a.id}
+                        className="inline-flex items-center gap-[0.6em] rounded-2xl border-2 border-amber-200 bg-gradient-to-r from-amber-300 to-orange-400 px-[1em] py-[0.5em] font-black leading-snug text-amber-950 shadow-lg"
+                        style={{ fontSize: 'calc(' + fs(2.4, 14, 34) + ' * ' + (p.fontScale * 1.25) + ')' }}>
+                        {Icons.get('star', { size: '1.2em' })}
+                        <span>{a.text}</span>
+                      </span>
+                    );
+                  }
+                  return (
+                    <span key={a.id}
+                      className={'inline-flex items-center gap-[0.55em] rounded-2xl border-2 px-[1em] py-[0.5em] font-black leading-snug shadow-md ' + s.tint}
+                      style={{ fontSize: 'calc(' + fs(2.4, 14, 34) + ' * ' + p.fontScale + ')' }}>
+                      <UI.IconBadge icon={s.icon} tone={s.tone} round
+                        size="h-[1.5em] w-[1.5em]" iconSize="1em" />
+                      <span>{a.text}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        {/* 控制列 */}
+        <footer className="relative z-10 flex shrink-0 flex-wrap items-center justify-end gap-[0.9vmin] px-6 pb-[1.4vmin] md:px-12">
+          <div className="flex items-center gap-1 rounded-full border border-white/25 bg-white/10 p-1 backdrop-blur-md"
+            style={{ fontSize: fs(1.9, 12, 21) }}>
+            <span className="flex items-center gap-[0.45em] pl-[0.5em] pr-1 font-black text-white">
+              <UI.IconBadge icon="note" tone="violet" round size="h-[1.7em] w-[1.7em]" iconSize="1.05em" />
+              叮嚀字級
+            </span>
+            <button type="button" onClick={function () { p.onAdjustFont(-1); }}
+              title="縮小叮嚀字級"
+              className="flex h-[2.4em] w-[2.4em] items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/25">
+              {Icons.get('minus', { size: '1.2em' })}
+            </button>
+            <span className="min-w-[3.2em] text-center font-black tabular-nums text-white">
+              {Math.round(p.fontScale * 100)}%
+            </span>
+            <button type="button" onClick={function () { p.onAdjustFont(1); }}
+              title="放大叮嚀字級"
+              className="flex h-[2.4em] w-[2.4em] items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/25">
+              {Icons.get('plus', { size: '1.2em' })}
+            </button>
+          </div>
+
+          <button type="button" onClick={p.onToggleFullscreen}
+            className="inline-flex items-center gap-[0.5em] rounded-full border border-white/25 bg-white/10 py-[0.45em] pl-[0.45em] pr-[1.1em] font-black text-white backdrop-blur-md transition hover:bg-white/20"
+            style={{ fontSize: fs(1.9, 12, 21) }}>
+            <UI.IconBadge icon={p.isFullscreen ? 'shrink' : 'expand'} tone="sky" round size="h-[1.7em] w-[1.7em]" iconSize="1.05em" />
+            {p.isFullscreen ? '縮小' : '全螢幕'}
+          </button>
+
+          <button type="button" onClick={p.onExit}
+            className="inline-flex items-center gap-[0.5em] rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 py-[0.45em] pl-[0.45em] pr-[1.1em] font-black text-white shadow-lg shadow-indigo-900/40 transition hover:brightness-110"
+            style={{ fontSize: fs(1.9, 12, 21) }}>
+            <span className="flex h-[1.7em] w-[1.7em] items-center justify-center rounded-full bg-white/25 text-white">
+              {Icons.get('settings', { size: '1.05em' })}
+            </span>
+            回操控台
+          </button>
+        </footer>
+      </div>
+    );
+  };
+})();
+
+
+/* ===================== 40-app.js ===================== */
+/**
+ * 應用：狀態中樞（App）
+ * ------------------------------------------------------------------
+ * 唯一持有狀態的地方：載入/儲存、計時、階段轉換（響鈴、自動投影、
+ * 自動換場）、匯入匯出，並把資料與事件派給兩個檢視畫面。
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var UI = EC.UI;
+  var Views = EC.Views;
+  var Time = EC.TimeEngine;
+  var Audio = EC.AudioEngine;
+  var A = EC.Store.actions;
+
+  var useReducer = React.useReducer;
+  var useState = React.useState;
+  var useEffect = React.useEffect;
+  var useRef = React.useRef;
+
+  EC.App = function App() {
+    var statePair = useReducer(EC.Store.reducer, undefined, EC.Storage.load);
+    var state = statePair[0];
+    var dispatch = statePair[1];
+
+    var viewPair = useState('console'); // console | stage
+    var view = viewPair[0];
+    var setView = viewPair[1];
+
+    var dialogPair = useState(null);
+    var dialog = dialogPair[0];
+    var setDialog = dialogPair[1];
+
+    var now = EC.Hooks.useTicker(1000);
+    var stageRef = useRef(null);
+    var prevPhase = useRef('idle');
+    var warned = useRef(false);
+    var lastSessionId = useRef(null);
+    // 只有「場次自然結束」（進行中 → 已結束）才允許自動換場，
+    // 手動點選已結束的場次不會被自動跳走。
+    var autoAdvance = useRef(false);
+
+    var fullscreenPair = EC.Hooks.useFullscreen(stageRef);
+    var isFullscreen = fullscreenPair[0];
+    var toggleFullscreen = fullscreenPair[1];
+
+    var wakePair = EC.Hooks.useWakeLock();
+    var wakeActive = wakePair[0];
+    var requestWake = wakePair[1];
+    var releaseWake = wakePair[2];
+
+    // 自動儲存（延遲寫入，避免每秒寫入）
+    EC.Hooks.useDebouncedEffect(function () {
+      EC.Storage.save(state);
+    }, [state], 250);
+
+    var session = state.sessions.filter(function (s) { return s.id === state.activeSessionId; })[0] || null;
+    var info = Time.compute(session, now);
+    var next = Time.nextSession(state.sessions, state.activeSessionId);
+    var warning = Time.isWarningPhase(info, state.settings.warnMinutes);
+
+    var clockText = now.toLocaleTimeString('zh-TW', {
+      hour12: !state.settings.clock24,
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+
+    // --- 階段轉換：響鈴 / 自動投影 / 最後警示 / 自動換場 ---
+    useEffect(function () {
+      if (session && lastSessionId.current !== session.id) {
+        lastSessionId.current = session.id;
+        prevPhase.current = info.phase;
+        warned.current = false;
+        autoAdvance.current = false;
+      }
+      if (!session) return;
+
+      var prev = prevPhase.current;
+      if (prev !== info.phase) {
+        if (info.phase === 'live' && (prev === 'before' || prev === 'idle')) {
+          if (state.settings.bellAtStart) Audio.play(state.settings.tone, state.settings.volume);
+          if (state.settings.autoStage) setView('stage');
+          warned.current = false;
+        }
+        if (info.phase === 'done' && prev === 'live') {
+          if (state.settings.bellAtEnd) Audio.play(state.settings.tone, state.settings.volume, true);
+          autoAdvance.current = true; // 自然結束，才允許自動換下一場
+        }
+        prevPhase.current = info.phase;
+      }
+
+      if (info.phase === 'live' && state.settings.warnMinutes > 0 &&
+          !warned.current && info.remainingSec <= state.settings.warnMinutes * 60) {
+        warned.current = true;
+        Audio.warn(state.settings.volume);
+      }
+
+      if (autoAdvance.current && state.settings.autoAdvanceNext &&
+          info.phase === 'done' && next && info.overrunSec >= state.settings.advanceDelaySec) {
+        dispatch(A.selectSession(next.id));
+      }
+    }, [info.phase, info.remainingSec, info.overrunSec, session && session.id,
+        next && next.id, state.settings]);
+
+    // --- 投影時避免螢幕休眠 ---
+    useEffect(function () {
+      if (view === 'stage') requestWake(); else releaseWake();
+      return function () { releaseWake(); };
+    }, [view]);
+
+    // --- Esc 離開投影 ---
+    useEffect(function () {
+      function onKey(e) { if (e.key === 'Escape' && view === 'stage') setView('console'); }
+      window.addEventListener('keydown', onKey);
+      return function () { window.removeEventListener('keydown', onKey); };
+    }, [view]);
+
+    // --- 匯出 / 匯入 / 備份插槽 / 重設 ---
+    /** 目前資料快照（不含 5 組插槽本身），存檔與匯出共用 */
+    function currentSnapshot() {
+      return EC.Storage.snapshot(state);
+    }
+
+    function exportData() {
+      var payload = currentSnapshot();
+      var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'examclock-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /** 把目前資料存到第 index 組備份（名稱＝輸入框內容） */
+    function saveSlot(index, name) {
+      var clean = (name || '').trim();
+      var label = clean || ('第 ' + (index + 1) + ' 組');
+      dispatch(A.saveSlot(index, clean, currentSnapshot()));
+      setDialog({
+        title: '已存到第 ' + (index + 1) + ' 組',
+        message: '「' + label + '」：目前的場次、公告、即時紀錄與設定都備份好了。',
+        confirmLabel: '好', hideCancel: true, onConfirm: closeDialog
+      });
+    }
+
+    function renameSlot(index, name) {
+      dispatch(A.updateSlot(index, { name: name.slice(0, EC.Config.limits.slotNameMax || 20) }));
+    }
+
+    function clearSlot(index) {
+      var slot = (state.settings.slots || [])[index] || {};
+      setDialog({
+        title: '清除第 ' + (index + 1) + ' 組備份',
+        message: '「' + (slot.name || ('第 ' + (index + 1) + ' 組')) + '」的備份內容會被刪除，目前資料不受影響。',
+        confirmLabel: '清除', tone: 'danger',
+        onConfirm: function () { dispatch(A.clearSlot(index)); closeDialog(); }
+      });
+    }
+
+    function restoreSlot(index) {
+      var slot = (state.settings.slots || [])[index] || {};
+      if (!slot.data) return;
+      setDialog({
+        title: '從第 ' + (index + 1) + ' 組還原',
+        message: '「' + (slot.name || ('第 ' + (index + 1) + ' 組')) + '」的內容會覆蓋目前所有資料（其他備份組不受影響）。',
+        confirmLabel: '還原', tone: 'warn',
+        onConfirm: function () {
+          // 還原時保留目前 5 組插槽，避免把其他備份一起蓋掉
+          dispatch(A.replaceAll(EC.Storage.buildState(slot.data, state.settings.slots)));
+          closeDialog();
+        }
+      });
+    }
+
+    function importFile(file) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          var raw = JSON.parse(e.target.result);
+          // 匯入檔案同樣保留目前 5 組插槽
+          dispatch(A.replaceAll(EC.Storage.buildState(raw, state.settings.slots)));
+          setDialog({ title: '匯入完成', message: '設定已成功載入。', confirmLabel: '好', hideCancel: true, onConfirm: closeDialog });
+        } catch (err) {
+          setDialog({ title: '匯入失敗', message: '檔案格式無法辨識，請使用本程式匯出的備份檔。', confirmLabel: '好', hideCancel: true, tone: 'danger', onConfirm: closeDialog });
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function closeDialog() { setDialog(null); }
+
+    function confirmReset() {
+      setDialog({
+        title: '回復預設值',
+        message: '所有場次、公告與紀錄會回到最原始出廠狀態（不是還原成某一組備份）。5 組備份插槽會保留，確定要繼續嗎？',
+        tone: 'danger', confirmLabel: '回到出廠狀態', onConfirm: function () { dispatch(A.reset()); closeDialog(); }
+      });
+    }
+
+    function confirmDeleteSession(s) {
+      setDialog({
+        title: '刪除場次', message: '確定刪除「' + s.title + '」？此動作無法復原。',
+        tone: 'danger', confirmLabel: '刪除',
+        onConfirm: function () { dispatch(A.deleteSession(s.id)); closeDialog(); }
+      });
+    }
+
+    function confirmClearNotes() {
+      setDialog({
+        title: '清空紀錄', message: '確定清空全部即時紀錄？',
+        tone: 'danger', confirmLabel: '清空',
+        onConfirm: function () { dispatch(A.clearNotes()); closeDialog(); }
+      });
+    }
+
+    function stepSession(delta) {
+      var i = state.sessions.findIndex(function (s) { return s.id === state.activeSessionId; });
+      var j = i + delta;
+      if (i !== -1 && j >= 0 && j < state.sessions.length) dispatch(A.selectSession(state.sessions[j].id));
+    }
+
+    var dialogNode = dialog ? (
+      <UI.ConfirmDialog
+        open={true}
+        title={dialog.title}
+        message={dialog.message}
+        tone={dialog.tone}
+        confirmLabel={dialog.confirmLabel}
+        hideCancel={dialog.hideCancel}
+        onConfirm={dialog.onConfirm}
+        onCancel={closeDialog}
+      />
+    ) : null;
+
+    if (view === 'stage') {
+      return (
+        <React.Fragment>
+          <div ref={stageRef}>
+            <Views.StageView
+              session={session}
+              info={info}
+              next={next}
+              attendance={state.attendance}
+              announcements={state.announcements}
+              clockText={clockText}
+              warning={warning}
+              fontScale={state.settings.fontScale}
+              bgSkin={state.settings.bgSkin}
+              bgCustom={state.settings.bgCustom}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={toggleFullscreen}
+              onAdjustFont={function (d) {
+                var lim = EC.Config.limits;
+                var v = Math.round((state.settings.fontScale + d) * 100) / 100;
+                dispatch(A.updateSettings({ fontScale: Math.min(lim.maxFontScale, Math.max(lim.minFontScale, v)) }));
+              }}
+              onChangeBackground={function (k) { dispatch(A.updateSettings({ bgSkin: k })); }}
+              onChangeCustomBackground={function (colors) { dispatch(A.updateSettings({ bgCustom: EC.Config.normalizeColors(colors) })); }}
+              onExit={function () { setView('console'); }}
+            />
+          </div>
+          {dialogNode}
+        </React.Fragment>
+      );
+    }
+
+    return (
+      <React.Fragment>
+        <Views.ConsoleView
+          currentTime={now}
+          clockText={clockText}
+          session={session}
+          info={info}
+          next={next}
+          warning={warning}
+          sessions={state.sessions}
+          activeId={state.activeSessionId}
+          attendance={state.attendance}
+          announcements={state.announcements}
+          notes={state.notes}
+          settings={state.settings}
+          bgSkin={state.settings.bgSkin}
+          bgCustom={state.settings.bgCustom}
+          onSelect={function (id) { dispatch(A.selectSession(id)); }}
+          onAddSession={function (s) { dispatch(A.addSession(s)); }}
+          onUpdateSession={function (s) { dispatch(A.updateSession(s)); }}
+          onDeleteSession={confirmDeleteSession}
+          onMoveSession={function (id, d) { dispatch(A.moveSession(id, d)); }}
+          onDuplicateSession={function (id) { dispatch(A.duplicateSession(id)); }}
+          onApplyPreset={function (list) { dispatch(A.applyPreset(list)); }}
+          onPrevSession={function () { stepSession(-1); }}
+          onNextSession={function () { stepSession(1); }}
+          onOpenStage={function () { Audio.unlock(); setView('stage'); }}
+          onAttendanceChange={function (k, v) { dispatch(A.setAttendance(k, v)); }}
+          onAddAnnouncement={function (t) { dispatch(A.addAnnouncement(t)); }}
+          onUpdateAnnouncement={function (id, patch) { dispatch(A.updateAnnouncement(id, patch)); }}
+          onDeleteAnnouncement={function (id) { dispatch(A.deleteAnnouncement(id)); }}
+          onAddNote={function (t) { dispatch(A.addNote(t)); }}
+          onDeleteNote={function (id) { dispatch(A.deleteNote(id)); }}
+          onClearNotes={confirmClearNotes}
+          onUpdateSettings={function (patch) { dispatch(A.updateSettings(patch)); }}
+          onChangeBackground={function (k) { dispatch(A.updateSettings({ bgSkin: k })); }}
+          onChangeCustomBackground={function (list) { dispatch(A.updateSettings({ bgCustom: list })); }}
+          onTestTone={function (tone, volume) { Audio.play(tone, volume); }}
+          onExport={exportData}
+          onImportFile={importFile}
+          onSaveSlot={saveSlot}
+          onRenameSlot={renameSlot}
+          onRestoreSlot={restoreSlot}
+          onClearSlot={clearSlot}
+          onRequestReset={confirmReset}
+        />
+        {dialogNode}
+      </React.Fragment>
+    );
+  };
+})();
+
+
+/* ===================== 41-main.js ===================== */
+/**
+ * 應用：入口（main）
+ * ------------------------------------------------------------------
+ * 將 App 掛載到 #root。
+ */
+(function () {
+  'use strict';
+  var EC = window.ExamClock;
+  var root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<EC.App />);
+})();
+
+  </script>
+</body>
+</html>
