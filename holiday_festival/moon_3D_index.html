@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 日地月與月相奧秘探索儀 - 旗艦自然科學互動模擬</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #030712;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(245, 158, 11, 0.06) 0%, transparent 45%),
+                radial-gradient(circle at 85% 30%, rgba(79, 70, 229, 0.08) 0%, transparent 50%);
+            color: #f8fafc;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* Game-like HUD styling */
+        .hud-panel {
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .hud-accent-gold {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.12);
+        }
+
+        /* Custom Range Slider */
+        input[type="range"].orbit-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 10px;
+            background: linear-gradient(90deg, #1e293b 0%, #312e81 50%, #1e293b 100%);
+            border-radius: 999px;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            outline: none;
+        }
+        input[type="range"].orbit-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fef08a, #f59e0b);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.9);
+            cursor: grab;
+            transition: transform 0.15s ease;
+        }
+        input[type="range"].orbit-slider::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            transform: scale(1.2);
+        }
+
+        /* Telescope Crosshair Overlay */
+        .telescope-reticle {
+            background-image: 
+                radial-gradient(circle, transparent 58%, rgba(2, 6, 23, 0.85) 72%),
+                linear-gradient(to right, transparent 49.7%, rgba(99, 102, 241, 0.18) 49.7%, rgba(99, 102, 241, 0.18) 50.3%, transparent 50.3%),
+                linear-gradient(to bottom, transparent 49.7%, rgba(99, 102, 241, 0.18) 49.7%, rgba(99, 102, 241, 0.18) 50.3%, transparent 50.3%);
+        }
+
+        .phase-btn.active {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.35), rgba(124, 58, 237, 0.35));
+            border-color: #818cf8;
+            box-shadow: 0 0 18px rgba(99, 102, 241, 0.4);
+            color: #ffffff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="w-full hud-panel border-b border-slate-800/80 sticky top-0 z-50 px-4 lg:px-8 py-3">
+        <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
+            <!-- Brand Title -->
+            <div class="flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-400 via-orange-500 to-indigo-600 p-0.5 shadow-lg shadow-amber-500/20">
+                    <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                        <i class="fa-solid fa-sun text-amber-400 text-lg animate-spin" style="animation-duration: 20s;"></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg sm:text-xl font-black tracking-wide bg-gradient-to-r from-white via-slate-100 to-amber-200 bg-clip-text text-transparent">
+                            3D 日地月與月相奧秘探索儀
+                        </h1>
+                        <span class="hidden sm:inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            旗艦物理光影版
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">國小自然科學｜立體軌道互動・第一人稱望遠鏡同步觀測</p>
+                </div>
+            </div>
+
+            <!-- Mode Switcher Tabs -->
+            <div class="flex items-center bg-slate-950/90 p-1 rounded-xl border border-slate-800">
+                <button onclick="App.setTab('simulator')" id="tab-btn-simulator" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow-md shadow-indigo-600/40">
+                    <i class="fa-solid fa-Satellite"></i> 3D 太空探索
+                </button>
+                <button onclick="App.setTab('challenge')" id="tab-btn-challenge" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-gamepad"></i> 實作闖關挑戰
+                </button>
+                <button onclick="App.setTab('encyclopedia')" id="tab-btn-encyclopedia" class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-book-atlas"></i> 月相全圖鑑
+                </button>
+            </div>
+
+            <!-- Score & Status Badge -->
+            <div class="flex items-center gap-3">
+                <div class="bg-slate-950/90 border border-amber-500/30 px-3.5 py-1.5 rounded-xl flex items-center gap-2 shadow-inner">
+                    <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
+                    <span class="text-xs text-slate-400">探索積分</span>
+                    <span id="hud-score" class="text-base font-black text-amber-400">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="max-w-[1440px] w-full mx-auto px-4 lg:px-8 py-5 flex-grow flex flex-col gap-5">
+
+        <!-- Interactive Challenge Banner (Shown only when in Challenge Mode) -->
+        <div id="challenge-hud-banner" class="hidden hud-panel hud-accent-gold rounded-2xl p-4 sm:p-5 transition-all">
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                <div class="flex items-start gap-3.5">
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0 text-amber-300 font-black text-lg" id="quiz-step-badge">
+                        Q1
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span id="quiz-type-tag" class="text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                                軌道實作任務
+                            </span>
+                            <span id="quiz-progress-text" class="text-xs text-slate-400 font-medium">第 1 / 6 關</span>
+                        </div>
+                        <h2 id="quiz-question-title" class="text-base sm:text-lg font-bold text-white leading-snug">
+                            請直接在下方 3D 太空畫面中拖曳月球（或拉動滑桿），將月球移動到「滿月（農曆十五）」的正確軌道位置！
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Dynamic Action Area for Quiz -->
+                <div id="quiz-action-area" class="w-full lg:w-auto flex flex-wrap items-center gap-2.5 shrink-0">
+                    <!-- Populated dynamically by Quiz Engine -->
+                </div>
+            </div>
+            <!-- Quiz Explanation Feedback Drawer -->
+            <div id="quiz-feedback-drawer" class="hidden mt-3 pt-3 border-t border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p id="quiz-feedback-msg" class="text-xs sm:text-sm font-medium"></p>
+                <button onclick="App.nextChallenge()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-600/30 shrink-0 flex items-center gap-2 self-end sm:self-auto">
+                    下一關挑戰 <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- SIMULATOR & CHALLENGE DUAL VIEWPORT WORKSPACE -->
+        <div id="workspace-simulator" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+
+            <!-- LEFT COLUMN: 3D Space Simulator (8 cols) -->
+            <div class="lg:col-span-8 flex flex-col gap-4">
+                <div class="hud-panel rounded-2xl p-3 sm:p-4 flex flex-col flex-grow relative overflow-hidden">
+                    
+                    <!-- Top Floating Controls inside 3D Space View -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-2 border-b border-slate-800/80 z-20">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                            <span class="text-xs sm:text-sm font-bold text-slate-200">
+                                3D 太空軌道全景 <span class="text-amber-400 font-normal text-xs ml-1">(太陽固定於左側發光)</span>
+                            </span>
+                        </div>
+
+                        <!-- Camera & Visual Aids Toggles -->
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <button onclick="App.setCameraPreset('perspective')" id="cam-btn-perspective" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white border border-indigo-400/40 transition flex items-center gap-1">
+                                <i class="fa-solid fa-cube"></i> 3D 自由斜角
+                            </button>
+                            <button onclick="App.setCameraPreset('top')" id="cam-btn-top" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1">
+                                <i class="fa-solid fa-compass"></i> 北極俯視 (課本視角)
+                            </button>
+                            <button onclick="App.toggleSunRays()" id="toggle-rays-btn" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 transition flex items-center gap-1" title="顯示或隱藏平行太陽光線">
+                                <i class="fa-solid fa-sun"></i> 太陽光束: 開
+                            </button>
+                            <button onclick="App.toggleSightLine()" id="toggle-sight-btn" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition flex items-center gap-1" title="顯示地球觀測視線與亮暗分界線">
+                                <i class="fa-solid fa-eye"></i> 觀測輔助線: 開
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- MAIN 3D SPACE CANVAS CONTAINER (Explicit Height to prevent 0px collapse) -->
+                    <div id="space-canvas-wrap" class="relative w-full h-[420px] sm:h-[490px] rounded-xl overflow-hidden bg-slate-950 border border-slate-800/90 shadow-inner">
+                        
+                        <!-- Floating Sun Indicator Badge on Left -->
+                        <div class="absolute top-3 left-3 pointer-events-none bg-slate-950/85 border border-amber-500/40 px-3 py-1.5 rounded-xl flex items-center gap-2 backdrop-blur-md z-10">
+                            <i class="fa-solid fa-arrow-left text-amber-400 text-xs animate-pulse"></i>
+                            <div class="text-[11px] leading-tight">
+                                <div class="font-bold text-amber-300">太陽平行光源</div>
+                                <div class="text-slate-400">距離地球約 1.5 億公里</div>
+                            </div>
+                        </div>
+
+                        <!-- Floating Lunar Day & Angle Telemetry on Top Right -->
+                        <div class="absolute top-3 right-3 pointer-events-none bg-slate-950/85 border border-slate-700/80 px-3.5 py-2 rounded-xl backdrop-blur-md z-10 text-right">
+                            <div class="text-[11px] text-slate-400">日地月公轉夾角</div>
+                            <div id="space-angle-readout" class="text-base font-black text-indigo-300 font-mono">0° (朔)</div>
+                        </div>
+
+                        <!-- Interactive Help Overlay at Bottom -->
+                        <div class="absolute bottom-3 left-3 right-3 flex flex-wrap justify-between items-center pointer-events-none gap-2 z-10">
+                            <div class="bg-slate-950/85 border border-slate-700/80 px-3 py-1.5 rounded-lg text-[11px] text-slate-300 flex items-center gap-2 backdrop-blur-md">
+                                <span class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">互動提示</span>
+                                <span>直接<b>拖曳月球</b>可改變月相；拖曳太空背景可<b>360°旋轉視角</b>；滾輪可縮放</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- BOTTOM ORBIT CONTROL DECK -->
+                    <div class="mt-4 pt-3 border-t border-slate-800/90 flex flex-col gap-3.5">
+                        
+                        <!-- Row 1: Auto-Play Button, Speed, and Slider -->
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button onclick="App.toggleAutoOrbit()" id="btn-auto-play" class="px-4 py-2 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition flex items-center gap-2">
+                                    <i class="fa-solid fa-play" id="icon-auto-play"></i>
+                                    <span id="text-auto-play">自動公轉播放</span>
+                                </button>
+                                <button onclick="App.cycleOrbitSpeed()" id="btn-speed" class="px-2.5 py-2 rounded-xl font-mono text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                                    1.0x
+                                </button>
+                            </div>
+
+                            <div class="flex-grow flex flex-col gap-1">
+                                <div class="flex justify-between text-xs font-semibold px-1">
+                                    <span class="text-slate-400">農曆週期軌道滑桿 (由西向東逆時針公轉)</span>
+                                    <span id="slider-lunar-badge" class="text-amber-400 font-bold">農曆 初一 ・ 新月 (朔)</span>
+                                </div>
+                                <input type="range" id="orbit-slider" class="orbit-slider w-full" min="0" max="359" step="1" value="0" oninput="App.onSliderInput(this.value)">
+                            </div>
+                        </div>
+
+                        <!-- Row 2: 8 Quick-Jump Key Lunar Phase Buttons -->
+                        <div class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+                            <button onclick="App.jumpToAngle(0)" id="phase-btn-0" class="phase-btn active p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/></svg>
+                                <span class="text-[11px] font-bold">初一 新月</span>
+                            </button>
+                            <button onclick="App.jumpToAngle(45)" id="phase-btn-45" class="phase-btn p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#1e293b"/><path d="M12 2 A10 10 0 0 1 12 22 A6 10 0 0 0 12 2 Z" fill="#fef08a"/></svg>
+                                <span class="text-[11px] font-bold">初四 眉月</span>
+                            </button>
+                            <button onclick="App.jumpToAngle(90)" id="phase-btn-90" class="phase-btn p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#1e293b"/><path d="M12 2 A10 10 0 0 1 12 22 Z" fill="#fef08a"/></svg>
+                                <span class="text-[11px] font-bold">初七 上弦</span>
+                            </button>
+                            <button onclick="App.jumpToAngle(135)" id="phase-btn-135" class="phase-btn p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#1e293b"/><path d="M12 2 A10 10 0 0 1 12 22 A5 10 0 0 1 12 2 Z" fill="#fef08a"/></svg>
+                                <span class="text-[11px] font-bold">十一 盈凸</span>
+                            </button>
+                            <button onclick="App.jumpToAngle(180)" id="phase-btn-180" class="phase-btn p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fef08a"/></svg>
+                                <span class="text-[11px] font-bold">十五 滿月</span>
+                            </button>
+                            <button onclick="App.jumpToAngle(225)" id="phase-btn-225" class="phase-btn p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#1e293b"/><path d="M12 2 A10 10 0 0 0 12 22 A5 10 0 0 0 12 2 Z" fill="#fef08a"/></svg>
+                                <span class="text-[11px] font-bold">十九 虧凸</span>
+                            </button>
+                            <button onclick="App.jumpToAngle(270)" id="phase-btn-270" class="phase-btn p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#1e293b"/><path d="M12 2 A10 10 0 0 0 12 22 Z" fill="#fef08a"/></svg>
+                                <span class="text-[11px] font-bold">廿二 下弦</span>
+                            </button>
+                            <button onclick="App.jumpToAngle(315)" id="phase-btn-315" class="phase-btn p-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 transition flex flex-col items-center gap-1">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#1e293b"/><path d="M12 2 A10 10 0 0 0 12 22 A6 10 0 0 1 12 2 Z" fill="#fef08a"/></svg>
+                                <span class="text-[11px] font-bold">廿七 殘月</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Earth Observer Telescope & Telemetry (4 cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-4">
+                
+                <!-- Card 1: 3D Telescope View from Earth -->
+                <div class="hud-panel rounded-2xl p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-binoculars text-indigo-400"></i>
+                                <h2 class="text-sm font-bold text-white tracking-wide">地球觀測者視角 (3D 望遠鏡)</h2>
+                            </div>
+                            <span class="text-[11px] px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-medium">
+                                北半球仰望南方夜空
+                            </span>
+                        </div>
+
+                        <!-- 3D OBSERVER CANVAS CONTAINER -->
+                        <div id="observer-canvas-wrap" class="relative w-full h-[270px] sm:h-[290px] rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 shadow-inner">
+                            <!-- Reticle & Direction Labels -->
+                            <div class="absolute inset-0 telescope-reticle pointer-events-none z-10"></div>
+                            
+                            <div class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-20 text-[11px] font-bold text-slate-400 bg-slate-950/80 px-2 py-1 rounded border border-slate-800">
+                                東側 (左)
+                            </div>
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none z-20 text-[11px] font-bold text-slate-400 bg-slate-950/80 px-2 py-1 rounded border border-slate-800">
+                                西側 (右)
+                            </div>
+                            <div class="absolute bottom-2.5 left-1/2 -translate-x-1/2 pointer-events-none z-20 text-[11px] font-mono text-amber-300/90 bg-slate-950/85 px-3 py-0.5 rounded-full border border-amber-500/30">
+                                受光面積比例：<span id="obs-illum-pct" class="font-bold">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Phase Title & Telemetry Grid -->
+                        <div class="mt-4 bg-slate-950/70 border border-slate-800/90 rounded-xl p-3.5">
+                            <div class="flex items-baseline justify-between mb-2">
+                                <h3 id="obs-phase-title" class="text-xl font-black text-amber-400">新月 (朔)</h3>
+                                <span id="obs-lunar-date" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700">
+                                    農曆 初一
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 text-xs mt-3">
+                                <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                                    <div class="text-slate-400 text-[11px]">亮面朝向特徵</div>
+                                    <div id="obs-lit-side" class="font-bold text-white mt-0.5">完全背光 (看不見)</div>
+                                </div>
+                                <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+                                    <div class="text-slate-400 text-[11px]">月出 ～ 月落時間</div>
+                                    <div id="obs-rise-set" class="font-bold text-indigo-300 mt-0.5">06:00 ～ 18:00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scientific Principle Box -->
+                    <div class="mt-3 bg-gradient-to-br from-indigo-950/50 to-slate-900/80 border border-indigo-500/30 rounded-xl p-3.5">
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-300 mb-1.5">
+                            <i class="fa-solid fa-lightbulb text-amber-400"></i> 自然課核心觀念解析
+                        </div>
+                        <p id="obs-science-desc" class="text-xs text-slate-300 leading-relaxed">
+                            當月球運行到<strong>太陽與地球中間</strong>時，月球被太陽照亮的那一面剛好完全背對地球，因此從地球上看過去一片漆黑，稱為「新月」或「朔」。
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- TAB 3: LUNAR PHASE ENCYCLOPEDIA TABLE -->
+        <div id="workspace-encyclopedia" class="hidden hud-panel rounded-2xl p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 mb-5 border-b border-slate-800">
+                <div>
+                    <h2 class="text-xl font-black text-white flex items-center gap-2.5">
+                        <i class="fa-solid fa-book-open text-amber-400"></i> 農曆月相變化與觀測時間全圖鑑
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                        點擊表格中的任一月相，可直接跳轉至 3D 太空軌道觀察當時的日、地、月三球相對角度！
+                    </p>
+                </div>
+                <div class="bg-indigo-950/60 border border-indigo-500/30 px-4 py-2.5 rounded-xl text-xs text-indigo-200">
+                    <strong>記憶口訣：</strong>「初一看不見，初七上弦西邊亮（右亮），十五滿月整夜亮，廿二下弦東邊亮（左亮）。」
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-900/90 text-slate-300 border-b border-slate-700 uppercase">
+                            <th class="p-3.5 rounded-tl-xl">農曆日期</th>
+                            <th class="p-3.5">月相名稱</th>
+                            <th class="p-3.5">日地月夾角</th>
+                            <th class="p-3.5">地球觀察特徵 (北半球)</th>
+                            <th class="p-3.5">月出～月落時間</th>
+                            <th class="p-3.5">傍晚 18:00 位置</th>
+                            <th class="p-3.5 rounded-tr-xl text-center">3D 模擬</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/80 text-slate-200" id="encyclopedia-tbody">
+                        <!-- Dynamically populated from PhaseCatalog -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full py-3.5 px-6 border-t border-slate-900/80 text-center text-xs text-slate-500">
+        3D 日地月與月相奧秘探索儀｜採用 Three.js 即時物理光照與程序化星球表面渲染技術
+    </footer>
+
+    <!-- APPLICATION ARCHITECTURE (MODULAR & SELF-CONTAINED) -->
+    <script>
+        /**
+         * ============================================================================
+         * 1. SCIENTIFIC PHASE CATALOG (Data Layer)
+         * ============================================================================
+         */
+        const PhaseCatalog = [
+            {
+                id: 'new_moon',
+                targetAngle: 0,
+                range: [340, 20],
+                name: '新月 (朔)',
+                lunarDate: '農曆 初一',
+                litSide: '完全背光 (看不見)',
+                riseSet: '06:00 升 ～ 18:00 落',
+                eveningPos: '與太陽同落於西方地平線',
+                desc: '當月球位於太陽與地球之間（夾角 0°）時，受光面完全朝向太陽、背對地球，因此在地球上無法看見月亮，稱為「朔」。'
+            },
+            {
+                id: 'waxing_crescent',
+                targetAngle: 45,
+                range: [21, 69],
+                name: '眉月 (新月蛾眉月)',
+                lunarDate: '農曆 初三 ～ 初五',
+                litSide: '右側(西側)彎月發亮',
+                riseSet: '09:00 升 ～ 21:00 落',
+                eveningPos: '傍晚出現在西方偏低天空',
+                desc: '月球逆時針公轉離開新月位置後，從地球看去可以看見月球右側（西側）邊緣被太陽照亮一彎細眉，日落後出現在西方天空。'
+            },
+            {
+                id: 'first_quarter',
+                targetAngle: 90,
+                range: [70, 110],
+                name: '上弦月',
+                lunarDate: '農曆 初七、初八',
+                litSide: '右半邊(西側)半圓發亮',
+                riseSet: '12:00 升 ～ 24:00 落',
+                eveningPos: '傍晚高掛南方天空 (仰角最高)',
+                desc: '日、地、月夾角呈 90° 直角！從地球看過去，月球右半邊（西邊）被左側的太陽照亮呈現半圓形，中午前後升起、午夜落下。'
+            },
+            {
+                id: 'waxing_gibbous',
+                targetAngle: 135,
+                range: [111, 159],
+                name: '盈凸月 (漸盈凸月)',
+                lunarDate: '農曆 十一 ～ 十三',
+                litSide: '右側大半圓明亮',
+                riseSet: '15:00 升 ～ 隔日 03:00 落',
+                eveningPos: '傍晚位於東南東方天空',
+                desc: '月球繼續朝滿月方向公轉，受光面向地球的比例超過一半，呈現右側飽滿的凸月形狀。'
+            },
+            {
+                id: 'full_moon',
+                targetAngle: 180,
+                range: [160, 200],
+                name: '滿月 (望)',
+                lunarDate: '農曆 十五、十六',
+                litSide: '正面向陽 (100%全圓亮)',
+                riseSet: '18:00 升 ～ 隔日 06:00 落',
+                eveningPos: '傍晚從東方地平線升起',
+                desc: '地球位於太陽與月球之間（夾角 180°），陽光越過地球正面照亮整顆月球朝向地球的一面，整夜可見圓滿月亮，稱為「望」。'
+            },
+            {
+                id: 'waning_gibbous',
+                targetAngle: 225,
+                range: [201, 249],
+                name: '虧凸月 (漸虧凸月)',
+                lunarDate: '農曆 十八 ～ 二十',
+                litSide: '左側(東側)大半圓明亮',
+                riseSet: '21:00 升 ～ 隔日 09:00 落',
+                eveningPos: '尚未升起 (約晚上9點東升)',
+                desc: '滿月過後，月球面向地球的右側開始進入陰影，但左側（東側）受光面積仍大於一半，稱為「漸虧凸月」。'
+            },
+            {
+                id: 'third_quarter',
+                targetAngle: 270,
+                range: [250, 290],
+                name: '下弦月',
+                lunarDate: '農曆 廿二、廿三',
+                litSide: '左半邊(東側)半圓發亮',
+                riseSet: '24:00 升 ～ 隔日 12:00 落',
+                eveningPos: '在地平線下 (半夜12點才東升)',
+                desc: '月球公轉至 270° 直角位置，從地球觀察會看到左半邊（東邊）明亮的半圓形月亮。午夜才從東方升起，清晨高掛南方天空。'
+            },
+            {
+                id: 'waning_crescent',
+                targetAngle: 315,
+                range: [291, 339],
+                name: '殘月 (晦日前蛾眉月)',
+                lunarDate: '農曆 廿六 ～ 廿八',
+                litSide: '左側(東側)細彎月發亮',
+                riseSet: '03:00 升 ～ 15:00 落',
+                eveningPos: '已於下午落下',
+                desc: '接近農曆月底，月球再度靠近太陽方向，只剩左側邊緣留下一抹細彎月，僅在黎明破曉前的東方天空可見。'
+            }
+        ];
+
+        /**
+         * ============================================================================
+         * 2. PROCEDURAL PLANET TEXTURE GENERATOR (Zero External URL Dependencies)
+         * ============================================================================
+         */
+        const TextureFactory = {
+            // High-detail procedural Moon surface & bump texture with craters and Maria
+            createMoonTextures() {
+                const size = 1024;
+                const colorCanvas = document.createElement('canvas');
+                const bumpCanvas = document.createElement('canvas');
+                colorCanvas.width = bumpCanvas.width = size;
+                colorCanvas.height = bumpCanvas.height = size;
+
+                const cCtx = colorCanvas.getContext('2d');
+                const bCtx = bumpCanvas.getContext('2d');
+
+                // Base lunar regolith gray
+                cCtx.fillStyle = '#c8ccd4';
+                cCtx.fillRect(0, 0, size, size);
+                bCtx.fillStyle = '#808080';
+                bCtx.fillRect(0, 0, size, size);
+
+                // Seeded pseudo-random helper for consistent craters
+                let seed = 42;
+                const rand = () => {
+                    seed = (seed * 16807) % 2147483647;
+                    return (seed - 1) / 2147483646;
+                };
+
+                // Large dark Lunar Maria (seas of basalt)
+                for (let i = 0; i < 18; i++) {
+                    const x = rand() * size;
+                    const y = (0.2 + rand() * 0.6) * size;
+                    const r = 60 + rand() * 140;
+                    const grad = cCtx.createRadialGradient(x, y, r * 0.1, x, y, r);
+                    grad.addColorStop(0, 'rgba(95, 102, 115, 0.55)');
+                    grad.addColorStop(0.7, 'rgba(110, 116, 128, 0.25)');
+                    grad.addColorStop(1, 'rgba(200, 204, 212, 0)');
+                    cCtx.fillStyle = grad;
+                    cCtx.beginPath();
+                    cCtx.arc(x, y, r, 0, Math.PI * 2);
+                    cCtx.fill();
+                }
+
+                // Hundreds of impact craters with bright rims and dark floors
+                for (let i = 0; i < 420; i++) {
+                    const x = rand() * size;
+                    const y = rand() * size;
+                    const r = 3 + Math.pow(rand(), 3) * 42;
+
+                    // Color map crater
+                    const cGrad = cCtx.createRadialGradient(x, y, r * 0.65, x, y, r);
+                    cGrad.addColorStop(0, 'rgba(130, 135, 145, 0.45)');
+                    cGrad.addColorStop(0.82, 'rgba(235, 240, 248, 0.55)');
+                    cGrad.addColorStop(1, 'rgba(200, 204, 212, 0)');
+                    cCtx.fillStyle = cGrad;
+                    cCtx.beginPath();
+                    cCtx.arc(x, y, r, 0, Math.PI * 2);
+                    cCtx.fill();
+
+                    // Bump map crater (dark inside, white rim)
+                    const bGrad = bCtx.createRadialGradient(x, y, r * 0.5, x, y, r);
+                    bGrad.addColorStop(0, 'rgb(60, 60, 60)');
+                    bGrad.addColorStop(0.85, 'rgb(220, 220, 220)');
+                    bGrad.addColorStop(1, 'rgb(128, 128, 128)');
+                    bCtx.fillStyle = bGrad;
+                    bCtx.beginPath();
+                    bCtx.arc(x, y, r, 0, Math.PI * 2);
+                    bCtx.fill();
+                }
+
+                return {
+                    map: new THREE.CanvasTexture(colorCanvas),
+                    bumpMap: new THREE.CanvasTexture(bumpCanvas)
+                };
+            },
+
+            // Procedural Earth Texture (Oceans, Continents, Ice Caps)
+            createEarthTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1024;
+                canvas.height = 512;
+                const ctx = canvas.getContext('2d');
+
+                // Deep ocean base
+                const oceanGrad = ctx.createLinearGradient(0, 0, 0, 512);
+                oceanGrad.addColorStop(0, '#0c4a6e');
+                oceanGrad.addColorStop(0.5, '#0284c7');
+                oceanGrad.addColorStop(1, '#0c4a6e');
+                ctx.fillStyle = oceanGrad;
+                ctx.fillRect(0, 0, 1024, 512);
+
+                // Procedural Continents
+                let seed = 1337;
+                const rand = () => {
+                    seed = (seed * 16807) % 2147483647;
+                    return (seed - 1) / 2147483646;
+                };
+
+                const landClusters = [
+                    { x: 220, y: 170, r: 95 }, { x: 290, y: 320, r: 75 },
+                    { x: 520, y: 160, r: 85 }, { x: 550, y: 290, r: 80 },
+                    { x: 740, y: 175, r: 120 }, { x: 850, y: 360, r: 55 }
+                ];
+
+                landClusters.forEach(cluster => {
+                    for (let i = 0; i < 48; i++) {
+                        const angle = rand() * Math.PI * 2;
+                        const dist = rand() * cluster.r;
+                        const lx = cluster.x + Math.cos(angle) * dist;
+                        const ly = cluster.y + Math.sin(angle) * dist * 0.7;
+                        const lr = 16 + rand() * 44;
+
+                        const grad = ctx.createRadialGradient(lx, ly, lr * 0.2, lx, ly, lr);
+                        grad.addColorStop(0, rand() > 0.35 ? '#15803d' : '#a16207');
+                        grad.addColorStop(0.75, '#16a34a');
+                        grad.addColorStop(1, 'rgba(22, 163, 74, 0)');
+                        ctx.fillStyle = grad;
+                        ctx.beginPath();
+                        ctx.arc(lx, ly, lr, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+
+                // Polar Ice Caps
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(0, 0, 1024, 26);
+                ctx.fillRect(0, 486, 1024, 26);
+
+                return new THREE.CanvasTexture(canvas);
+            },
+
+            // Procedural Cloud Layer Texture
+            createCloudTexture() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 256;
+                const ctx = canvas.getContext('2d');
+
+                for (let i = 0; i < 160; i++) {
+                    const x = Math.random() * 512;
+                    const y = Math.random() * 256;
+                    const r = 10 + Math.random() * 35;
+                    const grad = ctx.createRadialGradient(x, y, 2, x, y, r);
+                    grad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+                    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                return new THREE.CanvasTexture(canvas);
+            },
+
+            // Procedural Sun Plasma Texture & Corona Glow Sprite
+            createSunAssets() {
+                const canvas = document.createElement('canvas');
+                canvas.width = 512;
+                canvas.height = 256;
+                const ctx = canvas.getContext('2d');
+
+                const baseGrad = ctx.createLinearGradient(0, 0, 512, 256);
+                baseGrad.addColorStop(0, '#fef08a');
+                baseGrad.addColorStop(0.5, '#f59e0b');
+                baseGrad.addColorStop(1, '#ea580c');
+                ctx.fillStyle = baseGrad;
+                ctx.fillRect(0, 0, 512, 256);
+
+                for (let i = 0; i < 200; i++) {
+                    const x = Math.random() * 512;
+                    const y = Math.random() * 256;
+                    const r = 5 + Math.random() * 28;
+                    const g = ctx.createRadialGradient(x, y, 1, x, y, r);
+                    g.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+                    g.addColorStop(0.5, 'rgba(251, 191, 36, 0.4)');
+                    g.addColorStop(1, 'rgba(234, 88, 12, 0)');
+                    ctx.fillStyle = g;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Radial Corona Glow Sprite Texture
+                const glowCanvas = document.createElement('canvas');
+                glowCanvas.width = 256;
+                glowCanvas.height = 256;
+                const gCtx = glowCanvas.getContext('2d');
+                const corona = gCtx.createRadialGradient(128, 128, 20, 128, 128, 128);
+                corona.addColorStop(0, 'rgba(255, 251, 235, 1)');
+                corona.addColorStop(0.25, 'rgba(251, 191, 36, 0.85)');
+                corona.addColorStop(0.55, 'rgba(245, 158, 11, 0.3)');
+                corona.addColorStop(1, 'rgba(234, 88, 12, 0)');
+                gCtx.fillStyle = corona;
+                gCtx.fillRect(0, 0, 256, 256);
+
+                return {
+                    surfaceMap: new THREE.CanvasTexture(canvas),
+                    coronaMap: new THREE.CanvasTexture(glowCanvas)
+                };
+            }
+        };
+
+        /**
+         * ============================================================================
+         * 3. MAIN APPLICATION CONTROLLER & DUAL 3D ENGINE
+         * ============================================================================
+         */
+        const App = {
+            // State
+            angle: 0,               // 0° = New Moon (left, towards Sun), 90° = First Quarter, 180° = Full Moon (right)
+            isAutoPlaying: false,
+            orbitSpeed: 1.0,
+            showSunRays: true,
+            showSightLine: true,
+            currentTab: 'simulator',
+            score: 0,
+
+            // Orbit Radius Constant
+            ORBIT_RADIUS: 8.2,
+
+            // Space Scene Objects
+            spaceScene: null,
+            spaceCamera: null,
+            spaceRenderer: null,
+            sunGroup: null,
+            earthGroup: null,
+            earthMesh: null,
+            cloudMesh: null,
+            moonMesh: null,
+            sunRaysGroup: null,
+            sightLineGroup: null,
+            orbitMarkerMeshes: [],
+
+            // Camera Spherical Coordinates for Smooth Orbiting
+            camSpherical: { radius: 24, phi: 1.02, theta: 0.25 },
+            camTarget: new THREE.Vector3(-1.5, 0, 0),
+
+            // Interaction Flags
+            isDraggingMoon: false,
+            isOrbitingCamera: false,
+            pointerLast: { x: 0, y: 0 },
+            raycaster: new THREE.Raycaster(),
+            mouseNDC: new THREE.Vector2(),
+            orbitPlane: new THREE.Plane(new THREE.Vector3(0, 1, 0), 0),
+
+            // Observer Telescope Scene Objects
+            obsScene: null,
+            obsCamera: null,
+            obsRenderer: null,
+            obsMoonMesh: null,
+            obsSunLight: null,
+
+            // Challenge Quiz State
+            quizIndex: 0,
+            quizAnswered: false,
+            challenges: [
+                {
+                    type: 'orbit_drag',
+                    targetAngle: 180,
+                    tolerance: 22,
+                    title: '【軌道實作任務 1】農曆十五日「滿月（望）」時，月球應該在地球的哪個位置？請拖曳 3D 月球或拉動滑桿到正確軌道位置！',
+                    explanation: '太棒了！滿月（農曆十五）時，地球位於太陽與月球中間（夾角 180°，畫面最右側），陽光能完整照亮月球面向地球的那一面！'
+                },
+                {
+                    type: 'orbit_drag',
+                    targetAngle: 90,
+                    tolerance: 22,
+                    title: '【軌道實作任務 2】農曆初七、初八是「上弦月」，從地球看去右半邊（西邊）發亮。請將月球移動到「上弦月」的軌道位置！',
+                    explanation: '完全正確！上弦月位於 90° 直角處（畫面下方軌道位置），陽光從左方照射，地球上的觀察者往月球看去，右手邊（西側）剛好是向陽面！'
+                },
+                {
+                    type: 'multiple_choice',
+                    title: '【觀測概念挑戰 3】為什麼每個月農曆初一「新月（朔）」的時候，我們在夜晚的天空中看不到月亮？',
+                    options: [
+                        '因為月球躲進了地球的影子裡（發生月食）',
+                        '因為月球位於太陽與地球之間，受光面背對地球，且與太陽同升同落',
+                        '因為月球自己停止發光了',
+                        '因為初一時月球距離地球最遙遠'
+                    ],
+                    correctIdx: 1,
+                    explanation: '答對了！月球本身不會發光，初一時月球運行到太陽與地球之間（0°），受光面朝向太陽、黑暗面朝向地球，所以在地球上看不到月亮。'
+                },
+                {
+                    type: 'orbit_drag',
+                    targetAngle: 270,
+                    tolerance: 22,
+                    title: '【軌道實作任務 4】農曆廿二、廿三清晨常見的「下弦月」（左半邊/東邊發亮），月球位於軌道的哪裡？請移動月球並提交！',
+                    explanation: '精準命中！下弦月位於 270° 位置（畫面上方軌道位置），從地球往月球看去，左手邊（東側）朝向太陽，因此呈現左半邊亮的半圓月！'
+                },
+                {
+                    type: 'multiple_choice',
+                    title: '【觀測概念挑戰 5】請把月球移到「上弦月（初七）」觀察右側望遠鏡：上弦月與下弦月都是半圓形，如何分辨它們？',
+                    options: [
+                        '上弦月是右半邊（西側）亮，傍晚已出現在天空；下弦月是左半邊（東側）亮，午夜才升起',
+                        '上弦月是左半邊亮；下弦月是右半邊亮',
+                        '上弦月只在清晨出現；下弦月只在傍晚出現',
+                        '兩者形狀與亮邊完全相同，無法分辨'
+                    ],
+                    correctIdx: 0,
+                    explanation: '觀念非常清楚！在北半球仰望南方天空時，上弦月（初七）右半邊（西側）亮，下弦月（廿二）左半邊（東側）亮。'
+                },
+                {
+                    type: 'orbit_drag',
+                    targetAngle: 0,
+                    tolerance: 22,
+                    title: '【最終實作任務 6】請將月球移回一個農曆週期的起點——「農曆初一 新月（朔）」的位置！',
+                    explanation: '恭喜滿分通關！初一新月位於 0°（太陽與地球正中間），完成了一次約 29.5 天的朔望月循環！'
+                }
+            ],
+
+            init() {
+                const moonTextures = TextureFactory.createMoonTextures();
+                this.initSpaceViewport(moonTextures);
+                this.initObserverViewport(moonTextures);
+                this.populateEncyclopedia();
+                this.updateSimulation(0);
+                this.setupResizeHandler();
+                this.animate();
+            },
+
+            /**
+             * ------------------------------------------------------------------------
+             * LEFT VIEWPORT: 3D SPACE SCENE INITIALIZATION
+             * ------------------------------------------------------------------------
+             */
+            initSpaceViewport(moonTextures) {
+                const container = document.getElementById('space-canvas-wrap');
+                const width = container.clientWidth || 800;
+                const height = container.clientHeight || 480;
+
+                this.spaceScene = new THREE.Scene();
+                this.spaceCamera = new THREE.PerspectiveCamera(42, width / height, 0.1, 1000);
+                this.updateCameraFromSpherical();
+
+                this.spaceRenderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+                this.spaceRenderer.setSize(width, height);
+                this.spaceRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(this.spaceRenderer.domElement);
+
+                // 1. Starfield Background (2000 stars)
+                const starGeo = new THREE.BufferGeometry();
+                const starCount = 2000;
+                const starPos = new Float32Array(starCount * 3);
+                const starColors = new Float32Array(starCount * 3);
+                for (let i = 0; i < starCount; i++) {
+                    const r = 80 + Math.random() * 180;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                    starPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                    starPos[i * 3 + 2] = r * Math.cos(phi);
+
+                    const tint = 0.75 + Math.random() * 0.25;
+                    starColors[i * 3] = tint;
+                    starColors[i * 3 + 1] = tint;
+                    starColors[i * 3 + 2] = 1.0;
+                }
+                starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+                starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+                const starMat = new THREE.PointsMaterial({ size: 0.45, vertexColors: true, transparent: true, opacity: 0.85 });
+                this.spaceScene.add(new THREE.Points(starGeo, starMat));
+
+                // 2. Lighting (Strong directional sunlight from far left + subtle ambient for dark side visibility)
+                const ambientLight = new THREE.AmbientLight(0x1e293b, 0.42);
+                this.spaceScene.add(ambientLight);
+
+                const sunDirLight = new THREE.DirectionalLight(0xfffbeb, 2.6);
+                sunDirLight.position.set(-40, 0, 0);
+                this.spaceScene.add(sunDirLight);
+
+                // 3. The Sun (Fixed on Left at x = -18)
+                this.sunGroup = new THREE.Group();
+                this.sunGroup.position.set(-18.5, 0, 0);
+                const sunAssets = TextureFactory.createSunAssets();
+
+                const sunSphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(3.3, 48, 48),
+                    new THREE.MeshBasicMaterial({ map: sunAssets.surfaceMap })
+                );
+                this.sunGroup.add(sunSphere);
+
+                const coronaSprite = new THREE.Sprite(
+                    new THREE.SpriteMaterial({
+                        map: sunAssets.coronaMap,
+                        color: 0xf59e0b,
+                        transparent: true,
+                        blending: THREE.AdditiveBlending
+                    })
+                );
+                coronaSprite.scale.set(13, 13, 1);
+                this.sunGroup.add(coronaSprite);
+                this.spaceScene.add(this.sunGroup);
+
+                // 4. Visual Sunlight Rays (Parallel light lines from Left to Right)
+                this.sunRaysGroup = new THREE.Group();
+                const rayMaterial = new THREE.LineBasicMaterial({
+                    color: 0xfbbf24,
+                    transparent: true,
+                    opacity: 0.22
+                });
+                for (let z = -8; z <= 8; z += 2) {
+                    for (let y = -2; y <= 2; y += 2) {
+                        const pts = [new THREE.Vector3(-14.5, y * 0.6, z), new THREE.Vector3(11.5, y * 0.6, z)];
+                        const rayGeo = new THREE.BufferGeometry().setFromPoints(pts);
+                        this.sunRaysGroup.add(new THREE.Line(rayGeo, rayMaterial));
+                    }
+                }
+                this.spaceScene.add(this.sunRaysGroup);
+
+                // 5. The Earth at Center (0, 0, 0)
+                this.earthGroup = new THREE.Group();
+                const earthTex = TextureFactory.createEarthTexture();
+                this.earthMesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.75, 48, 48),
+                    new THREE.MeshStandardMaterial({
+                        map: earthTex,
+                        roughness: 0.65,
+                        metalness: 0.1
+                    })
+                );
+                this.earthGroup.add(this.earthMesh);
+
+                // Earth Cloud Layer
+                const cloudTex = TextureFactory.createCloudTexture();
+                this.cloudMesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.79, 48, 48),
+                    new THREE.MeshStandardMaterial({
+                        map: cloudTex,
+                        transparent: true,
+                        opacity: 0.55,
+                        depthWrite: false
+                    })
+                );
+                this.earthGroup.add(this.cloudMesh);
+
+                // Earth Atmosphere Halo
+                const atmoMesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.92, 48, 48),
+                    new THREE.MeshBasicMaterial({
+                        color: 0x38bdf8,
+                        transparent: true,
+                        opacity: 0.14,
+                        side: THREE.BackSide,
+                        blending: THREE.AdditiveBlending
+                    })
+                );
+                this.earthGroup.add(atmoMesh);
+                this.spaceScene.add(this.earthGroup);
+
+                // 6. Lunar Orbit Ring & 8 Phase Nodes
+                const orbitPts = [];
+                for (let i = 0; i <= 128; i++) {
+                    const a = (i / 128) * Math.PI * 2;
+                    orbitPts.push(new THREE.Vector3(-Math.cos(a) * this.ORBIT_RADIUS, 0, Math.sin(a) * this.ORBIT_RADIUS));
+                }
+                const orbitLine = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints(orbitPts),
+                    new THREE.LineBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.55 })
+                );
+                this.spaceScene.add(orbitLine);
+
+                // 8 Interactive Phase Nodes on Orbit
+                for (let idx = 0; idx < 8; idx++) {
+                    const deg = idx * 45;
+                    const rad = THREE.MathUtils.degToRad(deg);
+                    const nodeMesh = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.18, 16, 16),
+                        new THREE.MeshBasicMaterial({ color: 0x818cf8 })
+                    );
+                    nodeMesh.position.set(-Math.cos(rad) * this.ORBIT_RADIUS, 0, Math.sin(rad) * this.ORBIT_RADIUS);
+                    nodeMesh.userData = { snapAngle: deg };
+                    this.spaceScene.add(nodeMesh);
+                    this.orbitMarkerMeshes.push(nodeMesh);
+                }
+
+                // 7. The 3D Moon
+                this.moonMesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.75, 48, 48),
+                    new THREE.MeshStandardMaterial({
+                        map: moonTextures.map,
+                        bumpMap: moonTextures.bumpMap,
+                        bumpScale: 0.04,
+                        roughness: 0.88,
+                        metalness: 0.02
+                    })
+                );
+                this.spaceScene.add(this.moonMesh);
+
+                // 8. Sight Line & Terminator Helper Group (From Earth to Moon)
+                this.sightLineGroup = new THREE.Group();
+                const sightPts = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(this.ORBIT_RADIUS, 0, 0)];
+                const sightLine = new THREE.Line(
+                    new THREE.BufferGeometry().setFromPoints(sightPts),
+                    new THREE.LineBasicMaterial({ color: 0x34d399, transparent: true, opacity: 0.75 })
+                );
+                this.sightLineGroup.add(sightLine);
+
+                // Moon Selection Ring
+                const ringGeo = new THREE.RingGeometry(0.95, 1.08, 32);
+                ringGeo.rotateX(-Math.PI / 2);
+                const ringMesh = new THREE.Mesh(
+                    ringGeo,
+                    new THREE.MeshBasicMaterial({ color: 0xfbbf24, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
+                );
+                ringMesh.position.set(this.ORBIT_RADIUS, 0, 0);
+                this.sightLineGroup.add(ringMesh);
+                this.spaceScene.add(this.sightLineGroup);
+
+                // 9. Pointer Events (Direct 3D Moon Dragging + Camera Orbiting + Wheel Zoom)
+                const dom = this.spaceRenderer.domElement;
+                dom.addEventListener('pointerdown', (e) => this.onSpacePointerDown(e));
+                window.addEventListener('pointermove', (e) => this.onSpacePointerMove(e));
+                window.addEventListener('pointerup', () => this.onSpacePointerUp());
+                dom.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    this.camSpherical.radius = THREE.MathUtils.clamp(this.camSpherical.radius + e.deltaY * 0.015, 12, 42);
+                    this.updateCameraFromSpherical();
+                }, { passive: false });
+            },
+
+            /**
+             * ------------------------------------------------------------------------
+             * RIGHT VIEWPORT: 3D EARTH OBSERVER TELESCOPE INITIALIZATION
+             * ------------------------------------------------------------------------
+             */
+            initObserverViewport(moonTextures) {
+                const container = document.getElementById('observer-canvas-wrap');
+                const width = container.clientWidth || 340;
+                const height = container.clientHeight || 280;
+
+                this.obsScene = new THREE.Scene();
+                this.obsCamera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
+                this.obsCamera.position.set(0, 0, 4.6);
+                this.obsCamera.lookAt(0, 0, 0);
+
+                this.obsRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                this.obsRenderer.setSize(width, height);
+                this.obsRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(this.obsRenderer.domElement);
+
+                // Subtle Earthshine ambient light so the dark side of the Moon is faintly visible like in real telescopes
+                const earthshineLight = new THREE.AmbientLight(0x334155, 0.18);
+                this.obsScene.add(earthshineLight);
+
+                // Directional Sunlight that orbits around the Moon relative to the Earth Observer's line of sight
+                this.obsSunLight = new THREE.DirectionalLight(0xfffbeb, 2.7);
+                this.obsScene.add(this.obsSunLight);
+
+                // High-Detail Telescope Moon Mesh
+                this.obsMoonMesh = new THREE.Mesh(
+                    new THREE.SphereGeometry(1.22, 64, 64),
+                    new THREE.MeshStandardMaterial({
+                        map: moonTextures.map,
+                        bumpMap: moonTextures.bumpMap,
+                        bumpScale: 0.055,
+                        roughness: 0.88,
+                        metalness: 0.02
+                    })
+                );
+                this.obsScene.add(this.obsMoonMesh);
+            },
+
+            /**
+             * ------------------------------------------------------------------------
+             * CORE SCIENTIFIC SYNCHRONIZATION (Space Orbit <-> Observer Telescope)
+             * ------------------------------------------------------------------------
+             */
+            updateSimulation(newAngleDeg) {
+                this.angle = ((Number(newAngleDeg) % 360) + 360) % 360;
+                const rad = THREE.MathUtils.degToRad(this.angle);
+
+                // 1. Position Moon in 3D Space:
+                // Angle 0° (New Moon) -> (-ORBIT_RADIUS, 0, 0) directly between Earth (0,0,0) and Sun (-18.5,0,0)
+                // Angle 90° (First Quarter) -> (0, 0, +ORBIT_RADIUS) counter-clockwise as viewed from North Pole (+Y)
+                // Angle 180° (Full Moon) -> (+ORBIT_RADIUS, 0, 0) opposite the Sun
+                // Angle 270° (Third Quarter) -> (0, 0, -ORBIT_RADIUS)
+                const mx = -Math.cos(rad) * this.ORBIT_RADIUS;
+                const mz = Math.sin(rad) * this.ORBIT_RADIUS;
+                if (this.moonMesh) {
+                    this.moonMesh.position.set(mx, 0, mz);
+                    // Tidal locking: Moon always keeps the same face towards Earth
+                    this.moonMesh.rotation.y = rad + Math.PI;
+                }
+
+                // Rotate Sight Line Group to point from Earth to Moon
+                if (this.sightLineGroup) {
+                    this.sightLineGroup.rotation.y = -Math.atan2(mz, mx);
+                }
+
+                // 2. Synchronize Observer Telescope Sunlight Vector:
+                // - At 0° (New Moon): Sunlight comes from BEHIND the Moon (z = -12) -> Dark face
+                // - At 90° (First Quarter): Sunlight comes from RIGHT (+x = 12) -> Right half lit (上弦月西邊/右邊亮)
+                // - At 180° (Full Moon): Sunlight comes from BEHIND Observer (z = +12) -> Full face lit
+                // - At 270° (Third Quarter): Sunlight comes from LEFT (-x = -12) -> Left half lit (下弦月東邊/左邊亮)
+                if (this.obsSunLight) {
+                    const lx = Math.sin(rad) * 15;
+                    const lz = -Math.cos(rad) * 15;
+                    this.obsSunLight.position.set(lx, 0, lz);
+                }
+
+                // 3. Calculate Illuminated Fraction & Lunar Day (1 to 30)
+                const illumFraction = (1 - Math.cos(rad)) / 2;
+                const illumPct = Math.round(illumFraction * 100);
+                const lunarDayNum = Math.min(30, Math.floor((this.angle / 360) * 29.5) + 1);
+                const lunarDayStr = this.formatLunarDay(lunarDayNum);
+
+                // Find matching Phase Info
+                const phaseInfo = PhaseCatalog.find(p => {
+                    if (p.range[0] > p.range[1]) {
+                        return this.angle >= p.range[0] || this.angle <= p.range[1];
+                    }
+                    return this.angle >= p.range[0] && this.angle <= p.range[1];
+                }) || PhaseCatalog[0];
+
+                // 4. Update DOM Telemetry & Controls
+                const slider = document.getElementById('orbit-slider');
+                if (slider && document.activeElement !== slider) {
+                    slider.value = Math.round(this.angle);
+                }
+
+                document.getElementById('space-angle-readout').textContent = `${Math.round(this.angle)}° (${phaseInfo.name.split(' ')[0]})`;
+                document.getElementById('slider-lunar-badge').textContent = `農曆 ${lunarDayStr} ・ ${phaseInfo.name}`;
+                document.getElementById('obs-illum-pct').textContent = `${illumPct}%`;
+                document.getElementById('obs-phase-title').textContent = phaseInfo.name;
+                document.getElementById('obs-lunar-date').textContent = `農曆 ${lunarDayStr} (約 ${phaseInfo.lunarDate.replace('農曆 ', '')})`;
+                document.getElementById('obs-lit-side').textContent = phaseInfo.litSide;
+                document.getElementById('obs-rise-set').textContent = phaseInfo.riseSet;
+                document.getElementById('obs-science-desc').innerHTML = phaseInfo.desc;
+
+                // Highlight closest quick-jump phase button
+                [0, 45, 90, 135, 180, 225, 270, 315].forEach(deg => {
+                    const btn = document.getElementById(`phase-btn-${deg}`);
+                    if (!btn) return;
+                    let diff = Math.abs(this.angle - deg);
+                    if (diff > 180) diff = 360 - diff;
+                    if (diff <= 22) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            },
+
+            formatLunarDay(day) {
+                const numerals = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+                if (day <= 10) return '初' + numerals[day];
+                if (day < 20) return '十' + numerals[day - 10];
+                if (day === 20) return '二十';
+                if (day < 30) return '廿' + numerals[day - 20];
+                return '三十';
+            },
+
+            /**
+             * ------------------------------------------------------------------------
+             * 3D POINTER INTERACTION (Moon Raycast Dragging & Camera Orbiting)
+             * ------------------------------------------------------------------------
+             */
+            onSpacePointerDown(e) {
+                const rect = this.spaceRenderer.domElement.getBoundingClientRect();
+                this.mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                this.mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+                this.raycaster.setFromCamera(this.mouseNDC, this.spaceCamera);
+
+                // Check if user clicked on the Moon or any of the 8 orbit marker nodes
+                const hitTargets = [this.moonMesh, ...this.orbitMarkerMeshes];
+                const intersects = this.raycaster.intersectObjects(hitTargets, false);
+
+                if (intersects.length > 0) {
+                    this.isDraggingMoon = true;
+                    this.isAutoPlaying = false;
+                    this.syncAutoPlayButtonUI();
+                    if (intersects[0].object.userData.snapAngle !== undefined) {
+                        this.updateSimulation(intersects[0].object.userData.snapAngle);
+                    }
+                } else {
+                    // Check if user clicked close to the orbital ring path
+                    const planeHit = new THREE.Vector3();
+                    if (this.raycaster.ray.intersectPlane(this.orbitPlane, planeHit)) {
+                        const distFromEarth = Math.hypot(planeHit.x, planeHit.z);
+                        if (Math.abs(distFromEarth - this.ORBIT_RADIUS) < 1.35) {
+                            this.isDraggingMoon = true;
+                            this.isAutoPlaying = false;
+                            this.syncAutoPlayButtonUI();
+                            this.updateAngleFromPlanePoint(planeHit);
+                            return;
+                        }
+                    }
+                    // Otherwise orbit the 3D camera
+                    this.isOrbitingCamera = true;
+                    this.pointerLast.x = e.clientX;
+                    this.pointerLast.y = e.clientY;
+                }
+            },
+
+            onSpacePointerMove(e) {
+                if (this.isDraggingMoon) {
+                    const rect = this.spaceRenderer.domElement.getBoundingClientRect();
+                    this.mouseNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                    this.mouseNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+                    this.raycaster.setFromCamera(this.mouseNDC, this.spaceCamera);
+
+                    const planeHit = new THREE.Vector3();
+                    if (this.raycaster.ray.intersectPlane(this.orbitPlane, planeHit)) {
+                        this.updateAngleFromPlanePoint(planeHit);
+                    }
+                } else if (this.isOrbitingCamera) {
+                    const dx = e.clientX - this.pointerLast.x;
+                    const dy = e.clientY - this.pointerLast.y;
+                    this.pointerLast.x = e.clientX;
+                    this.pointerLast.y = e.clientY;
+
+                    this.camSpherical.theta -= dx * 0.007;
+                    this.camSpherical.phi = THREE.MathUtils.clamp(this.camSpherical.phi - dy * 0.007, 0.08, Math.PI / 2 - 0.05);
+                    this.updateCameraFromSpherical();
+                }
+            },
+
+            onSpacePointerUp() {
+                this.isDraggingMoon = false;
+                this.isOrbitingCamera = false;
+            },
+
+            updateAngleFromPlanePoint(pt) {
+                // Convert (x, z) around Earth (0,0,0) back to Lunar Angle (0° at -x, 90° at +z)
+                let rad = Math.atan2(pt.z, -pt.x);
+                let deg = THREE.MathUtils.radToDeg(rad);
+                if (deg < 0) deg += 360;
+                this.updateSimulation(deg);
+            },
+
+            updateCameraFromSpherical() {
+                if (!this.spaceCamera) return;
+                const { radius, phi, theta } = this.camSpherical;
+                this.spaceCamera.position.x = this.camTarget.x + radius * Math.sin(phi) * Math.sin(theta);
+                this.spaceCamera.position.y = this.camTarget.y + radius * Math.cos(phi);
+                this.spaceCamera.position.z = this.camTarget.z + radius * Math.sin(phi) * Math.cos(theta);
+                this.spaceCamera.lookAt(this.camTarget);
+            },
+
+            /**
+             * ------------------------------------------------------------------------
+             * UI CONTROLS & PRESETS
+             * ------------------------------------------------------------------------
+             */
+            setCameraPreset(preset) {
+                const btnPersp = document.getElementById('cam-btn-perspective');
+                const btnTop = document.getElementById('cam-btn-top');
+
+                if (preset === 'top') {
+                    this.camSpherical = { radius: 25, phi: 0.05, theta: 0 };
+                    btnTop.className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white border border-indigo-400/40 transition flex items-center gap-1";
+                    btnPersp.className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1";
+                } else {
+                    this.camSpherical = { radius: 24, phi: 1.02, theta: 0.25 };
+                    btnPersp.className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white border border-indigo-400/40 transition flex items-center gap-1";
+                    btnTop.className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition flex items-center gap-1";
+                }
+                this.updateCameraFromSpherical();
+            },
+
+            toggleSunRays() {
+                this.showSunRays = !this.showSunRays;
+                if (this.sunRaysGroup) this.sunRaysGroup.visible = this.showSunRays;
+                const btn = document.getElementById('toggle-rays-btn');
+                btn.innerHTML = `<i class="fa-solid fa-sun"></i> 太陽光束: ${this.showSunRays ? '開' : '關'}`;
+                btn.className = this.showSunRays
+                    ? "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40 transition flex items-center gap-1"
+                    : "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700 transition flex items-center gap-1";
+            },
+
+            toggleSightLine() {
+                this.showSightLine = !this.showSightLine;
+                if (this.sightLineGroup) this.sightLineGroup.visible = this.showSightLine;
+                const btn = document.getElementById('toggle-sight-btn');
+                btn.innerHTML = `<i class="fa-solid fa-eye"></i> 觀測輔助線: ${this.showSightLine ? '開' : '關'}`;
+                btn.className = this.showSightLine
+                    ? "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition flex items-center gap-1"
+                    : "px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700 transition flex items-center gap-1";
+            },
+
+            toggleAutoOrbit() {
+                this.isAutoPlaying = !this.isAutoPlaying;
+                this.syncAutoPlayButtonUI();
+            },
+
+            syncAutoPlayButtonUI() {
+                const btn = document.getElementById('btn-auto-play');
+                const icon = document.getElementById('icon-auto-play');
+                const text = document.getElementById('text-auto-play');
+                if (this.isAutoPlaying) {
+                    btn.className = "px-4 py-2 rounded-xl font-bold text-xs bg-amber-600 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/30 transition flex items-center gap-2";
+                    icon.className = "fa-solid fa-pause";
+                    text.textContent = "暫停公轉";
+                } else {
+                    btn.className = "px-4 py-2 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 transition flex items-center gap-2";
+                    icon.className = "fa-solid fa-play";
+                    text.textContent = "自動公轉播放";
+                }
+            },
+
+            cycleOrbitSpeed() {
+                const speeds = [0.5, 1.0, 2.5];
+                const nextIdx = (speeds.indexOf(this.orbitSpeed) + 1) % speeds.length;
+                this.orbitSpeed = speeds[nextIdx];
+                document.getElementById('btn-speed').textContent = `${this.orbitSpeed.toFixed(1)}x`;
+            },
+
+            onSliderInput(val) {
+                this.isAutoPlaying = false;
+                this.syncAutoPlayButtonUI();
+                this.updateSimulation(parseFloat(val));
+            },
+
+            jumpToAngle(targetDeg) {
+                this.isAutoPlaying = false;
+                this.syncAutoPlayButtonUI();
+                this.updateSimulation(targetDeg);
+            },
+
+            /**
+             * ------------------------------------------------------------------------
+             * NAVIGATION TABS & INTERACTIVE CHALLENGE ENGINE
+             * ------------------------------------------------------------------------
+             */
+            setTab(tab) {
+                this.currentTab = tab;
+                const tabs = ['simulator', 'challenge', 'encyclopedia'];
+                tabs.forEach(t => {
+                    const btn = document.getElementById(`tab-btn-${t}`);
+                    if (t === tab) {
+                        btn.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 bg-indigo-600 text-white shadow-md shadow-indigo-600/40";
+                    } else {
+                        btn.className = "px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-slate-400 hover:text-white";
+                    }
+                });
+
+                const simWorkspace = document.getElementById('workspace-simulator');
+                const encWorkspace = document.getElementById('workspace-encyclopedia');
+                const challengeBanner = document.getElementById('challenge-hud-banner');
+
+                if (tab === 'encyclopedia') {
+                    simWorkspace.classList.add('hidden');
+                    challengeBanner.classList.add('hidden');
+                    encWorkspace.classList.remove('hidden');
+                } else {
+                    simWorkspace.classList.remove('hidden');
+                    encWorkspace.classList.add('hidden');
+                    if (tab === 'challenge') {
+                        challengeBanner.classList.remove('hidden');
+                        this.renderChallengeStep();
+                    } else {
+                        challengeBanner.classList.add('hidden');
+                    }
+                    setTimeout(() => this.resizeViewports(), 40);
+                }
+            },
+
+            renderChallengeStep() {
+                const q = this.challenges[this.quizIndex];
+                this.quizAnswered = false;
+
+                document.getElementById('quiz-step-badge').textContent = `Q${this.quizIndex + 1}`;
+                document.getElementById('quiz-progress-text').textContent = `第 ${this.quizIndex + 1} / ${this.challenges.length} 關`;
+                document.getElementById('quiz-question-title').textContent = q.title;
+                document.getElementById('quiz-feedback-drawer').classList.add('hidden');
+
+                const typeTag = document.getElementById('quiz-type-tag');
+                const actionArea = document.getElementById('quiz-action-area');
+                actionArea.innerHTML = '';
+
+                if (q.type === 'orbit_drag') {
+                    typeTag.textContent = '軌道實作任務';
+                    typeTag.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40';
+
+                    const submitBtn = document.createElement('button');
+                    submitBtn.className = 'px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs sm:text-sm shadow-lg shadow-amber-500/30 transition flex items-center gap-2';
+                    submitBtn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> 確認提交月球位置';
+                    submitBtn.onclick = () => this.verifyOrbitPlacement();
+                    actionArea.appendChild(submitBtn);
+                } else {
+                    typeTag.textContent = '觀測觀念問答';
+                    typeTag.className = 'text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-indigo-500/30 text-indigo-200 border border-indigo-400/30';
+
+                    const grid = document.createElement('div');
+                    grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-2 w-full lg:w-[540px]';
+                    q.options.forEach((opt, idx) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-left text-xs text-slate-200 font-medium transition';
+                        btn.innerHTML = `<span class="font-bold text-indigo-400 mr-1.5">${['A', 'B', 'C', 'D'][idx]}.</span>${opt}`;
+                        btn.onclick = () => this.verifyMultipleChoice(idx, btn, grid);
+                        grid.appendChild(btn);
+                    });
+                    actionArea.appendChild(grid);
+                }
+            },
+
+            verifyOrbitPlacement() {
+                if (this.quizAnswered) return;
+                const q = this.challenges[this.quizIndex];
+                let diff = Math.abs(this.angle - q.targetAngle);
+                if (diff > 180) diff = 360 - diff;
+
+                const drawer = document.getElementById('quiz-feedback-drawer');
+                const msg = document.getElementById('quiz-feedback-msg');
+                drawer.classList.remove('hidden');
+
+                if (diff <= q.tolerance) {
+                    this.quizAnswered = true;
+                    this.updateSimulation(q.targetAngle);
+                    this.score += 20;
+                    document.getElementById('hud-score').textContent = this.score;
+                    msg.className = 'text-xs sm:text-sm font-bold text-emerald-300';
+                    msg.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> ${q.explanation}`;
+                } else {
+                    msg.className = 'text-xs sm:text-sm font-bold text-rose-300';
+                    msg.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-400 mr-1.5"></i> 目前月球在 ${Math.round(this.angle)}°，還差一點點喔！試著觀察右側望遠鏡的月相，再拖曳月球調整位置後重新點擊「確認提交」！`;
+                }
+            },
+
+            verifyMultipleChoice(selectedIdx, clickedBtn, grid) {
+                if (this.quizAnswered) return;
+                this.quizAnswered = true;
+                const q = this.challenges[this.quizIndex];
+
+                Array.from(grid.children).forEach((btn, idx) => {
+                    if (idx === q.correctIdx) {
+                        btn.className = 'px-3.5 py-2 rounded-xl bg-emerald-950/80 border border-emerald-500 text-left text-xs text-emerald-200 font-bold';
+                    } else if (idx === selectedIdx) {
+                        btn.className = 'px-3.5 py-2 rounded-xl bg-rose-950/80 border border-rose-500 text-left text-xs text-rose-200 font-bold';
+                    }
+                });
+
+                const drawer = document.getElementById('quiz-feedback-drawer');
+                const msg = document.getElementById('quiz-feedback-msg');
+                drawer.classList.remove('hidden');
+
+                if (selectedIdx === q.correctIdx) {
+                    this.score += 20;
+                    document.getElementById('hud-score').textContent = this.score;
+                    msg.className = 'text-xs sm:text-sm font-bold text-emerald-300';
+                    msg.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> ${q.explanation}`;
+                } else {
+                    msg.className = 'text-xs sm:text-sm font-bold text-amber-300';
+                    msg.innerHTML = `<i class="fa-solid fa-lightbulb text-amber-400 mr-1.5"></i> 正確答案是 (${['A','B','C','D'][q.correctIdx]})。${q.explanation}`;
+                }
+            },
+
+            nextChallenge() {
+                this.quizIndex = (this.quizIndex + 1) % this.challenges.length;
+                this.renderChallengeStep();
+            },
+
+            populateEncyclopedia() {
+                const tbody = document.getElementById('encyclopedia-tbody');
+                tbody.innerHTML = PhaseCatalog.map(p => `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="p-3.5 font-bold text-amber-300">${p.lunarDate}</td>
+                        <td class="p-3.5 font-black text-white">${p.name}</td>
+                        <td class="p-3.5 font-mono text-indigo-300">${p.targetAngle}°</td>
+                        <td class="p-3.5 text-slate-300">${p.litSide}</td>
+                        <td class="p-3.5 text-slate-300">${p.riseSet}</td>
+                        <td class="p-3.5 text-slate-400">${p.eveningPos}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="App.setTab('simulator'); App.jumpToAngle(${p.targetAngle});" class="px-3 py-1.5 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-200 hover:text-white border border-indigo-500/40 text-xs font-bold transition">
+                                <i class="fa-solid fa-location-arrow mr-1"></i> 查看 3D 軌道
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            /**
+             * ------------------------------------------------------------------------
+             * RESIZE HANDLER & MAIN ANIMATION LOOP
+             * ------------------------------------------------------------------------
+             */
+            setupResizeHandler() {
+                window.addEventListener('resize', () => this.resizeViewports());
+            },
+
+            resizeViewports() {
+                const spaceWrap = document.getElementById('space-canvas-wrap');
+                if (spaceWrap && this.spaceRenderer && this.spaceCamera) {
+                    const w = spaceWrap.clientWidth;
+                    const h = spaceWrap.clientHeight;
+                    if (w > 0 && h > 0) {
+                        this.spaceCamera.aspect = w / h;
+                        this.spaceCamera.updateProjectionMatrix();
+                        this.spaceRenderer.setSize(w, h);
+                    }
+                }
+
+                const obsWrap = document.getElementById('observer-canvas-wrap');
+                if (obsWrap && this.obsRenderer && this.obsCamera) {
+                    const w = obsWrap.clientWidth;
+                    const h = obsWrap.clientHeight;
+                    if (w > 0 && h > 0) {
+                        this.obsCamera.aspect = w / h;
+                        this.obsCamera.updateProjectionMatrix();
+                        this.obsRenderer.setSize(w, h);
+                    }
+                }
+            },
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                // Auto-orbit progression
+                if (this.isAutoPlaying) {
+                    this.updateSimulation(this.angle + 0.22 * this.orbitSpeed);
+                }
+
+                // Earth & Cloud axial rotation + Sun plasma rotation
+                if (this.earthMesh) this.earthMesh.rotation.y += 0.004;
+                if (this.cloudMesh) this.cloudMesh.rotation.y += 0.0055;
+                if (this.sunGroup) this.sunGroup.rotation.y += 0.0015;
+
+                // Render both 3D viewports
+                if (this.spaceRenderer && this.spaceScene && this.spaceCamera) {
+                    this.spaceRenderer.render(this.spaceScene, this.spaceCamera);
+                }
+                if (this.obsRenderer && this.obsScene && this.obsCamera) {
+                    this.obsRenderer.render(this.obsScene, this.obsCamera);
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            App.init();
+        });
+    </script>
+</body>
+</html>

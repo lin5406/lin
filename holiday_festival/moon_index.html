@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>月相變化自然課觀察小遊戲</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', 'Inter', sans-serif;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+            color: #f8fafc;
+        }
+        /* Custom glow effects */
+        .glow-moon {
+            box-shadow: 0 0 35px rgba(255, 255, 255, 0.4), inset -12px -12px 30px rgba(0, 0, 0, 0.7);
+        }
+        .glow-sun {
+            box-shadow: 0 0 50px rgba(234, 179, 8, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header -->
+    <header class="w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 py-4 px-6 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-moon text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white">月相奧秘大探索</h1>
+                    <p class="text-xs text-slate-400">自然科學互動學習遊戲</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700/60">
+                <div class="text-sm">
+                    <span class="text-slate-400">得分：</span>
+                    <span id="score-display" class="font-bold text-amber-400 text-lg">0</span>
+                </div>
+                <div class="h-4 w-[1px] bg-slate-700"></div>
+                <div class="text-sm">
+                    <span class="text-slate-400">模式：</span>
+                    <span id="mode-display" class="font-semibold text-indigo-400">探索模式</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl w-full mx-auto px-4 py-6 flex-grow flex flex-col gap-6">
+
+        <!-- Navigation Tabs -->
+        <div class="flex justify-center gap-3 overflow-x-auto pb-2">
+            <button onclick="switchTab('explore')" id="btn-explore" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                <i class="fa-solid fa-globe"></i> 3D 觀測模擬器
+            </button>
+            <button onclick="switchTab('quiz')" id="btn-quiz" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2 border border-slate-700/60">
+                <i class="fa-solid fa-gamepad"></i> 月相挑戰闖關
+            </button>
+            <button onclick="switchTab('calendar')" id="btn-calendar" class="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2 border border-slate-700/60">
+                <i class="fa-solid fa-calendar-days"></i> 農曆月相週期表
+            </button>
+        </div>
+
+        <!-- TAB 1: Explore Simulator -->
+        <div id="tab-explore" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left & Center: Space Canvas / Visual Area -->
+            <div class="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between backdrop-blur-sm relative overflow-hidden shadow-2xl">
+                <!-- Top info badge -->
+                <div class="flex justify-between items-center z-10 mb-4">
+                    <span class="text-xs font-medium uppercase tracking-wider text-slate-400 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
+                        <i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i> 太空俯瞰與地球視角
+                    </span>
+                    <button onclick="resetSimulation()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1 rounded-lg transition border border-slate-700">
+                        <i class="fa-solid fa-rotate-right mr-1"></i> 重置位置
+                    </button>
+                </div>
+
+                <!-- Interactive SVG Space View -->
+                <div class="relative w-full aspect-[4/3] flex items-center justify-center bg-slate-950/70 rounded-xl border border-slate-800/80 p-2 overflow-hidden">
+                    <!-- Background stars decoration -->
+                    <div class="absolute inset-0 pointer-events-none opacity-40">
+                        <div class="absolute top-10 left-12 w-1 h-1 bg-white rounded-full animate-pulse"></div>
+                        <div class="absolute top-20 right-20 w-1.5 h-1.5 bg-yellow-200 rounded-full"></div>
+                        <div class="absolute bottom-12 left-1/4 w-1 h-1 bg-white rounded-full"></div>
+                        <div class="absolute bottom-16 right-1/3 w-1 h-1 bg-blue-100 rounded-full animate-pulse"></div>
+                    </div>
+
+                    <!-- Sun Light Indicator -->
+                    <div class="absolute left-4 top-1/2 -translate-y-1/2 flex flex-col items-center">
+                        <div class="w-12 h-12 rounded-full bg-amber-400 glow-sun flex items-center justify-center text-slate-950 font-bold shadow-lg">
+                            <i class="fa-solid fa-sun text-xl animate-spin-slow"></i>
+                        </div>
+                        <span class="text-xs text-amber-300 mt-1 font-semibold">太陽光 (來自左方)</span>
+                    </div>
+
+                    <!-- SVG Orbit Graphics -->
+                    <svg class="w-full h-full max-w-[360px] max-h-[360px]" viewBox="0 0 400 400">
+                        <!-- Sun rays direction indicator lines -->
+                        <line x1="0" y1="200" x2="130" y2="200" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4" opacity="0.5" />
+
+                        <!-- Earth Orbit Path (decorative) -->
+                        <circle cx="200" cy="200" r="130" fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="6" />
+
+                        <!-- Earth -->
+                        <g id="earth-group">
+                            <circle cx="200" cy="200" r="32" fill="#3b82f6" class="shadow-lg" />
+                            <!-- Earth Details / Continent shape simulation -->
+                            <path d="M 185 185 Q 200 175 210 190 T 195 215 Z" fill="#22c55e" opacity="0.8" />
+                            <path d="M 205 210 Q 215 225 200 235 Z" fill="#22c55e" opacity="0.8" />
+                            <text x="200" y="204" text-anchor="middle" fill="white" font-size="10" font-weight="bold">地球</text>
+                        </g>
+
+                        <!-- Moon Orbit Path -->
+                        <circle id="moon-orbit" cx="200" cy="200" r="100" fill="none" stroke="#64748b" stroke-width="2" cursor="pointer" />
+
+                        <!-- Moon Interactive Node -->
+                        <g id="moon-node" transform="translate(300, 200)" cursor="grab" onmousedown="startDrag(evt)" ontouchstart="startDrag(evt)">
+                            <!-- We use a group that rotates with the moon's orbital position, 
+                                 while keeping the left half illuminated by the sun (which is on the left) -->
+                            <g id="moon-body-group">
+                                <!-- Base Moon Circle (Shadow / Dark side by default) -->
+                                <circle r="16" fill="#0f172a" stroke="#64748b" stroke-width="1" />
+                                <!-- Illuminated half facing left (toward the sun) -->
+                                <path d="M 0 -16 A 16 16 0 0 1 0 16 Z" fill="#f8fafc" />
+                                <!-- Crater details on lit and dark sides -->
+                                <circle cx="-6" cy="-4" r="3" fill="#cbd5e1" opacity="0.6" />
+                                <circle cx="-8" cy="6" r="2" fill="#cbd5e1" opacity="0.5" />
+                                <circle cx="6" cy="-2" r="2.5" fill="#1e293b" opacity="0.6" />
+                            </g>
+                            <text x="0" y="28" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">月球</text>
+                        </g>
+                    </svg>
+
+                    <!-- Drag instruction hint -->
+                    <div class="absolute bottom-3 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-lg text-xs text-indigo-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-hand-pointer animate-bounce"></i> 拖曳軌道上的月球或使用下方按鈕旋轉觀察
+                    </div>
+                </div>
+
+                <!-- Simulation Controls -->
+                <div class="mt-4 flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-400">農曆日期軌道控制：</span>
+                        <span id="lunar-day-label" class="text-sm font-bold text-amber-300">農曆 初一 (新月)</span>
+                    </div>
+                    <input type="range" id="orbit-slider" min="0" max="359" value="0" oninput="updateFromSlider(this.value)" class="w-full accent-indigo-500 bg-slate-800 h-2 rounded-lg cursor-pointer">
+                    
+                    <div class="grid grid-cols-4 gap-2 mt-1">
+                        <button onclick="setMoonPhaseAngle(0)" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 rounded-lg border border-slate-700 font-medium transition text-slate-200">初一 新月</button>
+                        <button onclick="setMoonPhaseAngle(90)" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 rounded-lg border border-slate-700 font-medium transition text-slate-200">初七 上弦</button>
+                        <button onclick="setMoonPhaseAngle(180)" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 rounded-lg border border-slate-700 font-medium transition text-slate-200">十五 滿月</button>
+                        <button onclick="setMoonPhaseAngle(270)" class="bg-slate-800 hover:bg-slate-700 text-xs py-2 rounded-lg border border-slate-700 font-medium transition text-slate-200">廿二 下弦</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Earth Observer View & Knowledge Card -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between backdrop-blur-sm shadow-2xl">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-eye text-indigo-400"></i> 從地球看出去的月相
+                    </h2>
+
+                    <!-- Observer View Render Box -->
+                    <div class="w-full aspect-square bg-slate-950 rounded-2xl border border-slate-800 flex flex-col items-center justify-center p-6 relative overflow-hidden shadow-inner">
+                        <!-- Starry backdrop -->
+                        <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-30"></div>
+
+                        <!-- Big Moon Display -->
+                        <div id="observer-moon-container" class="relative w-36 h-36 rounded-full bg-slate-800 glow-moon overflow-hidden flex items-center justify-center border-2 border-slate-700">
+                            <!-- Moon Texture & Phase Mask -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 flex items-center justify-center">
+                                <!-- Crater details -->
+                                <div class="absolute w-6 h-6 rounded-full bg-slate-400/30 top-6 left-8"></div>
+                                <div class="absolute w-4 h-4 rounded-full bg-slate-400/30 bottom-8 right-10"></div>
+                                <div class="absolute w-8 h-8 rounded-full bg-slate-400/20 top-14 right-6"></div>
+                            </div>
+                            <!-- Dynamic Shadow Overlay -->
+                            <div id="observer-shadow" class="absolute inset-0 bg-slate-950 transition-all duration-150 pointer-events-none" style="opacity: 0;"></div>
+                        </div>
+
+                        <!-- Phase Name Big Tag -->
+                        <div class="mt-4 text-center z-10">
+                            <h3 id="current-phase-name" class="text-xl font-bold text-white tracking-wide">新月 (朔)</h3>
+                            <p id="current-phase-time" class="text-xs text-indigo-300 mt-1">出現時間：約 06:00 ~ 18:00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation / Scientific Fact Card -->
+                <div class="mt-4 bg-indigo-950/40 border border-indigo-500/30 rounded-xl p-4">
+                    <h4 class="text-xs font-bold text-indigo-300 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb text-amber-400"></i> 自然小教室說明
+                    </h4>
+                    <p id="current-phase-desc" class="text-xs text-slate-300 leading-relaxed">
+                        新月時，月球運行到太陽與地球之間，受光面朝向太陽（背向地球），因此在地球上完全看不到月亮，又稱為「朔」。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Quiz Challenge Game -->
+        <div id="tab-quiz" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Quiz Main Panel -->
+            <div class="lg:col-span-2 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm shadow-2xl flex flex-col justify-between">
+                <div id="quiz-container">
+                    <!-- Quiz Header info -->
+                    <div class="flex justify-between items-center mb-6">
+                        <span id="quiz-progress" class="text-xs font-bold uppercase bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-indigo-300">
+                            題目 1 / 5
+                        </span>
+                        <div class="text-sm font-semibold text-amber-400 flex items-center gap-1">
+                            <i class="fa-solid fa-star"></i> 累積得分: <span id="quiz-score">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Question text -->
+                    <h3 id="quiz-question" class="text-lg font-bold text-white mb-6 leading-relaxed">
+                        載入題目中...
+                    </h3>
+
+                    <!-- Visual illustration for quiz if applicable -->
+                    <div id="quiz-image-box" class="mb-6 flex justify-center">
+                        <div class="w-28 h-28 rounded-full bg-slate-800 glow-moon relative overflow-hidden flex items-center justify-center border border-slate-700" id="quiz-moon-preview">
+                            <div class="absolute inset-0 bg-slate-200"></div>
+                            <div id="quiz-moon-preview-shadow" class="absolute inset-0 bg-slate-950/80"></div>
+                        </div>
+                    </div>
+
+                    <!-- Options Grid -->
+                    <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                        <!-- Options injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Feedback / Next button area -->
+                <div id="quiz-feedback-box" class="hidden p-4 rounded-xl border mb-4 flex flex-col gap-2">
+                    <div id="quiz-feedback-text" class="font-bold text-sm"></div>
+                    <div id="quiz-explanation-text" class="text-xs text-slate-300 leading-relaxed"></div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button id="next-question-btn" onclick="nextQuizQuestion()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/30 text-sm flex items-center gap-2">
+                        下一題 <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Scoreboard & Rules Sidebar -->
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 backdrop-blur-sm shadow-2xl flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-award text-amber-400"></i> 闖關規則與成就
+                    </h3>
+                    <ul class="space-y-3 text-xs text-slate-300">
+                        <li class="flex items-start gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                            <i class="fa-solid fa-check text-green-400 mt-0.5"></i>
+                            <span>每答對一題可獲得 <strong>20分</strong>，挑戰全對獲得滿分！</span>
+                        </li>
+                        <li class="flex items-start gap-2 bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                            <i class="fa-solid fa-book-open text-indigo-400 mt-0.5"></i>
+                            <span>結合國小自然與生活科技領域的月相觀測重點。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-slate-800 text-center">
+                    <button onclick="restartQuiz()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2.5 rounded-xl transition border border-slate-700 text-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> 重新開始挑戰
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Lunar Calendar Reference Table -->
+        <div id="tab-calendar" class="hidden bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm shadow-2xl">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-alt text-indigo-400"></i> 農曆月相變化對照表
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">了解農曆日期、月相名稱與在天空中的方位及出現時間</p>
+                </div>
+            </div>
+
+            <!-- Calendar Table Grid -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-800/80 text-slate-200 uppercase font-semibold border-b border-slate-700">
+                        <tr>
+                            <th class="p-3.5 rounded-l-xl">農曆日期</th>
+                            <th class="p-3.5">月相名稱</th>
+                            <th class="p-3.5">外觀特徵</th>
+                            <th class="p-3.5">出現時間</th>
+                            <th class="p-3.5 rounded-r-xl">方位參考</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800/60">
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="p-3.5 font-bold text-indigo-300">初一 (朔)</td>
+                            <td class="p-3.5 font-semibold text-white">新月</td>
+                            <td class="p-3.5 text-slate-400">全黑，幾乎看不到</td>
+                            <td class="p-3.5">清晨 ~ 黃昏</td>
+                            <td class="p-3.5">與太陽同方向</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="p-3.5 font-bold text-indigo-300">初七、初八</td>
+                            <td class="p-3.5 font-semibold text-white">上弦月</td>
+                            <td class="p-3.5 text-slate-400">右半邊亮 (半圓形)</td>
+                            <td class="p-3.5">中午 ~ 午夜</td>
+                            <td class="p-3.5">傍晚在西方天空</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="p-3.5 font-bold text-indigo-300">十五、十六 (望)</td>
+                            <td class="p-3.5 font-semibold text-white">滿月</td>
+                            <td class="p-3.5 text-slate-400">全圓，非常明亮</td>
+                            <td class="p-3.5">傍晚 ~ 清晨</td>
+                            <td class="p-3.5">傍晚東升，清晨西落</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="p-3.5 font-bold text-indigo-300">廿二、廿三</td>
+                            <td class="p-3.5 font-semibold text-white">下弦月</td>
+                            <td class="p-3.5 text-slate-400">左半邊亮 (半圓形)</td>
+                            <td class="p-3.5">午夜 ~ 中午</td>
+                            <td class="p-3.5">清晨在南方/東方天空</td>
+                        </tr>
+                        <tr class="hover:bg-slate-800/30 transition">
+                            <td class="p-3.5 font-bold text-indigo-300">廿九、三十</td>
+                            <td class="p-3.5 font-semibold text-white">殘月 (蛾眉月)</td>
+                            <td class="p-3.5 text-slate-400">細細彎月，近清晨</td>
+                            <td class="p-3.5">清晨出現</td>
+                            <td class="p-3.5">清晨東方天空</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-900">
+        <p>自然科學教育互動網頁小遊戲 | 快樂學習天文奧秘</p>
+    </footer>
+
+    <!-- Message Modal for Success/Alerts -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
+            <div id="modal-icon" class="w-16 h-16 rounded-full bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-3xl mx-auto mb-4 border border-indigo-500/30">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h3 id="modal-title" class="text-xl font-bold text-white mb-2">恭喜完成挑戰！</h3>
+            <p id="modal-message" class="text-sm text-slate-300 mb-6">你已經成功通過了所有自然課月相闖關考驗！</p>
+            <button onclick="closeModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl transition shadow-lg shadow-indigo-600/30 text-sm">
+                繼續探索
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Game & Simulation Logic -->
+    <script>
+        // Global State variables
+        let currentTab = 'explore';
+        let currentAngle = 0; // 0 to 360 degrees around Earth
+        let isDragging = false;
+        let score = 0;
+
+        // Quiz State
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let quizData = [
+            {
+                question: "農曆十五左右，月球運行到太陽與地球的相反方向，我們在地球上會看到什麼形狀的月亮？",
+                options: ["新月 (全黑)", "上弦月 (半圓)", "滿月 (全圓)", "下弦月 (半圓)"],
+                answer: 2,
+                explanation: "農曆十五日時稱為「望」，太陽與月球分別在地球兩側，月球受光面完全面向地球，因此呈現完美的滿月。"
+            },
+            {
+                question: "初七、初八時，我們看到的半圓形月亮（右半邊亮），在自然課中稱為什麼？",
+                options: ["上弦月", "下弦月", "殘月", "新月"],
+                answer: 0,
+                explanation: "農曆初七、初八時，月球運行到軌道的分支，右半邊受光，稱為「上弦月」，通常出現在傍晚的西方天空。"
+            },
+            {
+                question: "為什麼月亮每天晚上看起來形狀都不太一樣（月相變化）？",
+                options: [
+                    "因為地球的影子剛好遮住月亮",
+                    "因為太陽、地球與月球相對位置改變，我們看到月球受光部分的比例不同",
+                    "因為雲層遮擋了月亮的光芒",
+                    "因為月亮自己會忽大忽小"
+                ],
+                answer: 1,
+                explanation: "月相變化是因為月球繞地球公轉，日、地、月三者相對位置改變，導致地球上的觀察者看到月球被太陽照射到的亮部大小不同。"
+            },
+            {
+                question: "農曆初一時，月球大約位於哪個位置？",
+                options: [
+                    "在太陽與地球之間",
+                    "在地球的正後方",
+                    "在地球的頭頂正上方",
+                    "距離地球最遠的軌道"
+                ],
+                answer: 0,
+                explanation: "初一（新月）時，月球介於太陽和地球之間，其背光面朝向地球，因此我們在夜空中看不見它。"
+            },
+            {
+                question: "農曆廿二、廿三左右，我們看到的半圓形月亮（左半邊亮），稱為什麼月相？",
+                options: ["上弦月", "滿月", "新月", "下弦月"],
+                answer: 3,
+                explanation: "農曆廿二、廿三為下弦月，此時月球位於軌道的另一側，左半邊受光，通常在午夜過後至隔天中午出現。"
+            }
+        ];
+
+        // Phase Database for descriptions and view mapping
+        const phaseDatabase = [
+            {
+                angleRange: [345, 15],
+                name: "新月 (朔)",
+                time: "約 06:00 ~ 18:00 (白天)",
+                dayLabel: "農曆 初一",
+                desc: "新月時月球運行到太陽與地球之間，受光面朝向太陽（背向地球），在地球上完全看不到月亮。",
+                shadowOpacity: 1.0
+            },
+            {
+                angleRange: [16, 75],
+                name: "娥眉月 (初三~初五)",
+                time: "約 09:00 ~ 21:00",
+                dayLabel: "農曆 初四",
+                desc: "太陽西沉後，可以在西方天空看到細細的彎月，形狀像眉毛，右側發亮。",
+                shadowOpacity: 0.75
+            },
+            {
+                angleRange: [76, 105],
+                name: "上弦月",
+                time: "約 12:00 ~ 午夜",
+                dayLabel: "農曆 初七、初八",
+                desc: "月球運行到與太陽呈90度角位置，右半邊明亮，形狀像半個圓餅，常在傍晚出現在西方天空。",
+                shadowOpacity: 0.5
+            },
+            {
+                angleRange: [106, 165],
+                name: "漸盈凸月",
+                time: "約 15:00 ~ 隔天清晨",
+                dayLabel: "農曆 十一、十二",
+                desc: "月球繼續公轉，亮部面積大於一半（大半圓），形狀呈現凸月狀。",
+                shadowOpacity: 0.25
+            },
+            {
+                angleRange: [166, 195],
+                name: "滿月 (望)",
+                time: "約 18:00 ~ 隔天 06:00 (整夜)",
+                dayLabel: "農曆 十五、十六",
+                desc: "滿月時地球在太陽與月球之間，月球受光面完全面向地球，呈現皎潔圓滿的亮圓。",
+                shadowOpacity: 0.0
+            },
+            {
+                angleRange: [196, 255],
+                name: "漸虧凸月",
+                time: "約 21:00 ~ 隔天上午",
+                dayLabel: "農曆 十九、二十",
+                desc: "過滿月後，月亮的亮部開始由右側漸漸虧損縮小，但仍然大於半圓。",
+                shadowOpacity: 0.25
+            },
+            {
+                angleRange: [256, 285],
+                name: "下弦月",
+                time: "約 午夜 ~ 次日中午",
+                dayLabel: "農曆 廿二、廿三",
+                desc: "月球運行到另一側90度位置，左半邊明亮，通常在深夜或清晨才升起。",
+                shadowOpacity: 0.5
+            },
+            {
+                angleRange: [286, 344],
+                name: "殘月 (消光蛾眉月)",
+                time: "約 03:00 ~ 下午",
+                dayLabel: "農曆 廿七、廿八",
+                desc: "接近月底時，月亮只剩下左側一小道細彎月，即將進入下一個新月循環。",
+                shadowOpacity: 0.75
+            }
+        ];
+
+        // Tab Switching Logic
+        function switchTab(tabName) {
+            currentTab = tabName;
+            ['explore', 'quiz', 'calendar'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`btn-${t}`);
+                if (t === tabName) {
+                    el.classList.remove('hidden');
+                    btn.className = "px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2";
+                } else {
+                    el.classList.add('hidden');
+                    btn.className = "px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2 border border-slate-700/60";
+                }
+            });
+
+            if (tabName === 'quiz' && currentQuizIndex === 0 && quizScore === 0) {
+                initQuiz();
+            }
+        }
+
+        // Update Simulation based on Slider / Drag angle
+        function updateFromSlider(val) {
+            currentAngle = parseInt(val);
+            updateSimulationUI();
+        }
+
+        function setMoonPhaseAngle(angle) {
+            currentAngle = angle;
+            document.getElementById('orbit-slider').value = angle;
+            updateSimulationUI();
+        }
+
+        function resetSimulation() {
+            setMoonPhaseAngle(0);
+        }
+
+        function updateSimulationUI() {
+            // Convert angle to radians
+            const rad = (currentAngle * Math.PI) / 180;
+            const radius = 100; // orbit radius in SVG
+            const cx = 200;
+            const cy = 200;
+
+            const moonX = cx + radius * Math.cos(rad);
+            const moonY = cy + radius * Math.sin(rad);
+
+            // Update Moon Node position in SVG
+            const moonNode = document.getElementById('moon-node');
+            if (moonNode) {
+                moonNode.setAttribute('transform', `translate(${moonX}, ${moonY})`);
+                
+                // Rotate the moon body so that its illuminated side always faces left (toward the sun)
+                // When angle is 0 (right side of earth), moon is at (300, 200). To face left, rotation is 180 deg.
+                // We dynamically adjust rotation based on currentAngle.
+                const moonBodyGroup = document.getElementById('moon-body-group');
+                if (moonBodyGroup) {
+                    moonBodyGroup.setAttribute('transform', `rotate(${-currentAngle})`);
+                }
+
+                const moonShadow = document.getElementById('moon-shadow');
+                if (moonShadow) {
+                    moonShadow.setAttribute('transform', `rotate(${currentAngle})`);
+                }
+            }
+
+            // Update slider value
+            document.getElementById('orbit-slider').value = currentAngle;
+
+            // Normalize angle for phase matching (0 - 360)
+            let normAngle = (currentAngle % 360 + 360) % 360;
+
+            // Find matching phase info
+            let currentPhase = phaseDatabase.find(p => {
+                if (p.angleRange[0] > p.angleRange[1]) {
+                    return normAngle >= p.angleRange[0] || normAngle <= p.angleRange[1];
+                }
+                return normAngle >= p.angleRange[0] && normAngle <= p.angleRange[1];
+            }) || phaseDatabase[0];
+
+            // Update text labels
+            document.getElementById('lunar-day-label').innerText = `${currentPhase.dayLabel} (${currentPhase.name.split(' ')[0]})`;
+            document.getElementById('current-phase-name').innerText = currentPhase.name;
+            document.getElementById('current-phase-time').innerText = `出現時間：${currentPhase.time}`;
+            document.getElementById('current-phase-desc').innerText = currentPhase.desc;
+
+            // Update Observer view shadow simulation smoothly based on angle
+            updateObserverMoonVisual(normAngle);
+        }
+
+        function updateObserverMoonVisual(angle) {
+            const shadowEl = document.getElementById('observer-shadow');
+            
+            if (angle <= 180) {
+                let percent = (angle / 180) * 100;
+                shadowEl.style.background = `linear-gradient(90deg, rgba(2,6,23,0.95) ${100 - percent}%, rgba(2,6,23,0.1) 100%)`;
+            } else {
+                let percent = ((angle - 180) / 180) * 100;
+                shadowEl.style.background = `linear-gradient(270deg, rgba(2,6,23,0.95) ${100 - percent}%, rgba(2,6,23,0.1) 100%)`;
+            }
+        }
+
+        // Dragging functionality for SVG orbit
+        let isSvgDragging = false;
+        function startDrag(evt) {
+            isSvgDragging = true;
+            evt.preventDefault();
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isSvgDragging) return;
+            calculateAngleFromMouse(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isSvgDragging = false;
+        });
+
+        // Touch support for dragging
+        window.addEventListener('touchmove', (e) => {
+            if (!isSvgDragging) return;
+            if (e.touches && e.touches[0]) {
+                calculateAngleFromMouse(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
+
+        window.addEventListener('touchend', () => {
+            isSvgDragging = false;
+        });
+
+        function calculateAngleFromMouse(clientX, clientY) {
+            const svgElement = document.querySelector('svg');
+            if (!svgElement) return;
+            const rect = svgElement.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const dx = clientX - centerX;
+            const dy = clientY - centerY;
+            let rad = Math.atan2(dy, dx);
+            let deg = (rad * 180) / Math.PI;
+            if (deg < 0) deg += 360;
+
+            currentAngle = Math.round(deg);
+            updateSimulationUI();
+        }
+
+        // Quiz Logic
+        function initQuiz() {
+            currentQuizIndex = 0;
+            quizScore = 0;
+            document.getElementById('quiz-score').innerText = quizScore;
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            if (currentQuizIndex >= quizData.length) {
+                showQuizCompletion();
+                return;
+            }
+
+            const q = quizData[currentQuizIndex];
+            document.getElementById('quiz-progress').innerText = `題目 ${currentQuizIndex + 1} / ${quizData.length}`;
+            document.getElementById('quiz-question').innerText = q.question;
+            document.getElementById('quiz-feedback-box').classList.add('hidden');
+            document.getElementById('next-question-btn').classList.add('hidden');
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-slate-800 hover:bg-slate-700 text-slate-200 text-left p-3.5 rounded-xl border border-slate-700 font-medium text-sm transition flex items-center justify-between group";
+                btn.innerHTML = `<span><span class="text-indigo-400 font-bold mr-2">${['A', 'B', 'C', 'D'][idx]}.</span> ${opt}</span> <i class="fa-solid fa-chevron-right text-xs text-slate-500 group-hover:text-white transition"></i>`;
+                btn.onclick = () => checkQuizAnswer(idx);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkQuizAnswer(selectedIdx) {
+            const q = quizData[currentQuizIndex];
+            const optionsContainer = document.getElementById('quiz-options');
+            const buttons = optionsContainer.getElementsByTagName('button');
+
+            for (let i = 0; i < buttons.length; i++) {
+                buttons[i].disabled = true;
+                if (i === q.answer) {
+                    buttons[i].classList.remove('bg-slate-800', 'border-slate-700');
+                    buttons[i].classList.add('bg-green-600/30', 'border-green-500', 'text-green-200');
+                } else if (i === selectedIdx && selectedIdx !== q.answer) {
+                    buttons[i].classList.remove('bg-slate-800', 'border-slate-700');
+                    buttons[i].classList.add('bg-red-600/30', 'border-red-500', 'text-red-200');
+                }
+            }
+
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            const feedbackText = document.getElementById('quiz-feedback-text');
+            const explanationText = document.getElementById('quiz-explanation-text');
+            feedbackBox.classList.remove('hidden');
+
+            if (selectedIdx === q.answer) {
+                quizScore += 20;
+                document.getElementById('quiz-score').innerText = quizScore;
+                document.getElementById('score-display').innerText = quizScore;
+                feedbackBox.className = "p-4 rounded-xl border bg-green-950/40 border-green-500/40 flex flex-col gap-2";
+                feedbackText.html = '';
+                feedbackText.innerHTML = '<i class="fa-solid fa-circle-check text-green-400 mr-1.5"></i> 答對了！太棒囉！';
+                feedbackText.className = "font-bold text-sm text-green-300";
+            } else {
+                feedbackBox.className = "p-4 rounded-xl border bg-red-950/40 border-red-500/40 flex flex-col gap-2";
+                feedbackText.innerHTML = '<i class="fa-solid fa-circle-xmark text-red-400 mr-1.5"></i> 答錯囉，再接再厲！';
+                feedbackText.className = "font-bold text-sm text-red-300";
+            }
+
+            explanationText.innerText = q.explanation;
+            document.getElementById('next-question-btn').classList.remove('hidden');
+        }
+
+        function nextQuizQuestion() {
+            currentQuizIndex++;
+            loadQuizQuestion();
+        }
+
+        function showQuizCompletion() {
+            openModal("闖關大成功！", `恭喜完成所有自然課月相挑戰！你的總得分是：${quizScore} 分。`);
+            currentQuizIndex = 0;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        // Modal Controls
+        function openModal(title, msg) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = msg;
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('modal-backdrop').classList.add('hidden');
+        }
+
+        // Window onload initialization
+        window.onload = function() {
+            updateSimulationUI();
+        };
+    </script>
+</body>
+</html>
