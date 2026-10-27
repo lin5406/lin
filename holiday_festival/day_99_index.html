@@ -1,0 +1,2813 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>九九重陽節的時光任務｜Comic Learning Mission</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js 核心函式庫 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #fdf8f2;
+      --header-grad: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%);
+      --nav-bg: rgba(69, 26, 3, 0.9);
+      --tab-active-bg: #b45309;
+      --comic-bg: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+      --comic-border: #92400e;
+    }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--bg-main);
+      color: #2d241e;
+      transition: background 0.35s ease;
+    }
+    .autumn-gradient {
+      background: var(--header-grad);
+      transition: background 0.35s ease;
+    }
+    .nav-bar-custom {
+      background: var(--nav-bg);
+      transition: background 0.35s ease;
+    }
+    .card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(180, 83, 9, 0.12), 0 8px 10px -6px rgba(180, 83, 9, 0.08);
+    }
+    .tab-active {
+      background-color: var(--tab-active-bg) !important;
+      color: #ffffff !important;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+    }
+    .comic-panel {
+      background: var(--comic-bg);
+      border: 3px solid var(--comic-border);
+      transition: all 0.35s ease;
+    }
+    body.theme-dopamine .card-shadow {
+      box-shadow: 0 12px 28px -4px rgba(236, 72, 153, 0.22), 0 8px 12px -6px rgba(59, 130, 246, 0.18);
+      border: 2px solid var(--dopamine-card-border, #f472b6);
+    }
+    .theme-btn-active {
+      background-color: #ffffff !important;
+      color: #78350f !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      transform: scale(1.04);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 網頁內建通知訊息列 -->
+  <div id="toastBanner" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-amber-950 text-white px-4 py-3 rounded-2xl shadow-2xl border-2 border-amber-400 flex items-center gap-3 text-xs md:text-sm font-bold">
+    <span id="toastMessage">系統提示</span>
+    <button onclick="hideToast()" class="ml-auto bg-amber-800 hover:bg-amber-700 text-amber-100 px-2 py-0.5 rounded-lg text-xs">關閉</button>
+  </div>
+
+  <!-- 頂部導覽與 40 分鐘倒數計時器 + 右上角背景設定鈕 -->
+  <header class="sticky top-0 z-50 autumn-gradient text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('poster')" title="返回宣傳首頁">
+        <div class="w-11 h-11 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-black text-xl shadow-inner border-2 border-amber-300">
+          九九
+        </div>
+        <div>
+          <span class="text-xs bg-amber-900/40 px-2 py-0.5 rounded-full font-medium tracking-wide">Comic Learning Mission 漫畫教學時光任務</span>
+          <h1 class="text-lg md:text-2xl font-black tracking-tight">九九重陽節的時光任務</h1>
+        </div>
+      </div>
+
+      <!-- 學生身分設定 & 40分鐘倒數計時 & 背景設定區 -->
+      <div class="flex flex-wrap items-center gap-2.5 ml-auto">
+        <div class="flex items-center gap-1.5 bg-white/15 backdrop-blur px-3 py-1.5 rounded-xl border border-white/25 text-xs md:text-sm">
+          <span>年級：</span>
+          <select id="globalGradeSelect" onchange="syncGradeSelection(this.value); handleStudentIdentityChange();" class="bg-amber-900 text-white font-bold rounded px-2 py-0.5 focus:outline-none">
+            <option value="1">一年級</option>
+            <option value="2">二年級</option>
+            <option value="3">三年級</option>
+            <option value="4">四年級</option>
+            <option value="5">五年級</option>
+            <option value="6" selected>六年級</option>
+            <option value="7">七年級</option>
+            <option value="8">八年級</option>
+            <option value="9">九年級</option>
+          </select>
+          <input id="studentClassInput" type="text" oninput="handleSeatInputChange()" placeholder="班級座號(如601-05)" class="w-28 bg-white/90 text-amber-950 font-semibold px-2 py-0.5 rounded placeholder-amber-700/60 focus:outline-none" />
+          <input id="studentNameInput" type="text" placeholder="姓名(選填)" class="w-20 bg-white/90 text-amber-950 font-semibold px-2 py-0.5 rounded placeholder-amber-700/60 focus:outline-none" />
+        </div>
+
+        <!-- 40分鐘計時器 -->
+        <div class="flex items-center gap-2 bg-amber-950/80 px-3.5 py-1.5 rounded-xl border border-amber-400/40">
+          <span class="text-xs text-amber-200 font-medium">任務倒數</span>
+          <span id="timerDisplay" class="font-mono text-lg md:text-xl font-black text-amber-300 tracking-wider">40:00</span>
+          <button id="timerToggleBtn" onclick="toggleTimer()" class="bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-xs px-2.5 py-1 rounded-lg transition">
+            開始
+          </button>
+          <button onclick="resetTimer()" class="bg-amber-800 hover:bg-amber-700 text-amber-100 text-xs px-2 py-1 rounded-lg transition" title="重設40分鐘">
+            重設
+          </button>
+        </div>
+
+        <!-- 右上角背景設定鈕 -->
+        <div class="flex items-center gap-1.5 bg-amber-950/80 px-3 py-1.5 rounded-xl border border-amber-300/50 shadow-inner">
+          <span class="text-xs text-amber-200 font-bold whitespace-nowrap">🎨 背景：</span>
+          <button id="bgBtn-original" onclick="setBgTheme('original')" class="theme-btn text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-800/80 text-amber-100 hover:bg-amber-700 transition whitespace-nowrap">
+            原色
+          </button>
+          <button id="bgBtn-dopamine" onclick="setBgTheme('dopamine')" title="隨機切換多巴胺配色" class="theme-btn text-xs font-bold px-3.5 py-1 rounded-lg bg-gradient-to-r from-pink-500 via-amber-400 to-cyan-400 text-slate-950 hover:opacity-90 transition flex items-center justify-center">
+            🎲
+          </button>
+          <div class="relative flex items-center">
+            <button id="bgBtn-custom" onclick="triggerCustomColorPicker()" class="theme-btn text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-800/80 text-amber-100 hover:bg-amber-700 transition flex items-center gap-1 whitespace-nowrap">
+              <span>自訂</span>
+              <span id="customColorPreviewDot" class="w-3 h-3 rounded-full border border-white inline-block" style="background-color: #e0f2fe;"></span>
+            </button>
+            <input id="customBgColorInput" type="color" value="#e0f2fe" oninput="applyCustomBgColor(this.value)" class="sr-only" aria-label="選擇自訂背景顏色" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功能分頁導覽列 -->
+    <nav class="nav-bar-custom border-t border-amber-800/60">
+      <div class="max-w-7xl mx-auto px-4 py-2 flex items-center gap-1.5 overflow-x-auto text-xs md:text-sm">
+        <button onclick="switchTab('poster')" id="tabBtn-poster" class="tab-btn tab-active px-3 py-2 rounded-lg whitespace-nowrap transition flex items-center gap-1">🖼️ 宣傳海報</button>
+        <button onclick="switchTab('comic')" id="tabBtn-comic" class="tab-btn text-amber-100 hover:bg-amber-800/50 px-3.5 py-2 rounded-lg whitespace-nowrap transition">1. 六頁漫畫＆傳說科學</button>
+        <button onclick="switchTab('sort')" id="tabBtn-sort" class="tab-btn text-amber-100 hover:bg-amber-800/50 px-3.5 py-2 rounded-lg whitespace-nowrap transition">2. 時光排序挑戰</button>
+        <button onclick="switchTab('game3d')" id="tabBtn-game3d" class="tab-btn text-amber-100 hover:bg-amber-800/50 px-3.5 py-2 rounded-lg whitespace-nowrap transition">3. 3D重陽冒險</button>
+        <button onclick="switchTab('quiz')" id="tabBtn-quiz" class="tab-btn text-amber-100 hover:bg-amber-800/50 px-3.5 py-2 rounded-lg whitespace-nowrap transition">4. 五題知識挑戰</button>
+        <button onclick="switchTab('activity')" id="tabBtn-activity" class="tab-btn text-amber-100 hover:bg-amber-800/50 px-3.5 py-2 rounded-lg whitespace-nowrap transition">5. 主題活動</button>
+        <button onclick="switchTab('reflection')" id="tabBtn-reflection" class="tab-btn text-amber-100 hover:bg-amber-800/50 px-3.5 py-2 rounded-lg whitespace-nowrap transition">6. 學生心得</button>
+        <button onclick="switchTab('feedback')" id="tabBtn-feedback" class="tab-btn text-amber-100 hover:bg-amber-800/50 px-3.5 py-2 rounded-lg whitespace-nowrap transition">7. 回饋與統計</button>
+        <button onclick="switchTab('teacher')" id="tabBtn-teacher" class="tab-btn text-amber-200 hover:bg-amber-800/50 px-3.5 py-2 rounded-lg whitespace-nowrap transition ml-auto border border-amber-500/40">🔒 教師管理＆預覽狀態</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- 主要內容區 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+
+    <!-- ==================== 首頁：九九重陽節宣傳海報首頁 (預設顯示) ==================== -->
+    <section id="section-poster" class="tab-section space-y-6">
+      <div class="bg-white rounded-3xl p-5 md:p-8 card-shadow border border-amber-200 text-center space-y-6">
+        <div class="space-y-2">
+          <span class="text-xs md:text-sm font-black uppercase tracking-wider text-amber-800 bg-amber-100 px-3 py-1 rounded-full border border-amber-300">
+            🌾 節日特色探索・時光任務即將啟動
+          </span>
+          <h2 class="text-2xl md:text-4xl font-black text-amber-950 tracking-tight">九九重陽節的時光任務</h2>
+          <p class="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto">
+            歡迎來到重陽節互動學習網站！請欣賞主題宣傳海報，並點選上方選單或下方任一按鈕，開始進行各項沉浸式任務。
+          </p>
+        </div>
+
+        <!-- 宣傳海報圖片展示框 -->
+        <div class="relative max-w-4xl mx-auto rounded-2xl overflow-hidden border-4 border-amber-300/80 shadow-2xl bg-amber-50">
+          <img 
+            src="https://lin5406.github.io/lin/holiday_festival/day_99_001.jpg" 
+            alt="九九重陽節宣傳海報" 
+            class="w-full h-auto object-cover max-h-[580px] mx-auto block hover:scale-[1.01] transition-transform duration-500"
+            loading="eager"
+          />
+        </div>
+
+        <!-- 任務快捷導覽按鈕群組 -->
+        <div class="pt-2">
+          <h3 class="text-sm md:text-base font-black text-amber-900 mb-3">👇 請選擇欲體驗的時光任務模組：</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-4xl mx-auto text-xs md:text-sm">
+            <button onclick="switchTab('comic')" class="p-3 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-xl font-bold text-amber-950 transition flex flex-col items-center gap-1 shadow-sm hover:shadow">
+              <span class="text-xl">📖</span>
+              <span>1. 六頁漫畫與科學</span>
+            </button>
+            <button onclick="switchTab('sort')" class="p-3 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-xl font-bold text-amber-950 transition flex flex-col items-center gap-1 shadow-sm hover:shadow">
+              <span class="text-xl">🧩</span>
+              <span>2. 時光排序挑戰</span>
+            </button>
+            <button onclick="switchTab('game3d')" class="p-3 bg-gradient-to-br from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 border-2 border-amber-400 rounded-xl font-black text-amber-950 transition flex flex-col items-center gap-1 shadow-sm hover:shadow">
+              <span class="text-xl">⛰️</span>
+              <span>3. 3D 重陽雙關卡</span>
+            </button>
+            <button onclick="switchTab('quiz')" class="p-3 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-xl font-bold text-amber-950 transition flex flex-col items-center gap-1 shadow-sm hover:shadow">
+              <span class="text-xl">📝</span>
+              <span>4. 五題知識挑戰</span>
+            </button>
+            <button onclick="switchTab('activity')" class="p-3 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-xl font-bold text-amber-950 transition flex flex-col items-center gap-1 shadow-sm hover:shadow">
+              <span class="text-xl">🎨</span>
+              <span>5. 1~9年級主題活動</span>
+            </button>
+            <button onclick="switchTab('reflection')" class="p-3 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-xl font-bold text-amber-950 transition flex flex-col items-center gap-1 shadow-sm hover:shadow">
+              <span class="text-xl">✍️</span>
+              <span>6. 27篇範文與心得</span>
+            </button>
+            <button onclick="switchTab('feedback')" class="p-3 bg-amber-50 hover:bg-amber-100 border-2 border-amber-300 rounded-xl font-bold text-amber-950 transition flex flex-col items-center gap-1 shadow-sm hover:shadow">
+              <span class="text-xl">📊</span>
+              <span>7. 回饋與統計看板</span>
+            </button>
+            <button onclick="switchTab('teacher')" class="p-3 bg-amber-900 hover:bg-amber-800 text-amber-100 border-2 border-amber-600 rounded-xl font-bold transition flex flex-col items-center gap-1 shadow-sm hover:shadow">
+              <span class="text-xl">🔒</span>
+              <span>8. 教師管理後台</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 模組 1：六頁原創漫畫 ＆ 傳說vs科學 ==================== -->
+    <section id="section-comic" class="tab-section hidden space-y-8">
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Module 01｜原創六頁漫畫</span>
+            <h2 class="text-2xl font-black text-amber-950 mt-1">穿越東漢與臺灣：解開九九重陽的時光密碼</h2>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-amber-800" id="comicPageIndicator">第 1 / 6 頁</span>
+            <div class="flex gap-1" id="comicPageDots"></div>
+          </div>
+        </div>
+
+        <!-- 漫畫顯示框 -->
+        <div class="comic-panel rounded-2xl p-5 md:p-8 relative overflow-hidden">
+          <div class="grid md:grid-cols-12 gap-6 items-center">
+            <div class="md:col-span-6 bg-white rounded-xl p-4 border-2 border-amber-800/30 shadow-inner flex flex-col items-center justify-center min-h-[280px]" id="comicSvgContainer"></div>
+
+            <div class="md:col-span-6 space-y-4">
+              <div class="inline-flex items-center gap-2 bg-amber-900 text-amber-50 text-xs font-bold px-3 py-1 rounded-full" id="comicBadge">
+                PAGE 01
+              </div>
+              <h3 class="text-xl md:text-2xl font-black text-amber-950" id="comicTitle"></h3>
+              <p class="text-sm text-amber-900/80 leading-relaxed bg-amber-50/80 p-3 rounded-lg border border-amber-200" id="comicSceneDesc"></p>
+              
+              <div class="space-y-2.5" id="comicDialogues"></div>
+
+              <div class="bg-emerald-50 border-l-4 border-emerald-600 p-3.5 rounded-r-xl text-xs md:text-sm text-emerald-950">
+                <span class="font-bold text-emerald-800">💡 時光知識筆記：</span>
+                <span id="comicKnowledgeNote"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-amber-800/20 flex items-center justify-between">
+            <button onclick="changeComicPage(-1)" id="prevComicBtn" class="px-4 py-2 rounded-xl bg-amber-800 text-white font-bold text-sm hover:bg-amber-700 disabled:opacity-40 transition">
+              ← 上一頁
+            </button>
+            <span class="text-xs text-amber-900 font-medium">閱讀完 6 頁漫畫後，可前往「時光排序挑戰」與「五題挑戰」！</span>
+            <button onclick="changeComicPage(1)" id="nextComicBtn" class="px-4 py-2 rounded-xl bg-amber-600 text-white font-bold text-sm hover:bg-amber-500 transition">
+              下一頁 →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 傳說 vs 科學 清楚區分專區 -->
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100">
+        <div class="mb-4">
+          <span class="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-full">核心素養對照</span>
+          <h3 class="text-xl font-black text-amber-950 mt-1">🔍 清楚區分：「重陽神話傳說」 vs. 「自然節氣與現代科學」</h3>
+          <p class="text-sm text-gray-600">古人用故事傳遞經驗，現代人用科學驗證原理。請仔細對照以下四個面向：</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-black text-amber-900">1. 瘟魔作祟 vs. 季節交替防疫</span>
+              <span class="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">節氣與公衛</span>
+            </div>
+            <p class="text-xs md:text-sm text-amber-950 mb-1"><strong>【傳說】</strong>南朝《續齊諧記》記載，九月九日瘟魔會下山散布瘟疫，桓景帶家人登高避禍。</p>
+            <p class="text-xs md:text-sm text-emerald-900 bg-emerald-50 p-2 rounded border border-emerald-200"><strong>【科學】</strong>農曆九月正值「寒露」至「霜降」節氣，日夜溫差劇烈，呼吸道與傳染病易流行；戶外登高健行能促進血液循環、提升心肺免疫力。</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-black text-amber-900">2. 插茱萸辟邪 vs. 植物精油防蟲</span>
+              <span class="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">植物化學</span>
+            </div>
+            <p class="text-xs md:text-sm text-amber-950 mb-1"><strong>【傳說】</strong>手臂綁上裝有「茱萸」的紅布囊，惡鬼與瘟魔聞到氣味就會嚇得不敢靠近。</p>
+            <p class="text-xs md:text-sm text-emerald-900 bg-emerald-50 p-2 rounded border border-emerald-200"><strong>【科學】</strong>吳茱萸、艾草、丁香等植物富含天然揮發油（萜類化合物、桉油精），具驅蚊防蟲與抑菌功效；菊花含類黃酮與抗氧化物，泡茶可潤燥明目。</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-black text-amber-900">3. 放風箏送災厄 vs. 臺灣秋季東北季風</span>
+              <span class="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">地球科學與大氣</span>
+            </div>
+            <p class="text-xs md:text-sm text-amber-950 mb-1"><strong>【民俗】</strong>臺灣俗諺「九月九，風吹滿天哮」，傳統認為把風箏放上天能帶走霉運（「放晦氣」）。</p>
+            <p class="text-xs md:text-sm text-emerald-900 bg-emerald-50 p-2 rounded border border-emerald-200"><strong>【科學】</strong>農曆九月蒙古高壓南下，臺灣開始盛行穩定強勁的「東北季風」，風力條件與空氣動力學升力最利於風箏（「風吹」）升空。</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-black text-amber-900">4. 九九長壽祈福 vs. 超高齡社會世代共融</span>
+              <span class="text-xs bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold">現代公民社會</span>
+            </div>
+            <p class="text-xs md:text-sm text-amber-950 mb-1"><strong>【民俗】</strong>《易經》九為陽數，兩九相重；吃「重陽糕」（諧音高）插五色旗祈求步步高升、長命百歲。</p>
+            <p class="text-xs md:text-sm text-emerald-900 bg-emerald-50 p-2 rounded border border-emerald-200"><strong>【現代意義】</strong>臺灣已邁入高齡社會，政府於重陽節致贈百歲人瑞金鎖片；更重要的是家庭傾聽陪伴、消除長者數位落差與打造無障礙友善環境。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 模組 2：時光排序挑戰 ==================== -->
+    <section id="section-sort" class="tab-section hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Module 02｜邏輯與敘事理解</span>
+            <h2 class="text-2xl font-black text-amber-950 mt-1">🧩 六頁漫畫時光排序挑戰</h2>
+            <p class="text-sm text-gray-600">請使用「上移 / 下移」按鈕，將被打亂的六個重陽節時光事件排出正確的先後順序！</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="shuffleSortItems()" class="px-4 py-2 rounded-xl bg-amber-100 text-amber-900 font-bold text-sm hover:bg-amber-200 transition">
+              🔄 重新洗牌
+            </button>
+            <button onclick="checkSortOrder()" class="px-5 py-2 rounded-xl bg-amber-700 text-white font-bold text-sm hover:bg-amber-600 shadow transition">
+              ✅ 檢查排序結果
+            </button>
+          </div>
+        </div>
+
+        <div id="sortFeedbackBox" class="hidden mb-4 p-4 rounded-xl font-bold text-sm"></div>
+
+        <div id="sortListContainer" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 模組 3：3D重陽冒險互動遊戲 ==================== -->
+    <section id="section-game3d" class="tab-section hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Module 03｜3D 雙關卡沉浸式互動學習遊戲</span>
+            <h2 class="text-2xl font-black text-amber-950 mt-1" id="game3dMainHeading">⛰️ 關卡一：重陽登高避疫・解鎖草本防疫與空間隔離</h2>
+            <p class="text-sm text-gray-600" id="game3dSubDesc">旋轉視野尋找散落秋山的「紫紅茱萸」與「金黃秋菊」，親身體會古人登高隔離與天然草本防疫的科學智慧！</p>
+          </div>
+
+          <div class="flex items-center gap-1.5 bg-amber-100/70 p-1.5 rounded-xl border border-amber-300">
+            <button id="stageBtn-1" onclick="switch3DStage(1)" class="px-3.5 py-1.5 rounded-lg text-xs font-black bg-amber-800 text-white shadow transition">
+              關卡 1：登高避疫採集
+            </button>
+            <button id="stageBtn-2" onclick="switch3DStage(2)" class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-amber-900 hover:bg-amber-200 transition">
+              關卡 2：季風放風箏飛行
+            </button>
+          </div>
+        </div>
+
+        <!-- 實時狀態面板 -->
+        <div id="stage1Hud" class="flex flex-wrap items-center gap-2.5 bg-gradient-to-r from-amber-50 to-orange-50 px-4 py-2.5 rounded-xl border border-amber-200 mb-4">
+          <div class="text-xs">
+            <span class="text-gray-500 block">目前海拔環境</span>
+            <span id="altitudeDisplay" class="font-black text-amber-900 text-sm">海拔 120m・山腳濕熱</span>
+          </div>
+          <div class="h-6 w-px bg-amber-300 mx-1"></div>
+          <div class="text-xs">
+            <span class="text-gray-500 block">草本防護力</span>
+            <span id="shieldPowerDisplay" class="font-black text-emerald-700 text-sm">0% (初期啟動)</span>
+          </div>
+          <div class="h-6 w-px bg-amber-300 mx-1"></div>
+          <div class="text-xs">
+            <span class="text-gray-500 block">採集進度</span>
+            <span id="game3dScore" class="font-black text-amber-700 text-sm">0 / 6</span>
+          </div>
+          <button onclick="reset3DGame()" class="ml-auto px-3 py-1 bg-amber-800 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition">重新探索</button>
+        </div>
+
+        <div id="stage2Hud" class="hidden flex flex-wrap items-center gap-3 bg-gradient-to-r from-sky-50 to-amber-50 px-4 py-2.5 rounded-xl border border-sky-200 mb-4">
+          <div class="text-xs">
+            <span class="text-gray-500 block">風箏飛行高度</span>
+            <span id="kiteAltitudeDisplay" class="font-black text-sky-900 text-sm">20 公尺 (平穩滑翔)</span>
+          </div>
+          <div class="h-6 w-px bg-sky-300 mx-1"></div>
+          <div class="text-xs">
+            <span class="text-gray-500 block">東北季風即時風速</span>
+            <span id="kiteWindDisplay" class="font-black text-amber-800 text-sm">7.5 m/s (4級和風)</span>
+          </div>
+          <div class="h-6 w-px bg-sky-300 mx-1"></div>
+          <div class="text-xs">
+            <span class="text-gray-500 block">迎風狀態</span>
+            <span id="kiteAngleDisplay" class="font-black text-emerald-700 text-sm">迎風平穩捕捉氣流</span>
+          </div>
+          <div class="h-6 w-px bg-sky-300 mx-1"></div>
+          <div class="text-xs">
+            <span class="text-gray-500 block">收集高空祝福氣球</span>
+            <span id="kiteOrbScore" class="font-black text-purple-700 text-sm">0 / 3</span>
+          </div>
+          <button onclick="resetKiteGame()" class="ml-auto px-3 py-1 bg-sky-800 text-white text-xs font-bold rounded-lg hover:bg-sky-700 transition">重放風箏</button>
+        </div>
+
+        <div class="relative w-full h-[460px] rounded-2xl overflow-hidden border-2 border-amber-800/30 bg-slate-900 shadow-inner" id="canvas3dContainer">
+          
+          <div id="game3dOverlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/75 text-white z-20 p-5 text-center">
+            <div id="overlayContentCard" class="max-w-lg bg-amber-950/90 border-2 border-amber-400 p-6 rounded-2xl shadow-2xl backdrop-blur">
+              <span class="text-4xl mb-2 inline-block">🌿⛰️</span>
+              <h3 class="text-2xl font-black mb-2 text-amber-300">歡迎進入 3D 重陽避疫探索！</h3>
+              <p class="text-xs md:text-sm mb-4 text-amber-100 leading-relaxed text-left">
+                古人避疫不是迷信！農曆九月逢寒露霜降，山腳低窪處濕熱、蚊蟲與呼吸道傳染病盛行。<br>
+                <strong>任務目標：</strong><br>
+                1. 拖曳視野，採集 <strong>3 組紫紅茱萸</strong>（外防病媒）與 <strong>3 組延壽金菊</strong>（內調秋燥）。<br>
+                2. 觀察海拔升降與草本防護罩的啟動，體驗古人「空間隔離＋草本防疫」的科學智慧！
+              </p>
+              <button onclick="init3DGame()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-amber-950 font-black text-base rounded-xl shadow-lg transition transform hover:scale-105">
+                🎮 開始登高健行・探索草本真相
+              </button>
+            </div>
+          </div>
+
+          <div id="kiteControlHint" class="hidden absolute top-4 left-4 z-10 bg-black/70 backdrop-blur text-white px-3.5 py-2.5 rounded-xl border border-white/20 text-xs flex items-center gap-2 max-w-md">
+            <span>🎯 <strong>操控技巧：</strong>移動滑鼠或手指在畫面上<strong>滑動（上下左右）</strong>操控風箏，撞擊空中的 <strong>3 顆彩色祈福氣球</strong>來收集祝福！</span>
+          </div>
+
+          <div id="scienceInfoPopup" class="absolute bottom-5 left-5 right-5 md:left-auto md:right-5 md:w-96 bg-white/95 backdrop-blur-md border-2 border-amber-500 rounded-2xl p-4 shadow-2xl text-slate-900 z-10 transition-all duration-300 transform translate-y-24 opacity-0 pointer-events-none">
+            <div class="flex items-start gap-3">
+              <div id="sciencePopupIcon" class="text-3xl shrink-0 p-2 bg-amber-100 rounded-xl">🌿</div>
+              <div class="space-y-1">
+                <div class="flex items-center justify-between">
+                  <span id="sciencePopupTitle" class="font-black text-sm text-amber-950">解鎖草本智慧</span>
+                  <span id="sciencePopupTag" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">植物防護</span>
+                </div>
+                <p id="sciencePopupDesc" class="text-xs text-gray-700 leading-relaxed"></p>
+                <div id="sciencePopupPrinciple" class="text-[11px] font-semibold text-emerald-800 bg-emerald-50 p-1.5 rounded-lg border border-emerald-200 mt-1"></div>
+              </div>
+            </div>
+          </div>
+
+          <canvas id="threeCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+        </div>
+
+        <div id="stage1BottomInfo" class="grid sm:grid-cols-3 gap-3 text-xs">
+          <div class="p-3 bg-red-50 rounded-xl border border-red-200 flex items-center gap-2.5">
+            <span class="text-2xl">🔴</span>
+            <div>
+              <span class="font-bold text-red-950 block">紫紅茱萸｜外用防蟲護罩</span>
+              <span class="text-gray-600">體溫加熱釋放辛香揮發油（萜類），驅避秋季病媒蚊與蟲害。</span>
+            </div>
+          </div>
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center gap-2.5">
+            <span class="text-2xl">🟡</span>
+            <div>
+              <span class="font-bold text-amber-950 block">金黃秋菊｜內在潤燥抗氧化</span>
+              <span class="text-gray-600">富含類黃酮與綠原酸，泡茶生津潤燥、舒緩呼吸道秋季燥咳。</span>
+            </div>
+          </div>
+          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200 flex items-center gap-2.5">
+            <span class="text-2xl">⛰️</span>
+            <div>
+              <span class="font-bold text-emerald-950 block">登高健行｜空間隔離＋有氧運動</span>
+              <span class="text-gray-600">遠離低窪潮濕傳染源，高山乾燥通風，健行增強心肺免疫力。</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="stage2BottomInfo" class="hidden grid sm:grid-cols-3 gap-3 text-xs">
+          <div class="p-3 bg-sky-50 rounded-xl border border-sky-200 flex items-center gap-2.5">
+            <span class="text-2xl">🪁</span>
+            <div>
+              <span class="font-bold text-sky-950 block">九月九，風吹滿天哮</span>
+              <span class="text-gray-600">臺語「風吹」即風箏。臺灣秋季東北季風風力強勁平穩，最適合大型風箏升空。</span>
+            </div>
+          </div>
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 flex items-center gap-2.5">
+            <span class="text-2xl">📐</span>
+            <div>
+              <span class="font-bold text-amber-950 block">空氣力學迎風仰角（AOA）</span>
+              <span class="text-gray-600">利用仰角形成上下壓力差產生升力；角度過大會失速墜落，考驗平衡智慧。</span>
+            </div>
+          </div>
+          <div class="p-3 bg-purple-50 rounded-xl border border-purple-200 flex items-center gap-2.5">
+            <span class="text-2xl">🏮</span>
+            <div>
+              <span class="font-bold text-purple-950 block">放晦氣與長壽祈福</span>
+              <span class="text-gray-600">古人放風箏祈求帶走災厄、久久平安；現代演變為世代同樂的有氧戶外活動。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 模組 4：五題知識挑戰 ==================== -->
+    <section id="section-quiz" class="tab-section hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Module 04｜核心素養評量</span>
+            <h2 class="text-2xl font-black text-amber-950 mt-1">📝 五題重陽時光挑戰</h2>
+            <p class="text-sm text-gray-600">每題 20 分，滿分 100 分。請結合漫畫、科學探究與 3D 體驗回答問題！</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div id="quizScoreBadge" class="hidden px-4 py-1.5 rounded-xl bg-amber-900 text-white font-black text-sm">
+              得分：<span id="quizScoreValue" class="text-amber-300 text-lg">0</span> / 100 分
+            </div>
+            <button onclick="resetQuiz()" class="px-4 py-2 rounded-xl bg-amber-100 text-amber-900 font-bold text-xs hover:bg-amber-200 transition">
+              重設作答
+            </button>
+            <button id="quizSubmitBtn" onclick="submitQuiz()" class="px-5 py-2 rounded-xl bg-amber-800 text-white font-bold text-xs hover:bg-amber-700 shadow transition disabled:opacity-40 disabled:cursor-not-allowed">
+              送出答案
+            </button>
+          </div>
+        </div>
+        <div id="quizQuestionsContainer" class="space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 模組 5：主題活動（1～9年級） ==================== -->
+    <section id="section-activity" class="tab-section hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100">
+        <div class="mb-4">
+          <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Module 05｜分級實作探究</span>
+          <h2 class="text-2xl font-black text-amber-950 mt-1">🎨 1～9 年級重陽節主題活動指引</h2>
+          <p class="text-sm text-gray-600">請點選年級分頁，查看適合該年齡層的示範成果、材料工具、製作步驟與自我檢核表：</p>
+        </div>
+        <div id="activityGradeTabs" class="flex flex-wrap gap-1.5 mb-5 border-b border-amber-200 pb-3"></div>
+        <div id="activityContentArea"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 模組 6：學生心得（27篇範文與寫作區） ==================== -->
+    <section id="section-reflection" class="tab-section hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100 space-y-6">
+        <div>
+          <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Module 06｜反思與寫作表達</span>
+          <h2 class="text-2xl font-black text-amber-950 mt-1">✍️ 學生心得範文（1～9年級×3程度共27篇）與 500 字寫作區</h2>
+          <p class="text-sm text-gray-600">參考分級範文寫作架構，在下方寫作區輸入你的重陽節學習與實踐心得：</p>
+        </div>
+
+        <div class="bg-amber-50/70 p-5 rounded-2xl border border-amber-200 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-amber-900">選擇參考年級：</span>
+              <select id="sampleGradeSelect" onchange="renderSampleEssay()" class="bg-white border border-amber-300 font-bold rounded-lg px-2.5 py-1 text-xs text-amber-950">
+                <option value="1">一年級</option>
+                <option value="2">二年級</option>
+                <option value="3">三年級</option>
+                <option value="4">四年級</option>
+                <option value="5">五年級</option>
+                <option value="6" selected>六年級</option>
+                <option value="7">七年級</option>
+                <option value="8">八年級</option>
+                <option value="9">九年級</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5 w-full sm:w-auto">
+              <button id="levelBtn-basic" onclick="setSampleLevel('basic')" class="sample-level-btn py-1.5 px-3 rounded-lg text-xs font-bold border border-amber-300 bg-white text-amber-900">基礎版</button>
+              <button id="levelBtn-advanced" onclick="setSampleLevel('advanced')" class="sample-level-btn py-1.5 px-3 rounded-lg text-xs font-bold border border-amber-300 bg-white text-amber-900">進階版</button>
+              <button id="levelBtn-challenge" onclick="setSampleLevel('challenge')" class="sample-level-btn py-1.5 px-3 rounded-lg text-xs font-bold bg-amber-700 text-white shadow">挑戰版(起承轉合)</button>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-amber-200 space-y-2">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+              <span id="sampleHeaderTitle" class="font-black text-amber-950 text-sm">六年級｜挑戰版</span>
+              <span id="sampleCharCountBadge" class="text-xs font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded">範文字數：465 字</span>
+            </div>
+            <div id="sampleEssayBody" class="text-xs md:text-sm text-gray-800 leading-relaxed space-y-2 font-normal"></div>
+            <div id="sampleStructureHint" class="text-[11px] text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200 mt-2 font-medium"></div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-black text-amber-950 text-base">📝 我的重陽節時光心得寫作（上限 500 字）</h3>
+            <span id="essayCharCounter" class="text-xs font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-lg">目前字數：0 / 500 字</span>
+          </div>
+          <textarea id="studentEssayInput" maxlength="500" oninput="updateEssayCharCount()" placeholder="請寫下你今天在「九九重陽節時光任務」學到的知識、傳說與科學的分別，以及你為家中長輩做了哪些貼心的行動..." class="w-full h-36 p-4 rounded-xl border-2 border-amber-300 focus:border-amber-600 focus:outline-none text-xs md:text-sm leading-relaxed"></textarea>
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <button onclick="insertStructureTemplate()" class="px-3.5 py-2 rounded-xl bg-amber-100 text-amber-900 hover:bg-amber-200 text-xs font-bold transition">
+              💡 插入【起承轉合】四段提示框架
+            </button>
+            <button onclick="submitStudentEssay()" class="px-6 py-2.5 rounded-xl bg-amber-800 hover:bg-amber-700 text-white font-black text-sm shadow transition">
+              💾 儲存並提交我的心得
+            </button>
+          </div>
+          <div id="essaySaveStatus" class="hidden p-3 rounded-xl text-xs font-bold"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 模組 7：回饋與統計 ==================== -->
+    <section id="section-feedback" class="tab-section hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100 space-y-6">
+        <div>
+          <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Module 07｜成效回饋</span>
+          <h2 class="text-2xl font-black text-amber-950 mt-1">📊 雙向學習成效與網站回饋統計</h2>
+          <p class="text-sm text-gray-600">填寫學習回饋與網站體驗心得，即時統計圖表將同步更新：</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-5">
+          <div class="bg-amber-50/70 p-5 rounded-2xl border border-amber-200 space-y-3.5">
+            <h3 class="font-black text-amber-950 text-base">🎓 1. 學生重陽節學習回饋</h3>
+            <div class="space-y-1.5 text-xs">
+              <label class="font-bold text-gray-700">Q1. 透過本次任務，我能清楚區分「神話傳說」與「自然科學/現代意義」嗎？</label>
+              <select id="fbLearnQ1" class="w-full bg-white border border-amber-300 rounded-lg p-2 font-medium">
+                <option value="5">非常清楚 (5分)</option>
+                <option value="4">大部分清楚 (4分)</option>
+                <option value="3">普通，還在理解中 (3分)</option>
+                <option value="2">有些混淆 (2分)</option>
+              </select>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <label class="font-bold text-gray-700">Q2. 本次任務中，你最感興趣的環節是？</label>
+              <select id="fbLearnQ2" class="w-full bg-white border border-amber-300 rounded-lg p-2 font-medium">
+                <option value="3D雙關卡互動遊戲">3D雙關卡互動遊戲（登高避疫＋季風放風箏）</option>
+                <option value="六頁原創漫畫">六頁原創漫畫與時光排序</option>
+                <option value="傳說vs科學對照實驗室">傳說 vs 科學對照實驗室</option>
+                <option value="手作防蚊草本香包與風箏探究">手作防蚊草本香包與主題活動</option>
+              </select>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <label class="font-bold text-gray-700">Q3. 重陽節你最想為家中長輩進行哪一項敬老行動？</label>
+              <select id="fbLearnQ3" class="w-full bg-white border border-amber-300 rounded-lg p-2 font-medium">
+                <option value="泡菊花茶並陪伴長輩聊天傾聽">泡菊花茶並陪伴長輩聊天傾聽故事</option>
+                <option value="贈送手作防蚊草本香包關心長輩健康">贈送手作防蚊草本香包關心長輩健康</option>
+                <option value="耐心教導家中長輩使用手機實用功能">耐心教導家中長輩使用手機實用功能</option>
+                <option value="陪長輩到公園散步健行">陪長輩到公園散步健行</option>
+              </select>
+            </div>
+            <button onclick="submitLearningFeedback()" class="w-full py-2.5 bg-amber-800 text-white font-bold text-xs rounded-xl hover:bg-amber-700 transition">
+              送出學習回饋
+            </button>
+          </div>
+
+          <div class="bg-amber-50/70 p-5 rounded-2xl border border-amber-200 space-y-3.5">
+            <h3 class="font-black text-amber-950 text-base">💻 2. 網站操作與視覺體驗回饋</h3>
+            <div class="space-y-1.5 text-xs">
+              <label class="font-bold text-gray-700">網站介面操作順暢度與色彩偏好滿意度評分：</label>
+              <select id="fbSiteRating" class="w-full bg-white border border-amber-300 rounded-lg p-2 font-medium">
+                <option value="5">⭐⭐⭐⭐⭐ 非常滿意！3D流暢、多巴胺配色活潑</option>
+                <option value="4">⭐⭐⭐⭐ 良好，功能完整豐富</option>
+                <option value="3">⭐⭐⭐ 普通，各功能皆可正常使用</option>
+              </select>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <label class="font-bold text-gray-700">本次使用的操作裝置：</label>
+              <select id="fbSiteDevice" class="w-full bg-white border border-amber-300 rounded-lg p-2 font-medium">
+                <option value="平板電腦 (iPad / Android Tablet)">平板電腦 (iPad / Android Tablet)</option>
+                <option value="桌上型電腦 / 筆記型電腦">桌上型電腦 / 筆記型電腦</option>
+                <option value="智慧型手機 (Mobile)">智慧型手機 (Mobile)</option>
+              </select>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <label class="font-bold text-gray-700">其他建議或使用感想：</label>
+              <input id="fbSiteComment" type="text" placeholder="例如：漫畫很生動、3D放風箏很有挑戰性！" class="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs" />
+            </div>
+            <button onclick="submitSiteFeedback()" class="w-full py-2.5 bg-emerald-800 text-white font-bold text-xs rounded-xl hover:bg-emerald-700 transition">
+              送出網站使用心得
+            </button>
+          </div>
+        </div>
+
+        <div id="feedbackStatsPanel" class="grid sm:grid-cols-3 gap-4 pt-2"></div>
+      </div>
+    </section>
+
+    <!-- ==================== 模組 8：教師管理後台 ==================== -->
+    <section id="section-teacher" class="tab-section hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 card-shadow border border-amber-100">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Module 08｜後台管理</span>
+            <h2 class="text-2xl font-black text-amber-950 mt-1">🔒 教師管理後台＆全班學習成績單</h2>
+            <p class="text-sm text-gray-600">管理學生成績、查看 500 字心得，或將全班紀錄匯出為 CSV 試算表：</p>
+          </div>
+        </div>
+
+        <div id="teacherLockedNotice" class="p-6 rounded-2xl bg-amber-50 border-2 border-dashed border-amber-300 text-center space-y-3">
+          <span class="text-4xl inline-block">🔐</span>
+          <h3 class="text-lg font-black text-amber-950">請輸入管理代碼</h3>
+          <p class="text-xs text-gray-600 max-w-md mx-auto">保護學生隱私與全班成績紀錄，請輸入教師代碼或最高管理者代碼進行驗證：</p>
+          <div class="flex justify-center gap-2 max-w-sm mx-auto">
+            <input id="teacherAuthInput" type="password" onkeydown="if(event.key==='Enter') unlockTeacherPanel();" placeholder="輸入管理代碼" class="bg-white border border-amber-300 rounded-lg px-3 py-1.5 text-xs text-amber-950 focus:outline-none" />
+            <button onclick="unlockTeacherPanel()" class="px-5 py-1.5 bg-amber-800 text-white font-bold text-xs rounded-lg hover:bg-amber-700">解鎖後台</button>
+          </div>
+        </div>
+
+        <div id="teacherUnlockedContent" class="hidden space-y-4">
+          <!-- 只有輸入 Super 密碼 fortran 才會解鎖顯示的專屬密碼設定區 -->
+          <div id="superAdminSettingsBanner" class="hidden p-4 bg-red-50 border-2 border-red-300 rounded-2xl space-y-2 shadow-sm">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 bg-red-700 text-white font-black text-xs rounded-full">👑 SUPER ADMIN 最高管理權限</span>
+                <span class="text-xs text-red-950 font-bold">您已透過 Super 密碼登入，可在此直接設定/變更「一般教師管理代碼」：</span>
+              </div>
+              <button onclick="lockTeacherPanel()" class="text-xs text-red-800 hover:text-red-950 underline font-bold">🔒 登出後台</button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
+              <span class="font-bold text-red-900">設定新教師代碼：</span>
+              <input id="newTeacherCodeInput" type="password" onkeydown="if(event.key==='Enter') saveNewTeacherCodeBySuper();" placeholder="輸入新教師代碼(至少4碼)" class="bg-white border border-red-300 rounded px-2.5 py-1 text-xs text-red-950 focus:outline-none" />
+              <button onclick="saveNewTeacherCodeBySuper()" class="px-3.5 py-1 bg-red-800 hover:bg-red-700 text-white text-xs font-bold rounded shadow-sm">儲存新代碼</button>
+              <span id="superCodeSaveMsg" class="text-emerald-700 font-bold hidden"></span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-amber-50 p-4 rounded-xl border border-amber-200">
+            <div class="flex items-center gap-2">
+              <button onclick="exportRecordsCSV()" class="px-4 py-2 bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow">📥 匯出全班作答 CSV</button>
+              <button onclick="resetDemoData()" class="px-3.5 py-2 bg-amber-800 hover:bg-amber-700 text-white text-xs font-bold rounded-lg">🔄 載入示範資料</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="clearAllStudentData()" class="px-3 py-1.5 bg-red-800 hover:bg-red-700 text-white text-xs font-bold rounded-lg">🗑️ 清空所有作答紀錄</button>
+              <button id="normalTeacherLogoutBtn" onclick="lockTeacherPanel()" class="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-xs font-bold rounded-lg">🔒 鎖定後台</button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-amber-200">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-amber-900 text-white font-bold">
+                <tr>
+                  <th class="p-3">時間</th>
+                  <th class="p-3">年級</th>
+                  <th class="p-3">班級座號</th>
+                  <th class="p-3">姓名</th>
+                  <th class="p-3">時光排序</th>
+                  <th class="p-3">五題挑戰</th>
+                  <th class="p-3">500字心得</th>
+                </tr>
+              </thead>
+              <tbody id="teacherRecordsTableBody" class="divide-y divide-amber-100 bg-white"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ==================== 全域常數與資料庫設定 ====================
+    const DB_KEY = 'chongyang_mission_db_v2';
+    const BG_THEME_KEY = 'chongyang_bg_theme_v2';
+    const TEACHER_HASH_KEY = 'chongyang_teacher_hash_v2';
+
+    const dopaminePalettes = [
+      { name: '🍓 莓果泡泡糖', bgMain: '#fff1f2', headerGrad: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 50%, #fda4af 100%)', navBg: 'rgba(136, 19, 55, 0.95)', tabActive: '#be123c', comicBg: 'linear-gradient(180deg, #fff1f2 0%, #ffe4e6 100%)', comicBorder: '#fb7185', cardBorder: '#f43f5e' },
+      { name: '⚡ 薄荷電光紫', bgMain: '#faf5ff', headerGrad: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #06b6d4 100%)', navBg: 'rgba(59, 7, 100, 0.95)', tabActive: '#7c3aed', comicBg: 'linear-gradient(180deg, #fdf4ff 0%, #fae8ff 100%)', comicBorder: '#c084fc', cardBorder: '#a855f7' },
+      { name: '🍊 熱帶鮮橙蘇打', bgMain: '#fff7ed', headerGrad: 'linear-gradient(135deg, #ea580c 0%, #f97316 50%, #facc15 100%)', navBg: 'rgba(124, 45, 18, 0.95)', tabActive: '#c2410c', comicBg: 'linear-gradient(180deg, #fffbeb 0%, #ffedd5 100%)', comicBorder: '#fb923c', cardBorder: '#f97316' },
+      { name: '🥝 萊姆奇異果派對', bgMain: '#f7fee7', headerGrad: 'linear-gradient(135deg, #4d7c0f 0%, #65a30d 50%, #10b981 100%)', navBg: 'rgba(26, 46, 5, 0.95)', tabActive: '#3f6212', comicBg: 'linear-gradient(180deg, #f7fee7 0%, #ecfccb 100%)', comicBorder: '#a3e635', cardBorder: '#65a30d' },
+      { name: '🍑 蜜桃晴空霓虹', bgMain: '#f0fdfa', headerGrad: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 50%, #fb7185 100%)', navBg: 'rgba(124, 45, 18, 0.95)', tabActive: '#0369a1', comicBg: 'linear-gradient(180deg, #f0fdfa 0%, #ccfbf1 100%)', comicBorder: '#2dd4bf', cardBorder: '#06b6d4' }
+    ];
+
+    let currentDopamineIndex = -1;
+
+    function setBgTheme(mode, param, save = true) {
+      const root = document.documentElement;
+      document.body.classList.remove('theme-dopamine');
+
+      if (mode === 'original') {
+        root.style.setProperty('--bg-main', '#fdf8f2');
+        root.style.setProperty('--header-grad', 'linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%)');
+        root.style.setProperty('--nav-bg', 'rgba(69, 26, 3, 0.9)');
+        root.style.setProperty('--tab-active-bg', '#b45309');
+        root.style.setProperty('--comic-bg', 'linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%)');
+        root.style.setProperty('--comic-border', '#92400e');
+        highlightThemeBtn('bgBtn-original');
+        showToast('🎨 已恢復為「原色」重陽秋日主題！');
+        if (save) localStorage.setItem(BG_THEME_KEY, JSON.stringify({ mode: 'original' }));
+      } else if (mode === 'dopamine') {
+        document.body.classList.add('theme-dopamine');
+        let nextIdx = (typeof param === 'number') ? param : Math.floor(Math.random() * dopaminePalettes.length);
+        if (typeof param !== 'number' && nextIdx === currentDopamineIndex) {
+          nextIdx = (nextIdx + 1) % dopaminePalettes.length;
+        }
+        currentDopamineIndex = nextIdx;
+        const pal = dopaminePalettes[currentDopamineIndex];
+
+        root.style.setProperty('--bg-main', pal.bgMain);
+        root.style.setProperty('--header-grad', pal.headerGrad);
+        root.style.setProperty('--nav-bg', pal.navBg);
+        root.style.setProperty('--tab-active-bg', pal.tabActive);
+        root.style.setProperty('--comic-bg', pal.comicBg);
+        root.style.setProperty('--comic-border', pal.comicBorder);
+        root.style.setProperty('--dopamine-card-border', pal.cardBorder);
+
+        highlightThemeBtn('bgBtn-dopamine');
+        showToast(`🎲 切換多巴胺配色：${pal.name}`);
+        if (save) localStorage.setItem(BG_THEME_KEY, JSON.stringify({ mode: 'dopamine', paletteIndex: currentDopamineIndex }));
+      } else if (mode === 'custom') {
+        const hex = param || '#e0f2fe';
+        root.style.setProperty('--bg-main', hex);
+        document.getElementById('customColorPreviewDot').style.backgroundColor = hex;
+        highlightThemeBtn('bgBtn-custom');
+        if (save) localStorage.setItem(BG_THEME_KEY, JSON.stringify({ mode: 'custom', color: hex }));
+      }
+    }
+
+    function highlightThemeBtn(btnId) {
+      ['bgBtn-original', 'bgBtn-dopamine', 'bgBtn-custom'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (id === btnId) {
+            el.classList.add('theme-btn-active');
+          } else {
+            el.classList.remove('theme-btn-active');
+          }
+        }
+      });
+    }
+
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      const text = document.getElementById('toastMessage');
+      if (banner && text) {
+        text.innerHTML = msg;
+        banner.classList.remove('hidden');
+        clearTimeout(banner._toastTimer);
+        banner._toastTimer = setTimeout(() => { banner.classList.add('hidden'); }, 4000);
+      }
+    }
+
+    function hideToast() {
+      const banner = document.getElementById('toastBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    // ==================== 3D 互動遊戲（Three.js 雙關卡） ====================
+    let scene3d, camera3d, renderer3d, animId3d;
+    let collectibleItems = [];
+    let collectedCount3d = 0;
+    let is3DRunning = false;
+    let floatingElements = [];
+    let popupTimer = null;
+    let shieldMesh = null;
+    let current3DStage = 1;
+
+    let kiteMesh = null;
+    let kiteAltitude = 20;
+    let kiteAngle = 28;
+    let kiteWindSpeed = 7.5;
+    let kiteOrbs = [];
+    let collectedKiteOrbs = 0;
+    let kiteLine = null;
+    let kiteMouseX = 0;
+    let kiteMouseY = 0;
+
+    const altitudeLevels = [
+      { alt: 120, label: '海拔 120m・山腳 (濕熱蚊多・易患疫病)', fogDensity: 0.035, fogColor: 0x33261d, skyColor: 0x1e1b18 },
+      { alt: 250, label: '海拔 250m・步道初段 (秋風漸起)', fogDensity: 0.028, fogColor: 0x272b2d, skyColor: 0x182430 },
+      { alt: 420, label: '海拔 420m・半山腰 (空氣轉乾爽)', fogDensity: 0.022, fogColor: 0x1f2e3d, skyColor: 0x122c42 },
+      { alt: 580, label: '海拔 580m・迎風稜線 (強勁東北季風)', fogDensity: 0.016, fogColor: 0x1a364d, skyColor: 0x0c3452 },
+      { alt: 750, label: '海拔 750m・登高遠眺 (遠離低地濕氣)', fogDensity: 0.011, fogColor: 0x174061, skyColor: 0x083c66 },
+      { alt: 920, label: '海拔 920m・高山之巔 (清氣爽朗・心肺強健)', fogDensity: 0.006, fogColor: 0x134873, skyColor: 0x074677 }
+    ];
+
+    function switch3DStage(stageNum) {
+      current3DStage = stageNum;
+      if (animId3d) cancelAnimationFrame(animId3d);
+      is3DRunning = false;
+
+      const heading = document.getElementById('game3dMainHeading');
+      const desc = document.getElementById('game3dSubDesc');
+      const stage1Hud = document.getElementById('stage1Hud');
+      const stage2Hud = document.getElementById('stage2Hud');
+      const s1Info = document.getElementById('stage1BottomInfo');
+      const s2Info = document.getElementById('stage2BottomInfo');
+      const hint = document.getElementById('kiteControlHint');
+      const btn1 = document.getElementById('stageBtn-1');
+      const btn2 = document.getElementById('stageBtn-2');
+      const overlay = document.getElementById('game3dOverlay');
+
+      if (stageNum === 1) {
+        if (btn1) btn1.className = 'px-3.5 py-1.5 rounded-lg text-xs font-black bg-amber-800 text-white shadow transition';
+        if (btn2) btn2.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold text-amber-900 hover:bg-amber-200 transition';
+        if (heading) heading.innerHTML = '⛰️ 關卡一：重陽登高避疫・解鎖草本防疫與空間隔離';
+        if (desc) desc.textContent = '旋轉視野尋找散落秋山的「紫紅茱萸」與「金黃秋菊」，親身體會古人登高隔離與天然草本防疫的科學智慧！';
+        if (stage1Hud) stage1Hud.classList.remove('hidden');
+        if (stage2Hud) stage2Hud.classList.add('hidden');
+        if (s1Info) s1Info.classList.remove('hidden');
+        if (s2Info) s2Info.classList.add('hidden');
+        if (hint) hint.classList.add('hidden');
+
+        if (overlay) {
+          overlay.innerHTML = `
+            <div id="overlayContentCard" class="max-w-lg bg-amber-950/90 border-2 border-amber-400 p-6 rounded-2xl shadow-2xl backdrop-blur">
+              <span class="text-4xl mb-2 inline-block">🌿⛰️</span>
+              <h3 class="text-2xl font-black mb-2 text-amber-300">歡迎進入 3D 重陽避疫探索！</h3>
+              <p class="text-xs md:text-sm mb-4 text-amber-100 leading-relaxed text-left">
+                古人避疫不是迷信！農曆九月逢寒露霜降，山腳低窪處濕熱、蚊蟲與呼吸道傳染病盛行。<br>
+                <strong>任務目標：</strong><br>
+                1. 拖曳視野，採集 <strong>3 組紫紅茱萸</strong>（外防病媒）與 <strong>3 組延壽金菊</strong>（內調秋燥）。<br>
+                2. 觀察海拔升降與草本防護罩的啟動，體驗古人「空間隔離＋草本防疫」的科學智慧！
+              </p>
+              <button onclick="init3DGame()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-amber-950 font-black text-base rounded-xl shadow-lg transition transform hover:scale-105">
+                🎮 開始登高健行・探索草本真相
+              </button>
+            </div>
+          `;
+          overlay.classList.remove('hidden');
+        }
+      } else {
+        if (btn2) btn2.className = 'px-3.5 py-1.5 rounded-lg text-xs font-black bg-sky-800 text-white shadow transition';
+        if (btn1) btn1.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold text-amber-900 hover:bg-amber-200 transition';
+        if (heading) heading.innerHTML = '🪁 關卡二：【九月九・風吹滿天哮】3D 東北季風放風箏飛行挑戰';
+        if (desc) desc.textContent = '臺灣秋季東北季風盛行！透過操控風箏迎風角度（AOA），運用空氣動力學升力迎風攀升，收集高空祝福氣球！';
+        if (stage1Hud) stage1Hud.classList.add('hidden');
+        if (stage2Hud) stage2Hud.classList.remove('hidden');
+        if (s1Info) s1Info.classList.add('hidden');
+        if (s2Info) s2Info.classList.remove('hidden');
+
+        if (overlay) {
+          overlay.innerHTML = `
+            <div id="overlayContentCard" class="max-w-lg bg-sky-950/90 border-2 border-sky-400 p-6 rounded-2xl shadow-2xl backdrop-blur">
+              <span class="text-4xl mb-2 inline-block">🪁🌬️</span>
+              <h3 class="text-2xl font-black mb-2 text-sky-300">歡迎進入 3D 東北季風飛行探究！</h3>
+              <p class="text-xs md:text-sm mb-4 text-sky-100 leading-relaxed text-left">
+                臺灣俗諺：「九月九，風吹滿天哮！」農曆九月東北季風帶來強勁而穩定的氣流，是放風箏最好的季節。<br>
+                <strong>任務目標：</strong><br>
+                1. 左右滑動控制風箏<strong>迎風仰角與平衡</strong>，讓風箏升上 100 公尺高空！<br>
+                2. 途中收集 <strong>3 顆高空祈福氣球</strong>（長壽久久、步步高升、避邪安康）。
+              </p>
+              <button onclick="initKiteGame()" class="w-full py-3 bg-gradient-to-r from-sky-500 to-cyan-600 hover:from-sky-400 hover:to-cyan-500 text-slate-950 font-black text-base rounded-xl shadow-lg transition transform hover:scale-105">
+                🪁 迎風啟航・放風箏升空
+              </button>
+            </div>
+          `;
+          overlay.classList.remove('hidden');
+        }
+      }
+    }
+
+    function init3DGame() {
+      const container = document.getElementById('canvas3dContainer');
+      const canvas = document.getElementById('threeCanvas');
+      const overlay = document.getElementById('game3dOverlay');
+      if (!container || !canvas || typeof THREE === 'undefined') return;
+
+      if (overlay) overlay.classList.add('hidden');
+      if (animId3d) cancelAnimationFrame(animId3d);
+
+      collectedCount3d = 0;
+      floatingElements = [];
+      collectibleItems = [];
+      update3DStatus();
+
+      const width = container.clientWidth || 600;
+      const height = container.clientHeight || 460;
+
+      scene3d = new THREE.Scene();
+      scene3d.background = new THREE.Color(0x1e1b18);
+      scene3d.fog = new THREE.FogExp2(0x33261d, 0.035);
+
+      camera3d = new THREE.PerspectiveCamera(55, width / height, 0.1, 100);
+      camera3d.position.set(0, 3.5, 9);
+      camera3d.lookAt(0, 1.2, 0);
+
+      if (!renderer3d) {
+        renderer3d = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer3d.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      }
+      renderer3d.setSize(width, height);
+
+      const ambientLight = new THREE.AmbientLight(0xffeedd, 0.9);
+      scene3d.add(ambientLight);
+      const sunLight = new THREE.DirectionalLight(0xffb74d, 1.2);
+      sunLight.position.set(10, 15, 10);
+      scene3d.add(sunLight);
+
+      const groundGeo = new THREE.PlaneGeometry(50, 50, 24, 24);
+      const groundMat = new THREE.MeshLambertMaterial({ color: 0x4a2c11 });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -1;
+      scene3d.add(ground);
+
+      for (let i = 0; i < 9; i++) {
+        const stepGeo = new THREE.BoxGeometry(6 - i * 0.35, 0.4, 2);
+        const stepMat = new THREE.MeshLambertMaterial({ color: i % 2 === 0 ? 0x6e4722 : 0x7a5028 });
+        const step = new THREE.Mesh(stepGeo, stepMat);
+        step.position.set(0, -0.8 + i * 0.35, 5 - i * 1.8);
+        scene3d.add(step);
+      }
+
+      const shieldGeo = new THREE.SphereGeometry(2.2, 24, 24);
+      const shieldMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true, transparent: true, opacity: 0.18 });
+      shieldMesh = new THREE.Mesh(shieldGeo, shieldMat);
+      shieldMesh.position.set(0, 1.2, 0);
+      scene3d.add(shieldMesh);
+
+      const itemsConfig = [
+        { type: 'zhuyu', x: -3.2, y: 1.0, z: 2.5, id: 1 },
+        { type: 'zhuyu', x: 2.8, y: 1.8, z: 0.2, id: 2 },
+        { type: 'zhuyu', x: -2.0, y: 2.6, z: -2.5, id: 3 },
+        { type: 'chrysanthemum', x: 3.2, y: 1.0, z: 2.8, id: 4 },
+        { type: 'chrysanthemum', x: -2.8, y: 1.9, z: 0.0, id: 5 },
+        { type: 'chrysanthemum', x: 2.2, y: 2.7, z: -2.8, id: 6 }
+      ];
+
+      itemsConfig.forEach(cfg => {
+        const group = cfg.type === 'zhuyu' ? createZhuyuClusterMesh() : createChrysanthemumMesh();
+        group.position.set(cfg.x, cfg.y, cfg.z);
+        group.userData = {
+          id: cfg.id,
+          type: cfg.type,
+          collected: false,
+          initialY: cfg.y
+        };
+        scene3d.add(group);
+        floatingElements.push(group);
+        collectibleItems.push(group);
+      });
+
+      initMouseDragControls(canvas);
+      initClickRaycaster(canvas);
+
+      is3DRunning = true;
+      animate3D();
+    }
+
+    function createZhuyuClusterMesh() {
+      const group = new THREE.Group();
+      const berryGeo = new THREE.SphereGeometry(0.24, 16, 16);
+      const berryMat = new THREE.MeshLambertMaterial({ color: 0xd91b42, emissive: 0x4a0011 });
+
+      const offsets = [
+        { x: -0.16, y: 0, z: 0.1 },
+        { x: 0.16, y: 0.08, z: 0.05 },
+        { x: 0, y: 0.22, z: -0.1 }
+      ];
+      offsets.forEach(pos => {
+        const b = new THREE.Mesh(berryGeo, berryMat);
+        b.position.set(pos.x, pos.y, pos.z);
+        group.add(b);
+      });
+
+      const leafGeo = new THREE.ConeGeometry(0.18, 0.5, 5);
+      const leafMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+      const leaf = new THREE.Mesh(leafGeo, leafMat);
+      leaf.rotation.z = Math.PI / 4;
+      leaf.position.set(-0.25, 0.15, 0);
+      group.add(leaf);
+
+      return group;
+    }
+
+    function createChrysanthemumMesh() {
+      const group = new THREE.Group();
+      const centerGeo = new THREE.SphereGeometry(0.22, 16, 16);
+      const centerMat = new THREE.MeshLambertMaterial({ color: 0xf59e0b, emissive: 0x78350f });
+      const center = new THREE.Mesh(centerGeo, centerMat);
+      group.add(center);
+
+      const petalGeo = new THREE.ConeGeometry(0.1, 0.45, 6);
+      const petalMat = new THREE.MeshLambertMaterial({ color: 0xfde047 });
+      for (let i = 0; i < 8; i++) {
+        const petal = new THREE.Mesh(petalGeo, petalMat);
+        const ang = (i / 8) * Math.PI * 2;
+        petal.position.set(Math.cos(ang) * 0.32, Math.sin(ang) * 0.32, 0);
+        petal.rotation.z = ang - Math.PI / 2;
+        group.add(petal);
+      }
+      return group;
+    }
+
+    function initKiteGame() {
+      const container = document.getElementById('canvas3dContainer');
+      const canvas = document.getElementById('threeCanvas');
+      const overlay = document.getElementById('game3dOverlay');
+      const hint = document.getElementById('kiteControlHint');
+      if (!container || !canvas || typeof THREE === 'undefined') return;
+
+      if (overlay) overlay.classList.add('hidden');
+      if (hint) hint.classList.remove('hidden');
+      if (animId3d) cancelAnimationFrame(animId3d);
+
+      kiteAltitude = 25;
+      kiteAngle = 28;
+      collectedKiteOrbs = 0;
+      kiteOrbs = [];
+      kiteMouseX = 0;
+      kiteMouseY = 0;
+      updateKiteHud();
+
+      const width = container.clientWidth || 600;
+      const height = container.clientHeight || 460;
+
+      scene3d = new THREE.Scene();
+      scene3d.background = new THREE.Color(0x38bdf8);
+      scene3d.fog = new THREE.FogExp2(0xbae6fd, 0.008);
+
+      camera3d = new THREE.PerspectiveCamera(55, width / height, 0.1, 150);
+      camera3d.position.set(0, 5, 18);
+      camera3d.lookAt(0, 5, 0);
+
+      if (!renderer3d) {
+        renderer3d = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer3d.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      }
+      renderer3d.setSize(width, height);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+      scene3d.add(ambientLight);
+      const dirLight = new THREE.DirectionalLight(0xffedd5, 1.2);
+      dirLight.position.set(15, 25, 10);
+      scene3d.add(dirLight);
+
+      const landGeo = new THREE.PlaneGeometry(100, 100, 16, 16);
+      const landMat = new THREE.MeshLambertMaterial({ color: 0x65a30d });
+      const land = new THREE.Mesh(landGeo, landMat);
+      land.rotation.x = -Math.PI / 2;
+      land.position.y = -4;
+      scene3d.add(land);
+
+      kiteMesh = new THREE.Group();
+      const kiteShape = new THREE.Shape();
+      kiteShape.moveTo(0, 2.0);
+      kiteShape.lineTo(1.5, 0.3);
+      kiteShape.lineTo(0, -2.0);
+      kiteShape.lineTo(-1.5, 0.3);
+      kiteShape.closePath();
+
+      const shapeGeo = new THREE.ShapeGeometry(kiteShape);
+      const shapeMat = new THREE.MeshLambertMaterial({ color: 0xea580c, side: THREE.DoubleSide });
+      const kiteFace = new THREE.Mesh(shapeGeo, shapeMat);
+      kiteMesh.add(kiteFace);
+
+      const borderGeo = new THREE.RingGeometry(0.5, 0.8, 4);
+      const borderMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide });
+      const borderMesh = new THREE.Mesh(borderGeo, borderMat);
+      borderMesh.position.z = 0.02;
+      kiteMesh.add(borderMesh);
+
+      const tailGeo = new THREE.CylinderGeometry(0.06, 0.06, 3.5, 6);
+      const tailMat = new THREE.MeshLambertMaterial({ color: 0xb91c1c });
+      const tail = new THREE.Mesh(tailGeo, tailMat);
+      tail.position.set(0, -3.2, 0);
+      kiteMesh.add(tail);
+
+      kiteMesh.position.set(0, 4, 2);
+      scene3d.add(kiteMesh);
+
+      const lineGeo = new THREE.BufferGeometry();
+      const linePositions = new Float32Array([0, -3, 14, 0, 4, 2]);
+      lineGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+      const lineMat = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 });
+      kiteLine = new THREE.Line(lineGeo, lineMat);
+      scene3d.add(kiteLine);
+
+      const orbsConfig = [
+        { label: '長壽久久', x: -5.0, y: 3.5, z: 2.0, color: 0xef4444, tag: '🔴 長壽久久' },
+        { label: '步步高升', x: 5.0, y: 6.0, z: 2.0, color: 0xf59e0b, tag: '🟡 步步高升' },
+        { label: '避邪安康', x: 0.0, y: 8.0, z: 2.0, color: 0x8b5cf6, tag: '🟣 避邪安康' }
+      ];
+
+      orbsConfig.forEach(cfg => {
+        const group = new THREE.Group();
+
+        const orbGeo = new THREE.SphereGeometry(1.2, 24, 24);
+        const orbMat = new THREE.MeshLambertMaterial({ 
+          color: cfg.color, 
+          emissive: cfg.color, 
+          emissiveIntensity: 0.45 
+        });
+        const orbMesh = new THREE.Mesh(orbGeo, orbMat);
+        group.add(orbMesh);
+
+        const glowGeo = new THREE.RingGeometry(1.4, 1.8, 24);
+        const glowMat = new THREE.MeshBasicMaterial({ 
+          color: cfg.color, 
+          side: THREE.DoubleSide, 
+          transparent: true, 
+          opacity: 0.45 
+        });
+        const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+        group.add(glowMesh);
+
+        const stringGeo = new THREE.CylinderGeometry(0.03, 0.03, 2, 6);
+        const stringMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const stringMesh = new THREE.Mesh(stringGeo, stringMat);
+        stringMesh.position.y = -1.8;
+        group.add(stringMesh);
+
+        group.position.set(cfg.x, cfg.y, cfg.z);
+        group.userData = { 
+          label: cfg.label, 
+          collected: false,
+          baseY: cfg.y,
+          colorHex: cfg.color
+        };
+        scene3d.add(group);
+        kiteOrbs.push(group);
+      });
+
+      initKiteControls(canvas);
+
+      is3DRunning = true;
+      animate3D();
+    }
+
+    function updateKiteHud() {
+      const altEl = document.getElementById('kiteAltitudeDisplay');
+      const windEl = document.getElementById('kiteWindDisplay');
+      const angleEl = document.getElementById('kiteAngleDisplay');
+      const orbEl = document.getElementById('kiteOrbScore');
+
+      const currentH = Math.min(100, Math.round(kiteAltitude));
+      if (altEl) altEl.textContent = `${currentH} 公尺 (${collectedKiteOrbs >= 3 ? '收集完成・翱翔百米' : currentH >= 60 ? '乘風爬升' : '迎風巡航'})`;
+      if (windEl) windEl.textContent = `${kiteWindSpeed.toFixed(1)} m/s (4級穩定季風)`;
+      if (angleEl) {
+        if (collectedKiteOrbs < 3) {
+          angleEl.innerHTML = `<span class="text-amber-700">移動風箏去碰觸剩餘 ${3 - collectedKiteOrbs} 顆氣球！</span>`;
+        } else {
+          angleEl.innerHTML = `<span class="text-emerald-700 font-bold">✨ 全部氣球收集完成！即將大成功！</span>`;
+        }
+      }
+      if (orbEl) orbEl.innerHTML = `<span class="text-purple-900 font-black text-base">${collectedKiteOrbs} / 3</span>`;
+    }
+
+    function initKiteControls(canvas) {
+      canvas.onmousemove = (e) => {
+        if (current3DStage !== 2) return;
+        const rect = canvas.getBoundingClientRect();
+        kiteMouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        kiteMouseY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      };
+
+      canvas.ontouchmove = (e) => {
+        if (current3DStage !== 2 || e.touches.length !== 1) return;
+        const rect = canvas.getBoundingClientRect();
+        kiteMouseX = ((e.touches[0].clientX - rect.left) / rect.width) * 2 - 1;
+        kiteMouseY = -(((e.touches[0].clientY - rect.top) / rect.height) * 2 - 1);
+      };
+    }
+
+    function initMouseDragControls(canvas) {
+      let isDragging = false;
+      let prevMouseX = 0;
+      let prevMouseY = 0;
+
+      canvas.onmousedown = (e) => {
+        if (current3DStage !== 1) return;
+        isDragging = true;
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+      };
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      canvas.onmousemove = (e) => {
+        if (current3DStage !== 1 || !isDragging || !camera3d) return;
+        const deltaX = e.clientX - prevMouseX;
+        const deltaY = e.clientY - prevMouseY;
+        prevMouseX = e.clientX;
+        prevMouseY = e.clientY;
+
+        camera3d.position.x = Math.max(-6, Math.min(6, camera3d.position.x - deltaX * 0.02));
+        camera3d.position.y = Math.max(1.8, Math.min(6, camera3d.position.y + deltaY * 0.02));
+        camera3d.lookAt(0, 1.2, 0);
+      };
+
+      canvas.ontouchstart = (e) => {
+        if (current3DStage !== 1 || e.touches.length !== 1) return;
+        isDragging = true;
+        prevMouseX = e.touches[0].clientX;
+        prevMouseY = e.touches[0].clientY;
+      };
+
+      canvas.ontouchend = () => {
+        isDragging = false;
+      };
+
+      canvas.ontouchmove = (e) => {
+        if (current3DStage !== 1 || !isDragging || e.touches.length !== 1 || !camera3d) return;
+        const deltaX = e.touches[0].clientX - prevMouseX;
+        const deltaY = e.touches[0].clientY - prevMouseY;
+        prevMouseX = e.touches[0].clientX;
+        prevMouseY = e.touches[0].clientY;
+
+        camera3d.position.x = Math.max(-6, Math.min(6, camera3d.position.x - deltaX * 0.02));
+        camera3d.position.y = Math.max(1.8, Math.min(6, camera3d.position.y + deltaY * 0.02));
+        camera3d.lookAt(0, 1.2, 0);
+      };
+    }
+
+    function initClickRaycaster(canvas) {
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+
+      canvas.onclick = (e) => {
+        if (current3DStage !== 1 || !camera3d || !scene3d) return;
+        const rect = canvas.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera3d);
+        const uncollected = collectibleItems.filter(item => !item.userData.collected);
+        const intersects = raycaster.intersectObjects(uncollected, true);
+
+        if (intersects.length > 0) {
+          let rootGroup = intersects[0].object;
+          while (rootGroup.parent && rootGroup.parent !== scene3d) {
+            rootGroup = rootGroup.parent;
+          }
+          if (rootGroup.userData && !rootGroup.userData.collected) {
+            handleHerbCollection(rootGroup);
+          }
+        }
+      };
+    }
+
+    function handleHerbCollection(itemGroup) {
+      itemGroup.userData.collected = true;
+      collectedCount3d++;
+
+      const startScale = itemGroup.scale.x;
+      let step = 0;
+      const animInterval = setInterval(() => {
+        step++;
+        const s = Math.max(0, startScale * (1 - step / 10));
+        itemGroup.scale.set(s, s, s);
+        if (step >= 10) {
+          clearInterval(animInterval);
+          scene3d.remove(itemGroup);
+        }
+      }, 25);
+
+      if (shieldMesh) {
+        shieldMesh.material.opacity = Math.min(0.7, 0.18 + (collectedCount3d * 0.08));
+      }
+
+      const lvl = altitudeLevels[Math.min(collectedCount3d, altitudeLevels.length - 1)];
+      if (scene3d.fog) {
+        scene3d.fog.density = lvl.fogDensity;
+        scene3d.fog.color.setHex(lvl.fogColor);
+      }
+      scene3d.background.setHex(lvl.skyColor);
+
+      update3DStatus();
+      showSciencePopup(itemGroup.userData.type);
+
+      if (collectedCount3d >= 6) {
+        setTimeout(() => {
+          triggerSynthesisCelebration();
+          saveStudentProgress({ sortStatus: '3D避疫草本通關(6/6)' });
+        }, 800);
+      }
+    }
+
+    function showSciencePopup(type) {
+      const popup = document.getElementById('scienceInfoPopup');
+      const icon = document.getElementById('sciencePopupIcon');
+      const title = document.getElementById('sciencePopupTitle');
+      const tag = document.getElementById('sciencePopupTag');
+      const desc = document.getElementById('sciencePopupDesc');
+      const principle = document.getElementById('sciencePopupPrinciple');
+
+      if (!popup) return;
+
+      if (type === 'zhuyu') {
+        icon.textContent = '🔴';
+        title.textContent = '解鎖：茱萸外用防蟲護罩';
+        tag.textContent = '天然驅蚊・抑菌';
+        tag.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-900';
+        desc.textContent = '古人隨身佩戴茱萸布囊，人體體溫加速了精油揮發。天然辛香氣味能在身體周遭形成一道隱形防線！';
+        principle.textContent = '💡 科學原理：含萜類化合物（桉油精、羅勒烯），具天然忌避病媒蚊與抑菌活性。';
+      } else {
+        icon.textContent = '🟡';
+        title.textContent = '解鎖：金菊內在潤燥抗氧化';
+        tag.textContent = '清熱潤肺・修復';
+        tag.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900';
+        desc.textContent = '秋季氣候乾燥易引發呼吸道燥咳。古人飲菊花酒、泡菊花茶，內在調理、舒緩秋燥症狀。';
+        principle.textContent = '💡 科學原理：富含類黃酮、綠原酸多酚抗氧化物，能抗發炎、清除自由基保護呼吸道。';
+      }
+
+      popup.classList.remove('opacity-0', 'translate-y-24', 'pointer-events-none');
+      clearTimeout(popupTimer);
+      popupTimer = setTimeout(() => {
+        popup.classList.add('opacity-0', 'translate-y-24', 'pointer-events-none');
+      }, 4200);
+    }
+
+    function update3DStatus() {
+      const scoreEl = document.getElementById('game3dScore');
+      if (scoreEl) scoreEl.textContent = `${collectedCount3d} / 6`;
+
+      const powerEl = document.getElementById('shieldPowerDisplay');
+      const powerPercent = Math.round((collectedCount3d / 6) * 100);
+      if (powerEl) {
+        powerEl.textContent = `${powerPercent}% (${powerPercent >= 100 ? '金鐘罩全開' : powerPercent >= 50 ? '中度防護' : '初期啟動'})`;
+        powerEl.className = powerPercent >= 100 ? 'font-black text-emerald-600 text-sm animate-pulse' : 'font-black text-amber-700 text-sm';
+      }
+
+      const altEl = document.getElementById('altitudeDisplay');
+      const lvl = altitudeLevels[Math.min(collectedCount3d, altitudeLevels.length - 1)];
+      if (altEl) altEl.textContent = lvl.label;
+    }
+
+    function triggerSynthesisCelebration() {
+      const overlay = document.getElementById('game3dOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('hidden');
+      overlay.innerHTML = `
+        <div class="bg-amber-950/95 border-3 border-amber-400 p-6 md:p-8 rounded-3xl max-w-lg shadow-2xl text-center space-y-4 backdrop-blur-md">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-emerald-400 text-3xl shadow-lg border-2 border-white">
+            🛡️
+          </div>
+          <h3 class="text-2xl font-black text-amber-300">🎉 恭喜合成【雙效重陽避疫守護囊】！</h3>
+          
+          <div class="bg-amber-900/60 p-4 rounded-2xl border border-amber-400/40 text-left text-xs md:text-sm text-amber-100 space-y-2 leading-relaxed">
+            <p><strong>⛰️ 空間隔離智慧：</strong>你已成功隨桓景登上海拔 920 公尺高山，擺脫了山腳潮濕滋生蚊蠅與疫病的低窪環境。</p>
+            <p><strong>🔴 外用茱萸精油：</strong>3 組茱萸已釋放辛香萜類揮發油，在體表形成天然防蚊忌避罩。</p>
+            <p><strong>🟡 內服菊花多酚：</strong>3 組金菊提供豐富類黃酮抗氧化物，潤燥舒緩、修復秋季心肺機能。</p>
+          </div>
+
+          <div class="pt-2 flex flex-wrap justify-center gap-3">
+            <button onclick="init3DGame()" class="px-4 py-2.5 bg-amber-800 hover:bg-amber-700 text-amber-100 font-bold text-xs rounded-xl transition">
+              🔄 重新登高探索
+            </button>
+            <button onclick="switch3DStage(2)" class="px-6 py-2.5 bg-gradient-to-r from-sky-500 to-cyan-600 hover:from-sky-400 hover:to-cyan-500 text-slate-950 font-black text-sm rounded-xl shadow-lg transition transform hover:scale-105">
+              前往關卡 2：東北季風放風箏 ➔
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function triggerKiteCelebration() {
+      const overlay = document.getElementById('game3dOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('hidden');
+      overlay.innerHTML = `
+        <div class="bg-sky-950/95 border-3 border-sky-400 p-6 md:p-8 rounded-3xl max-w-lg shadow-2xl text-center space-y-4 backdrop-blur-md">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-tr from-sky-400 to-amber-400 text-3xl shadow-lg border-2 border-white">
+            🪁
+          </div>
+          <h3 class="text-2xl font-black text-sky-300">🎉 風吹滿天哮！成功登上百米高空！</h3>
+          
+          <div class="bg-sky-900/60 p-4 rounded-2xl border border-sky-400/40 text-left text-xs md:text-sm text-sky-100 space-y-2 leading-relaxed">
+            <p><strong>🌬️ 東北季風空氣動力學：</strong>你已成功掌握 20°～35° 的最佳迎風仰角（AOA），讓穩定季風產生強大升力克服空氣阻力！</p>
+            <p><strong>🏮 臺灣秋日祈福習俗：</strong>集齊了【長壽久久】、【步步高升】與【避邪安康】三顆祝福氣球，傳統「放風吹避災」的民俗智慧已完全解鎖！</p>
+          </div>
+
+          <div class="pt-2 flex flex-wrap justify-center gap-3">
+            <button onclick="resetKiteGame()" class="px-4 py-2.5 bg-sky-800 hover:bg-sky-700 text-sky-100 font-bold text-xs rounded-xl transition">
+              🔄 再次挑戰飛行
+            </button>
+            <button onclick="switchTab('quiz')" class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm rounded-xl shadow-lg transition transform hover:scale-105">
+              帶著雙關卡智慧・前往五題挑戰 ➔
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function animate3D() {
+      if (!is3DRunning) return;
+      animId3d = requestAnimationFrame(animate3D);
+
+      const time = Date.now() * 0.0025;
+
+      if (current3DStage === 1) {
+        floatingElements.forEach(item => {
+          if (!item.userData.collected) {
+            item.rotation.y += 0.02;
+            item.rotation.z = Math.sin(time + item.userData.id) * 0.08;
+            item.position.y = item.userData.initialY + Math.sin(time * 1.5 + item.userData.id) * 0.15;
+          }
+        });
+
+        if (shieldMesh) {
+          shieldMesh.rotation.y += 0.01;
+          shieldMesh.rotation.x = Math.sin(time * 0.5) * 0.1;
+        }
+      } else if (current3DStage === 2) {
+        kiteWindSpeed = 7.0 + Math.sin(time * 1.5) * 1.2;
+
+        const targetX = kiteMouseX * 8.5;
+        const targetY = 5.0 + (kiteMouseY * 4.2);
+
+        if (kiteMesh) {
+          kiteMesh.position.x += (targetX - kiteMesh.position.x) * 0.12;
+          kiteMesh.position.y += (targetY - kiteMesh.position.y) * 0.12;
+
+          kiteMesh.rotation.z = -kiteMouseX * 0.5 + Math.sin(time * 5) * 0.08;
+          kiteMesh.rotation.x = 0.25 - (kiteMouseY * 0.25) + Math.cos(time * 4) * 0.05;
+          kiteMesh.rotation.y = Math.sin(time * 2) * 0.08;
+
+          kiteAltitude = 20 + ((kiteMesh.position.y - 0.8) / 8.4) * 80 + (collectedKiteOrbs * 10);
+          updateKiteHud();
+
+          if (kiteLine) {
+            const positions = kiteLine.geometry.attributes.position.array;
+            positions[0] = 0;
+            positions[1] = -3.5;
+            positions[2] = 14;
+            positions[3] = kiteMesh.position.x;
+            positions[4] = kiteMesh.position.y - 0.2;
+            positions[5] = kiteMesh.position.z;
+            kiteLine.geometry.attributes.position.needsUpdate = true;
+          }
+
+          kiteOrbs.forEach(orbGroup => {
+            if (!orbGroup.userData.collected) {
+              orbGroup.rotation.y += 0.025;
+              orbGroup.position.y = orbGroup.userData.baseY + Math.sin(time * 2.5 + orbGroup.userData.baseY) * 0.4;
+
+              const dx = kiteMesh.position.x - orbGroup.position.x;
+              const dy = kiteMesh.position.y - orbGroup.position.y;
+              const dist2D = Math.sqrt(dx * dx + dy * dy);
+              const dist3D = kiteMesh.position.distanceTo(orbGroup.position);
+
+              if (dist2D < 2.5 || dist3D < 3.0) {
+                orbGroup.userData.collected = true;
+
+                const startScale = orbGroup.scale.x;
+                let step = 0;
+                const popInterval = setInterval(() => {
+                  step++;
+                  const s = startScale * (1 + step * 0.15);
+                  orbGroup.scale.set(s, s, s);
+                  if (step >= 6) {
+                    clearInterval(popInterval);
+                    scene3d.remove(orbGroup);
+                  }
+                }, 20);
+
+                collectedKiteOrbs++;
+                showToast(`🎉 成功捕捉到祝福氣球【${orbGroup.userData.label}】！(${collectedKiteOrbs}/3)`);
+                updateKiteHud();
+
+                if (collectedKiteOrbs >= 3) {
+                  kiteAltitude = 100;
+                  updateKiteHud();
+                  setTimeout(() => {
+                    is3DRunning = false;
+                    triggerKiteCelebration();
+                    saveStudentProgress({ sortStatus: '3D避疫+風箏雙通關' });
+                  }, 600);
+                }
+              }
+            }
+          });
+        }
+      }
+
+      if (camera3d && scene3d && renderer3d) {
+        renderer3d.render(scene3d, camera3d);
+      }
+    }
+
+    function onWindowResize3D() {
+      const container = document.getElementById('canvas3dContainer');
+      if (!container || !renderer3d || !camera3d) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      if (width > 0 && height > 0) {
+        camera3d.aspect = width / height;
+        camera3d.updateProjectionMatrix();
+        renderer3d.setSize(width, height);
+      }
+    }
+
+    function reset3DGame() {
+      if (animId3d) cancelAnimationFrame(animId3d);
+      if (current3DStage === 1) {
+        init3DGame();
+      } else {
+        initKiteGame();
+      }
+    }
+
+    function resetKiteGame() {
+      if (animId3d) cancelAnimationFrame(animId3d);
+      is3DRunning = false;
+      const overlay = document.getElementById('game3dOverlay');
+      if (overlay) overlay.classList.add('hidden');
+      initKiteGame();
+    }
+
+    function triggerCustomColorPicker() {
+      const picker = document.getElementById('customBgColorInput');
+      if (picker) {
+        setBgTheme('custom', picker.value, true);
+        picker.click();
+      }
+    }
+
+    function applyCustomBgColor(hexVal) {
+      setBgTheme('custom', hexVal, true);
+    }
+
+    function loadSavedBgTheme() {
+      try {
+        const raw = localStorage.getItem(BG_THEME_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (saved.mode === 'dopamine') {
+          setBgTheme('dopamine', typeof saved.paletteIndex === 'number' ? saved.paletteIndex : undefined, true);
+        } else if (saved.mode === 'custom' && saved.color) {
+          document.getElementById('customBgColorInput').value = saved.color;
+          setBgTheme('custom', saved.color, true);
+        } else {
+          setBgTheme('original', null, true);
+        }
+      } catch (e) {
+        setBgTheme('original', null, true);
+      }
+    }
+
+    // ==================== 1. 六頁原創漫畫資料 ====================
+    const comicPages = [
+      {
+        page: 1,
+        badge: '第 1 頁｜時光警報：雙九重疊的秋日密碼',
+        title: '為什麼九月初九叫做「重陽節」？',
+        sceneDesc: '秋日午後的國小教室，阿哲與小晴桌上的數位時光羅盤突然發出金光，投射出《易經》「九為陽數、兩九相重」的立體圖騰。',
+        dialogues: [
+          { speaker: '阿哲', text: '咦？時光羅盤亮起來了！上面浮現兩個大大的「九」字！' },
+          { speaker: '小晴', text: '今天是農曆九月初九！古人在《易經》裡把「六」定為陰數、「九」定為最大的陽數。九月九日是「日月並陽、兩九相重」，所以稱為「重九」或「重陽」！' },
+          { speaker: '時光精靈', text: '叮咚！時光任務啟動——請穿越東漢與現代臺灣，找出傳說與科學的真相！' }
+        ],
+        knowledge: '《易經》以「九」為陽數之極。農曆九月九日兩個陽數重疊，故名「重陽」；又因「九九」諧音「久久」，寓意長長久久。',
+        svg: `<svg viewBox="0 0 400 250" class="w-full h-auto max-h-60">
+          <rect width="400" height="250" rx="16" fill="#fef3c7"/>
+          <circle cx="200" cy="125" r="85" fill="#fde68a" stroke="#d97706" stroke-width="4" stroke-dasharray="8 4"/>
+          <circle cx="200" cy="125" r="60" fill="#b45309"/>
+          <text x="200" y="142" text-anchor="middle" fill="#fffbeb" font-size="52" font-weight="900">九九</text>
+          <rect x="25" y="25" width="95" height="42" rx="8" fill="#92400e"/>
+          <text x="72" y="51" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="bold">農曆九月初九</text>
+          <rect x="270" y="185" width="110" height="42" rx="8" fill="#065f46"/>
+          <text x="325" y="211" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">《易經》九為陽數</text>
+        </svg>`
+      },
+      {
+        page: 2,
+        badge: '第 2 頁｜東漢奇遇：桓景登高避瘟魔',
+        title: '手臂綁茱萸、登高山、飲菊花酒的傳說',
+        sceneDesc: '穿越回東漢時期，秋風吹拂山林。桓景牢記師父費長房的叮嚀，帶領家人手臂繫著裝滿紫紅茱萸果實的紅布囊，登上高山飲菊花酒。',
+        dialogues: [
+          { speaker: '桓景', text: '師父費長房警告我，九月九日家鄉會有大瘟疫！大家快把裝了「茱萸」的紅布囊綁在手臂上，跟我爬上山頂喝菊花酒！' },
+          { speaker: '阿哲', text: '原來這就是南朝《續齊諧記》記載的「桓景避瘟疫」傳說！' },
+          { speaker: '小晴', text: '傳說傍晚他們下山時，家裡的雞犬牛羊代替人們承受了災厄，村民因此平安度過一劫，從此演變成重陽登高插茱萸的習俗！' }
+        ],
+        knowledge: '重陽節傳統三大習俗「登高、佩茱萸、飲菊花酒」，典故出自南朝梁吳均《續齊諧記》中東漢桓景隨費長房學道避疫的傳說。',
+        svg: `<svg viewBox="0 0 400 250" class="w-full h-auto max-h-60">
+          <rect width="400" height="250" rx="16" fill="#ffedd5"/>
+          <polygon points="40,230 190,55 340,230" fill="#d97706" opacity="0.85"/>
+          <polygon points="150,230 280,85 385,230" fill="#92400e"/>
+          <circle cx="80" cy="65" r="28" fill="#fbbf24"/>
+          <rect x="145" y="30" width="130" height="36" rx="10" fill="#991b1b"/>
+          <text x="210" y="53" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">佩茱萸囊・登高山</text>
+          <path d="M0,220 Q200,190 400,225 L400,250 L0,250 Z" fill="#5b21b6" opacity="0.35"/>
+          <text x="200" y="242" text-anchor="middle" fill="#4c1d95" font-size="12" font-weight="bold">山腳下的瘟疫迷霧（古人對傳染病的想像）</text>
+        </svg>`
+      },
+      {
+        page: 3,
+        badge: '第 3 頁｜時光實驗室：傳說背後的科學真相',
+        title: '瘟魔是傳說，植物驅蟲與運動防疫才是科學！',
+        sceneDesc: '回到現代自然科學實驗室，顯微鏡與氣象圖清楚展示出秋季溫差、茱萸與艾草的揮發性精油成分，以及菊花的保健價值。',
+        dialogues: [
+          { speaker: '小晴', text: '我們用科學眼光來檢視：農曆九月正值「寒露」到「霜降」節氣，冷熱交替溫差大，本來就容易流行感冒與傳染病！' },
+          { speaker: '阿哲', text: '而且茱萸、艾草、丁香含有濃郁的天然揮發油（萜類成分），是真的能驅蚊防蟲、抗菌除濕；菊花則富含類黃酮，泡茶能潤燥舒緩！' },
+          { speaker: '時光精靈', text: '完全正確！「瘟魔」是古人對疫病的想像，但「秋季登高有氧運動」與「草本植物防疫」則是經過驗證的科學智慧！' }
+        ],
+        knowledge: '區分重點：配戴香囊就能嚇跑鬼怪是「傳說」；植物精油驅避病媒蚊、秋高氣爽健行增強心肺免疫力則是「科學事實」。',
+        svg: `<svg viewBox="0 0 400 250" class="w-full h-auto max-h-60">
+          <rect width="400" height="250" rx="16" fill="#ecfdf5"/>
+          <rect x="25" y="30" width="165" height="190" rx="12" fill="#ffffff" stroke="#059669" stroke-width="3"/>
+          <text x="107" y="60" text-anchor="middle" fill="#065f46" font-size="15" font-weight="bold">🌿 草本植物科學</text>
+          <circle cx="107" cy="115" r="35" fill="#d1fae5"/>
+          <text x="107" y="120" text-anchor="middle" fill="#047857" font-size="12" font-weight="bold">揮發油驅蚊抗菌</text>
+          <text x="107" y="185" text-anchor="middle" fill="#065f46" font-size="12">茱萸 / 艾草 / 菊花</text>
+          <rect x="210" y="30" width="165" height="190" rx="12" fill="#ffffff" stroke="#d97706" stroke-width="3"/>
+          <text x="292" y="60" text-anchor="middle" fill="#92400e" font-size="15" font-weight="bold">🏃 秋季運動醫學</text>
+          <circle cx="292" cy="115" r="35" fill="#fef3c7"/>
+          <text x="292" y="120" text-anchor="middle" fill="#b45309" font-size="12" font-weight="bold">登高提升免疫力</text>
+          <text x="292" y="185" text-anchor="middle" fill="#92400e" font-size="12">應對寒露霜降溫差</text>
+        </svg>`
+      },
+      {
+        page: 4,
+        badge: '第 4 頁｜臺灣重陽風景：風吹滿天哮與重陽糕',
+        title: '東北季風放風箏，吃「重陽糕」步步高升',
+        sceneDesc: '來到臺灣秋季的河濱公園與傳統糕餅店，天空飛滿色彩繽紛的風箏，桌上擺著插有五色小三角旗的千層重陽糕。',
+        dialogues: [
+          { speaker: '阿哲', text: '你看天空好多風箏！阿公常唸臺灣俗諺「九月九，風吹滿天哮」，原來臺語的「風吹（hong-tshue）」就是風箏！' },
+          { speaker: '小晴', text: '從地球科學來看，農曆九月臺灣開始盛行強勁穩定的「東北季風」，風力條件最適合放風箏！' },
+          { speaker: '阿哲', text: '而且住在平原的人不一定能爬高山，就會吃諧音「高」的「重陽糕」（花糕），上面插五色旗代替茱萸，代表步步高升！' }
+        ],
+        knowledge: '臺灣重陽節兩大在地特色：一是順應秋季東北季風的「放風箏（風吹）」，二是以吃「重陽糕」借諧音祈求高壽與步步高升。',
+        svg: `<svg viewBox="0 0 400 250" class="w-full h-auto max-h-60">
+          <rect width="400" height="250" rx="16" fill="#e0f2fe"/>
+          <polygon points="110,45 155,80 110,125 65,80" fill="#f59e0b" stroke="#92400e" stroke-width="3"/>
+          <path d="M110,125 Q140,170 95,210" stroke="#92400e" stroke-width="3" fill="none"/>
+          <rect x="215" y="110" width="150" height="90" rx="10" fill="#fef3c7" stroke="#b45309" stroke-width="3"/>
+          <polygon points="290,55 335,75 290,90" fill="#ef4444"/>
+          <line x1="290" y1="55" x2="290" y2="110" stroke="#78350f" stroke-width="3"/>
+          <text x="290" y="160" text-anchor="middle" fill="#92400e" font-size="16" font-weight="900">重陽糕 (步步高升)</text>
+          <text x="110" y="30" text-anchor="middle" fill="#0369a1" font-size="13" font-weight="bold">九月九，風吹滿天哮</text>
+        </svg>`
+      },
+      {
+        page: 5,
+        badge: '第 5 頁｜久久長長的溫暖：現代臺灣的敬老行動',
+        title: '奉上一杯菊花茶，傾聽與數位陪伴最貼心',
+        sceneDesc: '溫馨的臺灣家庭客廳，阿哲與小晴奉上溫熱菊花枸杞茶與親手做的防蚊香包給阿公阿嬤，並耐心教長輩用手機視訊與查公車。',
+        dialogues: [
+          { speaker: '阿嬤', text: '你們親手做的草本香包聞起來好舒服，這杯菊花茶也暖到心裡了！' },
+          { speaker: '小晴', text: '因為「九九」諧音「久久」，現代臺灣把重陽節定為敬老節日，政府還會致贈百歲人瑞金鎖片祝壽呢！' },
+          { speaker: '阿公', text: '禮物很棒，但你們願意坐下來聽阿公講過去的故事、教我們用手機，才是長輩最期待的重陽節禮物！' }
+        ],
+        knowledge: '面對高齡化社會，現代重陽節的核心價值在於「世代共融」：包含健康關懷、傾聽長輩生命故事、消除數位落差與營造無障礙友善環境。',
+        svg: `<svg viewBox="0 0 400 250" class="w-full h-auto max-h-60">
+          <rect width="400" height="250" rx="16" fill="#fff1f2"/>
+          <circle cx="135" cy="120" r="52" fill="#fde68a" stroke="#d97706" stroke-width="3"/>
+          <text x="135" y="126" text-anchor="middle" fill="#92400e" font-size="16" font-weight="900">手作草本香包</text>
+          <circle cx="265" cy="120" r="52" fill="#fecdd3" stroke="#e11d48" stroke-width="3"/>
+          <text x="265" y="126" text-anchor="middle" fill="#881337" font-size="16" font-weight="900">傾聽＆數位陪伴</text>
+          <rect x="95" y="190" width="210" height="36" rx="18" fill="#be123c"/>
+          <text x="200" y="213" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="bold">九九諧音「久久」・敬老尊賢</text>
+        </svg>`
+      },
+      {
+        page: 6,
+        badge: '第 6 頁｜任務完成：跨世代的時光守護者',
+        title: '用科學頭腦傳承文化，用溫暖行動陪伴家人',
+        sceneDesc: '阿哲、小晴與阿公阿嬤一起站在秋日山坡步道上微笑合照，時光羅盤顯示任務完成，準備迎接接下來的排序、問答與手作挑戰。',
+        dialogues: [
+          { speaker: '阿哲', text: '原來重陽節結合了《易經》陽數「九」、東漢避疫傳說、秋季植物防疫科學，還有臺灣放風箏與敬老習俗！' },
+          { speaker: '小晴', text: '我們已經把「傳說」與「科學」分得清清楚楚了！' },
+          { speaker: '時光精靈', text: '恭喜完成漫畫閱讀！現在請依序前往「時光排序挑戰」、「五題知識挑戰」、「主題活動」與「500字心得寫作」吧！' }
+        ],
+        knowledge: '學習總結：理解傳統節慶的由來 → 辨析傳說與科學原理 → 在生活中實踐手作與敬老行動。',
+        svg: `<svg viewBox="0 0 400 250" class="w-full h-auto max-h-60">
+          <rect width="400" height="250" rx="16" fill="#fef3c7"/>
+          <rect x="50" y="40" width="300" height="170" rx="20" fill="#ffffff" stroke="#b45309" stroke-width="4"/>
+          <text x="200" y="95" text-anchor="middle" fill="#b45309" font-size="22" font-weight="900">🎉 時光漫畫閱讀完成！</text>
+          <text x="200" y="135" text-anchor="middle" fill="#4b5563" font-size="14" font-weight="bold">傳說 ✕ 科學 ✕ 臺灣習俗 ✕ 敬老行動</text>
+          <rect x="115" y="155" width="170" height="34" rx="10" fill="#059669"/>
+          <text x="200" y="177" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="bold">準備開始後續挑戰任務</text>
+        </svg>`
+      }
+    ];
+
+    let currentComicIndex = 0;
+
+    function renderComicPage() {
+      const data = comicPages[currentComicIndex];
+      document.getElementById('comicPageIndicator').textContent = `第 ${data.page} / 6 頁`;
+      document.getElementById('comicBadge').textContent = data.badge;
+      document.getElementById('comicTitle').textContent = data.title;
+      document.getElementById('comicSceneDesc').textContent = data.sceneDesc;
+      document.getElementById('comicKnowledgeNote').textContent = data.knowledge;
+      document.getElementById('comicSvgContainer').innerHTML = data.svg;
+
+      const dialoguesHtml = data.dialogues.map(d => `
+        <div class="bg-white/95 p-3 rounded-xl border border-amber-300 shadow-sm text-xs md:text-sm">
+          <span class="font-black text-amber-800">${d.speaker}：</span>
+          <span class="text-gray-800">${d.text}</span>
+        </div>
+      `).join('');
+      document.getElementById('comicDialogues').innerHTML = dialoguesHtml;
+
+      document.getElementById('prevComicBtn').disabled = currentComicIndex === 0;
+      document.getElementById('nextComicBtn').textContent = currentComicIndex === 5 ? '前往排序挑戰 →' : '下一頁 →';
+
+      const dotsHtml = comicPages.map((_, idx) => `
+        <button onclick="jumpComicPage(${idx})" class="w-6 h-6 rounded-full text-xs font-bold transition ${idx === currentComicIndex ? 'bg-amber-800 text-white' : 'bg-amber-100 text-amber-900 hover:bg-amber-200'}">${idx + 1}</button>
+      `).join('');
+      document.getElementById('comicPageDots').innerHTML = dotsHtml;
+    }
+
+    function changeComicPage(delta) {
+      if (currentComicIndex === 5 && delta === 1) {
+        switchTab('sort');
+        return;
+      }
+      currentComicIndex = Math.max(0, Math.min(5, currentComicIndex + delta));
+      renderComicPage();
+    }
+
+    function jumpComicPage(idx) {
+      currentComicIndex = idx;
+      renderComicPage();
+    }
+
+    // ==================== 2. 排序活動資料與邏輯 ====================
+    const correctSortData = [
+      { id: 1, title: '啟動雙九密碼', desc: '認識《易經》「九為陽數」，農曆九月初九兩九相重稱為「重陽」，開啟時光羅盤。' },
+      { id: 2, title: '穿越東漢避疫傳說', desc: '見證《續齊諧記》中桓景聽從費長房指導，帶家人綁茱萸囊、登高山、飲菊花酒避瘟魔。' },
+      { id: 3, title: '科學實驗室解謎', desc: '解析秋季寒露至霜降溫差大，植物揮發油能驅蟲抗菌、登高有氧運動能提升免疫力。' },
+      { id: 4, title: '體驗臺灣重陽習俗', desc: '認識臺灣秋季東北季風「九月九，風吹滿天哮」放風箏習俗，以及吃重陽糕祝福步步高升。' },
+      { id: 5, title: '實踐九九敬老行動', desc: '體會「九九」諧音「久久」，返家奉上菊花茶與手作草本香包，傾聽長輩故事並進行數位陪伴。' },
+      { id: 6, title: '完成跨世代守護筆記', desc: '統整傳說與科學對照表，立志以科學頭腦傳承文化、以溫暖行動關懷長輩。' }
+    ];
+
+    let currentSortList = [];
+    let isSortPassed = false;
+
+    function shuffleSortItems() {
+      currentSortList = [...correctSortData].sort(() => Math.random() - 0.5);
+      if (currentSortList.every((item, i) => item.id === i + 1)) {
+        currentSortList.reverse();
+      }
+      document.getElementById('sortFeedbackBox').className = 'hidden';
+      renderSortList();
+    }
+
+    function renderSortList() {
+      const container = document.getElementById('sortListContainer');
+      container.innerHTML = currentSortList.map((item, idx) => `
+        <div class="flex items-center justify-between gap-3 p-4 rounded-xl bg-amber-50/70 border-2 border-amber-200 hover:border-amber-400 transition">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-amber-800 text-white font-black flex items-center justify-center text-sm shrink-0">
+              ${idx + 1}
+            </span>
+            <div>
+              <h4 class="font-black text-amber-950 text-sm md:text-base">${item.title}</h4>
+              <p class="text-xs md:text-sm text-gray-700">${item.desc}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button onclick="moveSortItem(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold text-xs hover:bg-amber-100 disabled:opacity-30">
+              ▲ 上移
+            </button>
+            <button onclick="moveSortItem(${idx}, 1)" ${idx === currentSortList.length - 1 ? 'disabled' : ''} class="px-2.5 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold text-xs hover:bg-amber-100 disabled:opacity-30">
+              ▼ 下移
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function moveSortItem(index, direction) {
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= currentSortList.length) return;
+      const temp = currentSortList[index];
+      currentSortList[index] = currentSortList[targetIndex];
+      currentSortList[targetIndex] = temp;
+      renderSortList();
+    }
+
+    function checkSortOrder() {
+      let correctCount = 0;
+      currentSortList.forEach((item, idx) => {
+        if (item.id === idx + 1) correctCount++;
+      });
+
+      const box = document.getElementById('sortFeedbackBox');
+      if (correctCount === 6) {
+        isSortPassed = true;
+        box.className = 'mb-4 p-4 rounded-xl font-bold text-sm bg-emerald-100 text-emerald-900 border border-emerald-300';
+        box.innerHTML = '🎉 太棒了！六個時光事件順序完全正確（6 / 6）！已記錄完成狀態，快前往「3. 3D重陽冒險」吧！';
+        saveStudentProgress({ sortStatus: '已完成(6/6)' });
+      } else {
+        box.className = 'mb-4 p-4 rounded-xl font-bold text-sm bg-amber-100 text-amber-900 border border-amber-300';
+        box.innerHTML = `💡 目前有 ${correctCount} 個位置正確（共 6 個）。提示：先從「雙九密碼由來」→「東漢傳說」→「科學實驗室」→「臺灣習俗」→「敬老行動」來思考喔！`;
+      }
+    }
+
+    // ==================== 3. 五題知識挑戰題庫與重新思考的作答邏輯 ====================
+    const quizQuestions = [
+      {
+        q: '【節日由來】為什麼農曆九月初九會被稱為「重陽節」？',
+        options: [
+          '因為這一天天空中會出現兩個太陽的影子',
+          '因為《易經》把「六」定為陰數、「九」定為陽數，九月九日兩九相重（日月並陽）',
+          '因為這一天是一年當中氣溫最高、陽光最強烈的日子',
+          '因為紀念一位名叫「重陽」的古代將軍'
+        ],
+        answer: 1,
+        explanation: '依據《易經》爻題九六之制，「九」為陽數之極，農曆九月九日兩九相重，故稱「重九」或「重陽」。'
+      },
+      {
+        q: '【傳說與習俗】在南朝《續齊諧記》記載的重陽傳說中，費長房教導東漢的桓景做了哪三件事來躲避瘟疫災厄？',
+        options: [
+          '划龍舟、吃粽子、掛菖蒲',
+          '貼春聯、放鞭炮、守歲',
+          '手臂佩帶茱萸囊、登高山、飲菊花酒',
+          '賞月、吃月餅、提柚子燈籠'
+        ],
+        answer: 2,
+        explanation: '桓景依師父費長房指示，於九月九日帶家人手臂繫茱萸囊、登高山並飲菊花酒，從此演變為重陽習俗。'
+      },
+      {
+        q: '【傳說 vs 科學】下列哪一項敘述屬於經過驗證的「自然與科學事實」，而不是神話傳說？',
+        options: [
+          '只要在手臂綁上紅布袋，看不見的瘟魔就會害怕逃跑',
+          '茱萸與艾草含有天然揮發油成分具驅蚊防蟲作用，且秋季登高健行有助增強心肺免疫力',
+          '九月九日喝一杯菊花酒就能讓人長生不老、永遠不會感冒',
+          '天上的神仙會在九月九日降臨山頂發送仙丹'
+        ],
+        answer: 1,
+        explanation: '「瘟魔」是古人對秋季傳染病的想像；植物揮發油驅避病媒蚊與有氧健行提升免疫力則是現代科學與醫學證實的原理。'
+      },
+      {
+        q: '【臺灣在地習俗】臺灣俗諺說「九月九，風吹滿天哮」，請問「風吹」是指什麼？又反映了臺灣秋季什麼自然現象？',
+        options: [
+          '指吹風機；反映臺灣秋天常停電',
+          '指強烈颱風；反映農曆九月每天都有颱風登陸',
+          '指風箏；反映農曆九月臺灣東北季風增強，風力穩定適合放風箏',
+          '指風車；反映臺灣秋天開始種植小麥'
+        ],
+        answer: 2,
+        explanation: '臺語稱風箏為「風吹」。農曆九月臺灣進入東北季風盛行期，風力穩定強勁，因此形成重陽放風箏的習俗。'
+      },
+      {
+        q: '【現代公民與敬老】在現代臺灣社會，重陽節因「九九」諧音「久久」而成為敬老節日。下列哪一種做法最符合重陽敬老精神？',
+        options: [
+          '請父母買禮物寄給阿公阿嬤就好，自己整天繼續玩手機遊戲',
+          '主動泡杯溫茶陪伴長輩傾聽他們的生命故事，或耐心教導長輩使用手機實用功能',
+          '規定行動不便的長輩在重陽節當天必須自己爬上高山',
+          '重陽節只是老年人的節日，跟國中小學生沒有關係'
+        ],
+        answer: 1,
+        explanation: '在高齡社會中，長輩最需要的是世代之間的情感連結、尊重、日常陪伴與數位互助。'
+      }
+    ];
+
+    let activeQuizQuestions = [...quizQuestions];
+    let isQuizSubmitted = false;
+
+    function renderQuiz(shouldShuffle = false) {
+      if (shouldShuffle) {
+        activeQuizQuestions = [...quizQuestions].sort(() => Math.random() - 0.5);
+      }
+      const container = document.getElementById('quizQuestionsContainer');
+      if (!container) return;
+      container.innerHTML = activeQuizQuestions.map((item, qIdx) => `
+        <div class="p-5 rounded-xl bg-amber-50/50 border border-amber-200 space-y-3" id="quizBlock-${qIdx}">
+          <h4 class="font-black text-amber-950 text-sm md:text-base">${qIdx + 1}. ${item.q}</h4>
+          <div class="space-y-2">
+            ${item.options.map((opt, oIdx) => `
+              <label class="flex items-start gap-2.5 p-3 rounded-lg bg-white border border-amber-200 hover:border-amber-500 cursor-pointer transition text-xs md:text-sm">
+                <input type="radio" name="quizQ-${qIdx}" value="${oIdx}" class="mt-0.5 accent-amber-700" />
+                <span class="font-medium text-gray-800">(${String.fromCharCode(65 + oIdx)}) ${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+          <div id="quizExp-${qIdx}" class="hidden p-3 rounded-lg text-xs md:text-sm"></div>
+        </div>
+      `).join('');
+    }
+
+    // 每次輸入或修改「班級座號」時，自動清空上一人的答案並重新洗牌題目
+    function handleSeatInputChange() {
+      resetQuiz(true, true);
+    }
+
+    function handleStudentIdentityChange() {
+      if (isQuizSubmitted) {
+        resetQuiz(true, true);
+      }
+    }
+
+    // 作答送出邏輯：無座號可練習看解答但不記錄；有座號則記錄（姓名可不填）
+    function submitQuiz() {
+      if (isQuizSubmitted) {
+        showToast('💡 本次測驗已批改！若要重新練習或重測，請點選「重設作答」或重新輸入座號。');
+        return;
+      }
+
+      const classInput = document.getElementById('studentClassInput');
+      const classSeat = classInput ? classInput.value.trim() : '';
+
+      // 檢查題目是否全做完
+      let unanswered = [];
+      activeQuizQuestions.forEach((item, qIdx) => {
+        const selected = document.querySelector(`input[name="quizQ-${qIdx}"]:checked`);
+        if (!selected) unanswered.push(qIdx + 1);
+      });
+
+      if (unanswered.length > 0) {
+        showToast(`⚠️ 還有第 ${unanswered.join('、')} 題尚未作答喔！請完成全部題目再檢查答案。`);
+        return;
+      }
+
+      // 批改評分
+      let score = 0;
+      activeQuizQuestions.forEach((item, qIdx) => {
+        const selectedVal = parseInt(document.querySelector(`input[name="quizQ-${qIdx}"]:checked`).value, 10);
+        const expBox = document.getElementById(`quizExp-${qIdx}`);
+        expBox.classList.remove('hidden');
+
+        if (selectedVal === item.answer) {
+          score += 20;
+          expBox.className = 'p-3 rounded-lg text-xs md:text-sm bg-emerald-100 text-emerald-950 border border-emerald-300 font-semibold';
+          expBox.innerHTML = `✅ 答對了！（+20分）<br><span class="font-normal">${item.explanation}</span>`;
+        } else {
+          expBox.className = 'p-3 rounded-lg text-xs md:text-sm bg-red-100 text-red-950 border border-red-300 font-semibold';
+          expBox.innerHTML = `❌ 答錯囉！正確答案為 (${String.fromCharCode(65 + item.answer)})。<br><span class="font-normal">${item.explanation}</span>`;
+        }
+      });
+
+      // 鎖定選項與送出按鈕，防止直接拿已批改的答案重複送出
+      isQuizSubmitted = true;
+      const radios = document.querySelectorAll('#quizQuestionsContainer input[type="radio"]');
+      radios.forEach(r => { r.disabled = true; });
+      const submitBtn = document.getElementById('quizSubmitBtn');
+      if (submitBtn) submitBtn.disabled = true;
+
+      const badge = document.getElementById('quizScoreBadge');
+      badge.classList.remove('hidden');
+      document.getElementById('quizScoreValue').textContent = score;
+
+      // 判斷是否有輸入座號：有座號才記錄到後台，沒有座號當作練習不記錄
+      if (classSeat) {
+        saveStudentProgress({ quizScore: score });
+        showToast(`🎉 測驗完成！得分：${score} 分，已成功記錄座號【${classSeat}】的成績！`);
+      } else {
+        showToast(`📝 練習批改完成！得分：${score} 分（目前未輸入座號，僅供練習不記錄成績）。`);
+      }
+    }
+
+    // 重設作答邏輯：清空勾選與詳解，並可選擇重新隨機排列題目
+    function resetQuiz(silent = false, shuffle = true) {
+      isQuizSubmitted = false;
+
+      const badge = document.getElementById('quizScoreBadge');
+      if (badge) badge.classList.add('hidden');
+      const scoreVal = document.getElementById('quizScoreValue');
+      if (scoreVal) scoreVal.textContent = '0';
+      const submitBtn = document.getElementById('quizSubmitBtn');
+      if (submitBtn) submitBtn.disabled = false;
+
+      // 重新渲染並洗牌題目，確保所有選項回到乾淨未勾選狀態
+      renderQuiz(shuffle);
+
+      if (!silent) {
+        showToast('🔄 題目已重新洗牌並清空選項，可以開始作答囉！');
+      }
+    }
+
+    // ==================== 4. 1～9年級分級課程活動資料 ====================
+    const gradeActivities = {
+      1: {
+        stage: '國小一年級｜感官體驗與家庭敬老行動',
+        title: '聞香識重陽：菊花艾草感官卡 ✕ 敬老暖心捶背兌換券',
+        demoOutcome: '完成一張貼有乾燥菊花瓣的「重陽植物氣味觀察卡」，以及 3 張親手繪製、給阿公阿嬤蓋章認證的「敬老暖心行動兌換券」。',
+        materials: ['八開圖畫紙或學習單', '彩色筆、蠟筆', '安全剪刀與口紅膠', '乾燥菊花、艾草、陳皮體驗包（教師分裝）', '長輩認證獎勵貼紙'],
+        steps: [
+          '【步驟 1｜聞香觀察】閉上眼睛，依序聞一聞乾燥菊花、艾草與陳皮的氣味，說出哪一種像茶香、哪一種像青草香。',
+          '【步驟 2｜繪製植物】在觀察卡上畫出菊花金黃色的花瓣與茱萸紅果實的模樣。',
+          '【步驟 3｜設計兌換券】在三張小卡上畫出自己做得到的敬老行動（如：幫阿公捶背 5 分鐘、陪阿嬤散步、說一個重陽故事）。',
+          '【步驟 4｜回家實踐】雙手奉上兌換券給家中長輩，完成行動後請長輩貼上愛心貼紙。'
+        ],
+        processDiagram: ['👃 嗅覺聞香體驗', '🎨 繪製菊花與草本', '🎟️ 創作3張敬老兌換券', '👵 回家執行並貼貼紙'],
+        checklist: ['我能分辨出菊花與艾草的不同香味', '我完成了植物觀察圖畫', '我做好了 3 張敬老行動兌換券並親自送給長輩'],
+        simplified: '提供印好線稿的菊花塗色卡與勾選式行動兌換券，學生只需著色並勾選要執行的項目。',
+        challenge: '除了完成兌換券，請用國語、臺語或客語錄製一段 30 秒的「重陽節健康久久祝福語」給長輩聽，並在課堂分享長輩的反應。'
+      },
+      2: {
+        stage: '國小二年級｜手作體驗與民俗觀察',
+        title: '驅蚊小幫手：束口草本香囊手作 ✕ 秋風風箏觀察員',
+        demoOutcome: '完成一個繪有重陽圖騰的「隨身防蚊草本小香囊」，以及一張「九月九風吹（風箏）受風觀察紀錄表」。',
+        materials: ['素色棉布束口袋（10×12cm）', '布用彩色筆', '乾燥艾草、菊花、陳皮混合包', '輕質紙風箏或風向絲帶', '塑膠小湯匙'],
+        steps: [
+          '【步驟 1｜彩繪袋面】用布用彩色筆在棉布袋上畫出兩個大大的「九」或菊花、風箏圖案。',
+          '【步驟 2｜裝填香草】用小湯匙取菊花、艾草、陳皮各 2 匙，裝入束口袋中並拉緊繩結。',
+          '【步驟 3｜揉捻聞香】輕輕搓揉香囊，讓天然植物的揮發油散發出來，體驗古人「佩茱萸囊」的智慧。',
+          '【步驟 4｜秋風觀察】到操場觀察絲帶或小風箏被秋天東北季風吹起的方向，記錄在學習單上。'
+        ],
+        processDiagram: ['🖌️ 彩繪重陽束口袋', '🥄 舀取三種天然香草', '袋口束緊揉捻聞香', '🪁 操場觀察秋風方向'],
+        checklist: ['我的香囊袋面有清楚的重陽節圖案', '我能乾淨地把香草裝入袋中並綁好', '我知道「風吹」就是風箏，且秋天風大適合放風箏'],
+        simplified: '使用透明紗袋直接裝填預先混合好的香草包，外貼手繪姓名祝福貼紙。',
+        challenge: '比較「搓揉前」與「搓揉後」香囊氣味強弱的差別，並用完整句子寫出為什麼這個香囊適合送給常去公園運動的長輩。'
+      },
+      3: {
+        stage: '國小三年級｜自然科學量測與手作',
+        title: '小小本草調香師：古法防蚊草本香包（精準秤重版）',
+        demoOutcome: '完成一個按黃金比例秤重調配的「古法防蚊草本香包」，並附上一張標註植物防蟲功能的「本草配方說明吊牌」。',
+        materials: ['電子秤（精確至 1g）', '乾燥艾草、丁香、紫蘇葉、陳皮', '棉麻布袋與麻繩', '厚卡紙吊牌、打洞機', '塑膠研缽（或揉碎夾鏈袋）'],
+        steps: [
+          '【步驟 1｜認識本草】閱讀植物資料卡，認識艾草、丁香含有的天然驅蚊成分（揮發油）。',
+          '【步驟 2｜精準秤重】使用電子秤依序量取：艾草 3g、紫蘇 3g、陳皮 3g、丁香 2g。',
+          '【步驟 3｜搗碎混合】將秤好的香料放入夾鏈袋輕壓揉碎，使精油分子更容易釋放，再裝入棉麻袋綁緊。',
+          '【步驟 4｜製作吊牌】在厚卡紙寫下配方成分、保存方式與送給家人的重陽祝福語，穿繩綁在香包上。'
+        ],
+        processDiagram: ['📖 查閱植物功效卡', '⚖️ 電子秤精準量測克數', '🥣 揉碎釋放天然精油', '🏷️ 綁上本草配方祝福吊牌'],
+        checklist: ['我學會使用電子秤歸零並準確秤出各香料克數', '我的吊牌清楚寫出「傳說避瘟魔 vs 科學防蚊蟲」的原理', '香包封口牢固不漏出碎末'],
+        simplified: '改以標準量匙（1 平匙約 2g）代替電子秤量測，並提供印有植物功效的填空式吊牌。',
+        challenge: '設計「氣味持久度小實驗」：將香包掛在通風處，連續 5 天記錄香氣強弱變化（1～5顆星），並找出讓香味恢復的小秘訣（如搓揉或日曬）。'
+      },
+      4: {
+        stage: '國小四年級｜科學對照實驗與空氣力學',
+        title: '重陽科學雙探究：不同比例香包對照 ✕ 東北季風紙風箏平衡實驗',
+        demoOutcome: '完成「A/B 兩款不同配方比例香包氣味評測表」與「紙風箏配重尾翼飛行穩定度實驗紀錄」。',
+        materials: ['防蚊香包材料組（艾草、丁香、薄荷、陳皮）', 'A4 輕質紙、竹籤、紙膠帶、棉線', '迴紋針（配重用）', '電風扇（模擬穩定東北季風）'],
+        steps: [
+          '【步驟 1｜A/B配方調製】小組合作調製 A 包（丁香+艾草為主）與 B 包（陳皮+菊花為主），邀請同學盲測哪一包驅蚊味濃、哪一包舒緩好聞。',
+          '【步驟 2｜摺製菱形風箏】結合「九月九，風吹滿天哮」習俗，用輕質紙與竹籤製作簡易菱形紙風箏。',
+          '【步驟 3｜控制變因測試】在電風扇前測試「無尾翼紙條」與「加裝 30 公分尾翼紙條」的風箏飛行穩定度差異。',
+          '【步驟 4｜統整科學報告】將香包盲測結果與風箏平衡原理整理在探究單上。'
+        ],
+        processDiagram: ['🧪 A/B兩組香料配方調配', '📊 同學嗅覺盲測統計', '🪁 製作紙風箏測試尾翼', '📝 撰寫重陽科學探究結論'],
+        checklist: ['我完成了 A/B 兩款香包的比例記錄與盲測比較', '我觀察並記錄了風箏尾翼對飛行平衡的影響', '我能用科學原理解釋重陽節的兩項習俗'],
+        simplified: '固定製作單一配方香包，風箏實驗改由教師示範吹風，學生負責觀察並勾選哪一個風箏飛得比較穩。',
+        challenge: '改變風箏提線的綁點角度（前移或後移 2 公分），記錄受風仰角如何影響升力，繪製簡單的力學箭頭示意圖。'
+      },
+      5: {
+        stage: '國小五年級｜跨世代訪談與生命故事小書',
+        title: '阿公阿嬤的時光膠囊：8頁摺頁《家族時光人物誌》小書創作',
+        demoOutcome: '完成一本由單張 A3 紙摺剪而成的 8 頁立體《家族時光人物誌》小書，搭配手作菊花茶包或香包送給受訪長輩。',
+        materials: ['A3 圖畫紙（每人 1 張）', '剪刀、色鉛筆、代針筆', '長輩跨世代訪談問題單', '家族舊照片影本（或現場手繪肖像）', '菊花枸杞茶包材料'],
+        steps: [
+          '【步驟 1｜擬定訪談問題】設計 5 個跨世代問題（如：您小時候玩什麼遊戲？以前重陽節吃重陽糕或放風箏嗎？您年輕時最自豪的一件事？）。',
+          '【步驟 2｜奉茶與深度傾聽】回家為長輩泡一杯溫熱菊花茶，進行 20 分鐘訪談並記錄關鍵語句。',
+          '【步驟 3｜摺製8頁小書】將 A3 圖畫紙對摺三次後剪開中央一刀，摺疊成不需釘書機的 8 頁小書。',
+          '【步驟 4｜圖文編排】第1頁封面、第2-3頁長輩童年、第4-5頁重陽記憶對照、第6-7頁長輩的人生智慧、第8頁我的感謝與祝福。'
+        ],
+        processDiagram: ['📋 設計5題訪談大綱', '🍵 奉菊花茶採訪長輩', '✂️ A3紙一刀剪摺8頁小書', '📖 圖文編排《家族人物誌》'],
+        checklist: ['我完成了至少 4 題以上的長輩真實訪談紀錄', '我的 8 頁小書結構完整、圖文清晰', '我在訪談過程中展現了尊重與專心傾聽的態度'],
+        simplified: '提供印好格線與標題提示的 4 頁對摺小書模板，學生可透過電話訪問或請父母協助補充長輩故事。',
+        challenge: '在小書第 7 頁加入「數位互助任務」：實際教導受訪長輩使用一項實用的手機功能（如：語音轉文字輸入、放大字體或查公車），並記錄教學過程。'
+      },
+      6: {
+        stage: '國小六年級｜文化比較、防詐守護與草本策展',
+        title: '跨世代守護行動：手作重陽本草禮盒 ✕ 長輩數位防詐與健康守護卡',
+        demoOutcome: '完成一份結合「防蚊草本香包＋菊花決明子茶包」的重陽本草禮盒，內附一張專為家中長輩設計的「手機防詐與健康運動大字守護卡」。',
+        materials: ['草本香包與茶包濾袋材料', '牛皮紙盒或手作紙袋', 'A4 雲彩紙、粗字體麥克筆', '內政部警政署常見高齡詐騙案例參考單'],
+        steps: [
+          '【步驟 1｜本草雙禮製作】依比例製作「外用防蚊香包（艾草、丁香、紫蘇）」與「內服潤燥茶包（杭菊、枸杞、決明子）」，區分外用揮發油與內服抗氧化科學原理。',
+          '【步驟 2｜盤點現代風險】討論古人重陽避「瘟魔」，現代長輩除了季節流行病，還常面臨「假冒親友／假投資電信詐騙」與「肌少症跌倒」風險。',
+          '【步驟 3｜製作大字守護卡】用適合長輩閱讀的大字體（至少 20pt 大小）與清晰圖示，繪製「防詐三步驟（一聽二掛三查證165）」與「居家登高抬腿運動圖」。',
+          '【步驟 4｜禮盒組裝與解說】將本草雙禮與大字守護卡裝盒，回家親自向長輩解說並貼在電話或客廳明顯處。'
+        ],
+        processDiagram: ['🌿 製作外用香包＆內服茶包', '🛡️ 分析現代長者健康與防詐需求', '🪧 繪製大字體防詐運動守護卡', '🎁 致贈禮盒並為長輩解說'],
+        checklist: ['我能清楚說明外用香草與內服菊花茶的科學差異', '我的守護卡字體夠大、版面清晰，符合長輩視覺需求', '我完成了禮盒組裝並實際與長輩進行防詐宣導互動'],
+        simplified: '茶包與香包擇一製作，並提供印好 165 反詐騙電話的半成品大字卡供學生補充插圖與家人緊急聯絡電話。',
+        challenge: '訪談長輩是否曾接過可疑電話或簡訊，協助長輩設定手機「封鎖不明來電／字體放大」功能，並將實測心得寫入 500 字寫作區。'
+      },
+      7: {
+        stage: '國中七年級｜植物化學解析與社區無障礙踏查',
+        title: '重陽科學與公民實踐：本草揮發油圖鑑 ✕ 社區高齡友善步道檢核',
+        demoOutcome: '完成一份《重陽避疫本草之植物化學圖鑑》雙面海報（含實物香包標本），以及一份「學校周邊或社區公園高齡友善環境檢核表」。',
+        materials: ['乾燥吳茱萸、艾草、丁香、杭菊樣本', '植物化學成分資料卡', '社區無障礙環境檢核表（含坡度、扶手、號誌秒數）', '捲尺、計時器或手機、A3 海報紙'],
+        steps: [
+          '【步驟 1｜本草科學查證】查閱並整理吳茱萸（吳茱萸鹼、羅勒烯）、艾草（桉油精、樟腦）與菊花（類黃酮、綠原酸）的生物活性，破除鬼神迷信，建立實證科學圖鑑。',
+          '【步驟 2｜擬定踏查指標】從重陽「登高健行」出發，思考社區長輩出門運動會遇到哪些環境阻礙（如：人行道高低差、公園座椅無扶手難以起身、綠燈秒數過短）。',
+          '【步驟 3｜實地觀察量測】分組針對校園周邊通學步道或鄰近公園進行 15 分鐘實地觀察（或在教室透過 Google 街景與實景照片進行數位踏查）。',
+          '【步驟 4｜完成檢核與建議】統計合格與待改善項目，提出 2 項具體的空間改善建議。'
+        ],
+        processDiagram: ['🔬 解析本草揮發油化學成分', '📋 建立社區高齡友善檢核指標', '🚶 實地/街景踏查步道與公園', '🗺️ 繪製科學圖鑑與改善建議單'],
+        checklist: ['圖鑑中正確區分了民俗傳說與植物化學實證成分', '完成了至少 5 項社區高齡環境指標的觀察記錄', '針對長輩行動安全提出了具體可行的改善想法'],
+        simplified: '提供 4 張不同社區公園與路口的實景照片，學生直接在照片上圈出對長輩友善與不友善的設計，並搭配手作基礎香包。',
+        challenge: '以老年人的平均步行速度（約每秒 0.8 公尺）計算社區重要路口的行人綠燈秒數是否充足，寫出數據計算過程與調整建議。'
+      },
+      8: {
+        stage: '國中八年級｜大氣科學、理化擴散與高齡設計思考',
+        title: '九九重陽跨領域專案：精油分子擴散實驗 ✕ 高齡友善輔具與空間改造提案',
+        demoOutcome: '完成「溫度與介質對重陽草本香包分子擴散速率影響」實驗紀錄，以及一張運用設計思考（Design Thinking）繪製的《高齡友善公園／家居改造設計圖》。',
+        materials: ['草本精油／乾燥香料組', '電子秤、溫度計、濾紙', '高齡模擬體驗道具（如：模糊眼鏡、膝關節束帶）', '方格設計紙、麥克筆'],
+        steps: [
+          '【步驟 1｜理化擴散探究】結合八年級理化分子運動概念，測試重陽草本香包在「常溫靜置」與「手心加溫搓揉（約 36°C）」下的氣味擴散範圍差異，驗證古人隨身配戴香囊受體溫加熱促進揮發的原理。',
+          '【步驟 2｜同理心高齡體驗】配戴簡易高齡模擬道具（體驗老花眼視覺模糊或關節彎曲不便），嘗試閱讀小字藥袋或從無扶手低椅起身。',
+          '【步驟 3｜定義問題與發想】針對長輩在「重陽登高健行」或「日常居家安全」的痛點，進行腦力激盪。',
+          '【步驟 4｜繪製改造設計圖】在方格紙上畫出改造前後對照圖（例如：附有登山杖掛勾與助起扶手的公園長椅、具防蚊香囊置放槽的隨身水壺袋）。'
+        ],
+        processDiagram: ['🌡️ 測試體溫對香草分子擴散影響', '👓 高齡視覺與行動同理心體驗', '💡 定義長者日常與健行痛點', '📐 繪製友善空間/輔具改造設計圖'],
+        checklist: ['能用粒子運動與揮發原理解釋香包隨身配戴的科學機制', '透過同理心體驗找出了至少 2 個真實的高齡生活痛點', '改造設計圖包含清楚的尺寸或功能標註，具實用價值'],
+        simplified: '聚焦於「重陽防蚊隨身香包袋」的單一產品改良設計（例如加上反光條保護長輩晨間運動安全），完成功能標註圖。',
+        challenge: '結合臺灣秋季東北季風氣象資料，分析風速、溼度對戶外草本香包揮發速率及風箏升力的雙重影響，撰寫完整跨科探究報告。'
+      },
+      9: {
+        stage: '國中九年級｜超高齡社會公民策展與跨科統整',
+        title: '超高齡臺灣的時光策展：重陽文化科學特展 ✕ 世代共融公共政策白皮書',
+        demoOutcome: '完成一份四格展版規格的《九九重陽：從東漢避疫到超高齡臺灣》微型策展海報（含實體草本香包展品），以及一份包含人口數據分析的「社區世代共融行動提案」。',
+        materials: ['臺灣人口結構統計圖表（國發會／內政部數據）', '重陽文史典故與本草科學資料包', '草本香包實作材料', '策展海報紙或數位簡報工具'],
+        steps: [
+          '【步驟 1｜文史與科學總整理】整合《易經》九六之制、《續齊諧記》文獻、秋季東北季風地球科學與本草植物化學，完成策展海報前兩格「溯源與科學解密」。',
+          '【步驟 2｜超高齡社會數據判讀】分析臺灣 65 歲以上人口突破 20% 邁入「超高齡社會」的趨勢圖，探討重陽節「發放敬老禮金」之外，長者在健康醫療、長期照顧、數位落差與社會參與的真實需求。',
+          '【步驟 3｜設計世代共融方案】為學校與社區設計一項可持續執行的「青銀共融行動」（例如：國中生定期駐點社區教長輩用手機查醫療與公車、重陽草本香包青銀共作工作坊）。',
+          '【步驟 4｜完成策展與啟承轉合評論】完成展版與實體香包陳列，並於網站 500 字寫作區撰寫結構嚴謹的四段式社會觀察評論。'
+        ],
+        processDiagram: ['📚 統整易經文史與地科理化知識', '📈 判讀臺灣超高齡社會人口數據', '🤝 規劃社區青銀共融具體方案', '🏛️ 完成微型策展與四段式評論'],
+        checklist: ['策展內容精準涵蓋文史由來、傳說vs科學、臺灣習俗與高齡議題', '能正確引用超高齡社會概念，超越表面形式提出深度敬老方案', '完成的 500 字心得具備清晰的【起】【承】【轉】【合】論述層次'],
+        simplified: '提供四格策展海報的骨架模板與關鍵數據圖卡，學生負責完成重點摘要、手作香包展品固定與一項具體敬老行動政見。',
+        challenge: '比較臺灣「九九重陽節」、日本「敬老之日（9月第3個週一）」與歐美跨世代共居（Cohousing）模式，在提案中提出具國際視野的在地化創新建議。'
+      }
+    };
+
+    let selectedActivityGrade = 6;
+
+    function renderActivityGradeTabs() {
+      const container = document.getElementById('activityGradeTabs');
+      let html = '';
+      for (let g = 1; g <= 9; g++) {
+        const activeClass = g === selectedActivityGrade
+          ? 'bg-amber-800 text-white font-black shadow'
+          : 'bg-white text-amber-900 hover:bg-amber-100 font-bold border border-amber-200';
+        html += `<button onclick="selectActivityGrade(${g})" class="px-3.5 py-2 rounded-lg text-xs md:text-sm transition ${activeClass}">${g}年級活動</button>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function selectActivityGrade(grade) {
+      selectedActivityGrade = parseInt(grade, 10);
+      renderActivityGradeTabs();
+      renderActivityDetail();
+    }
+
+    function renderActivityDetail() {
+      const data = gradeActivities[selectedActivityGrade];
+      const container = document.getElementById('activityContentArea');
+
+      container.innerHTML = `
+        <div class="bg-amber-50/70 rounded-2xl p-5 border-2 border-amber-200 space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 pb-3">
+            <div>
+              <span class="text-xs font-bold bg-amber-800 text-white px-2.5 py-1 rounded-full">${data.stage}</span>
+              <h3 class="text-xl font-black text-amber-950 mt-1.5">${data.title}</h3>
+            </div>
+            <span class="text-xs font-bold text-amber-900 bg-amber-200/70 px-3 py-1 rounded-lg">適用年級：${selectedActivityGrade} 年級</span>
+          </div>
+
+          <div class="grid md:grid-cols-12 gap-4">
+            <div class="md:col-span-6 bg-white p-4 rounded-xl border border-amber-200">
+              <h4 class="font-black text-amber-900 text-sm mb-2">🏆 示範成果（Expected Outcome）</h4>
+              <p class="text-xs md:text-sm text-gray-800 leading-relaxed">${data.demoOutcome}</p>
+            </div>
+            <div class="md:col-span-6 bg-white p-4 rounded-xl border border-amber-200">
+              <h4 class="font-black text-amber-900 text-sm mb-2">🧰 材料與工具準備（Materials）</h4>
+              <div class="flex flex-wrap gap-1.5">
+                ${data.materials.map(m => `<span class="text-xs bg-amber-100 text-amber-950 font-semibold px-2.5 py-1 rounded-lg border border-amber-300">• ${m}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-amber-200">
+            <h4 class="font-black text-amber-900 text-sm mb-3">🗺️ 製作與探究過程示意圖（Process Flow）</h4>
+            <div class="grid sm:grid-cols-4 gap-2">
+              ${data.processDiagram.map((stepText, idx) => `
+                <div class="p-3 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/80 border border-amber-300 flex flex-col items-center text-center">
+                  <span class="text-xs font-black text-amber-800 bg-white px-2 py-0.5 rounded-full border border-amber-200 mb-1">STEP 0${idx + 1}</span>
+                  <span class="text-xs md:text-sm font-bold text-amber-950">${stepText}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-amber-200">
+            <h4 class="font-black text-amber-900 text-sm mb-2.5">👣 逐步操作與探究流程（Step-by-Step Guide）</h4>
+            <ul class="space-y-2 text-xs md:text-sm text-gray-800">
+              ${data.steps.map(s => `<li class="p-2.5 rounded-lg bg-amber-50/50 border border-amber-100">${s}</li>`).join('')}
+            </ul>
+          </div>
+
+          <div class="grid md:grid-cols-12 gap-4">
+            <div class="md:col-span-7 grid sm:grid-cols-2 gap-3">
+              <div class="bg-sky-50 p-4 rounded-xl border border-sky-200">
+                <span class="text-xs font-black bg-sky-700 text-white px-2 py-0.5 rounded">🌱 簡化版（基礎支援）</span>
+                <p class="text-xs md:text-sm text-sky-950 mt-2 leading-relaxed">${data.simplified}</p>
+              </div>
+              <div class="bg-purple-50 p-4 rounded-xl border border-purple-200">
+                <span class="text-xs font-black bg-purple-800 text-white px-2 py-0.5 rounded">🚀 挑戰版（進階加深）</span>
+                <p class="text-xs md:text-sm text-purple-950 mt-2 leading-relaxed">${data.challenge}</p>
+              </div>
+            </div>
+
+            <div class="md:col-span-5 bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+              <h4 class="font-black text-emerald-950 text-sm mb-2">✅ 活動完成自我檢核表（Checklist）</h4>
+              <div class="space-y-2">
+                ${data.checklist.map((c, idx) => `
+                  <label class="flex items-start gap-2 text-xs md:text-sm text-emerald-950 cursor-pointer">
+                    <input type="checkbox" class="mt-1 accent-emerald-700" />
+                    <span>${c}</span>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== 5. 1～9年級學生心得範文資料庫 ====================
+    const sampleEssaysDB = {
+      1: {
+        basic: '今天看漫畫認識了九九重陽節，我知道兩個「九」合在一起代表長長久久。老師帶我們聞菊花和艾草的味道，香香的很好聞。我還畫了一張捶背兌換券送給阿嬤，阿嬤笑得好開心，祝阿公阿嬤身體健康！',
+        advanced: '在「九九重陽節的時光任務」裡，我跟著阿哲和小晴認識了桓景爬山躲避瘟魔的故事。原來古時候的人會在手臂綁上茱萸香包，還會喝菊花茶來保護身體。我們在教室裡體驗了聞香包，我最喜歡菊花淡淡的香味。回家以後，我拿出自己畫的「敬老愛心行動券」，幫阿公捶背五分鐘，還陪阿嬤一起吃甜甜的重陽糕。看到阿公阿嬤笑咪咪的樣子，我覺得重陽節是一個充滿愛心的溫暖節日。',
+        challenge: '【起】今天老師帶我們進行「九九重陽節的時光任務」，當我看到螢幕上的時光羅盤出現兩個大大的「九」，我覺得好新奇！原來農曆九月初九叫做重陽節，而且「九九」聽起來就像「久久」，是祝福長輩健康長久的好日子。\n【承】看完六頁漫畫後，我知道古時候的桓景帶著家人爬上高山、綁茱萸香包來保護大家不生病。接著老師發給我們菊花和艾草的乾燥花草包，我輕輕聞了一下，覺得鼻子變得好舒服！我還拿起彩色筆，認真畫了三張「敬老暖心兌換券」，上面有幫長輩捶背、陪長輩散步和說故事。\n【轉】以前我都以為只有我過生日的時候，阿公阿嬤才會送我禮物；今天做完任務我才明白，阿公阿嬤平時照顧我好辛苦，重陽節換我當小幫手來照顧他們了！而且老師說，爬山不只是傳說，還是可以讓身體變強壯的運動呢！\n【合】放學回家後，我馬上雙手奉上兌換券幫阿嬤槌槌背，阿嬤誇我是最貼心的小寶貝。以後不只有重陽節，我每天都要抱抱阿公阿嬤，陪他們開開心心過每一天！'
+      },
+      2: {
+        basic: '透過今天的重陽節網站任務，我學會了「九月九，風吹滿天哮」這句臺語俗諺，原來「風吹」就是風箏！因為秋天風很大，去公園放風箏最好玩了。我也做了香香的植物小香囊要送給外公外婆，希望蚊子不要叮他們。',
+        advanced: '今天的漫畫時光任務真有趣！我不僅完成了六張漫畫的順序排列，還答對了五題挑戰。我印象最深刻的是「傳說與科學」的比較：傳說裡瘟魔很怕茱萸和菊花，但科學告訴我們，是因為這些植物有特別的氣味可以趕走蚊蟲，而且秋天去爬山運動能讓身體更健康。在實作活動中，我把乾燥的艾草和菊花裝進小布袋，還在卡片上寫下對爺爺奶奶的祝福。我想跟爺爺奶奶一起去河濱公園放風箏，度過快樂的重陽節！',
+        challenge: '【起】「九月九，風吹滿天哮！」今天在重陽節時光任務的漫畫裡，我第一次聽到這句有趣的臺語俗諺。原來農曆九月初九重陽節的時候，臺灣會吹起涼涼的東北季風，天空上到處都是飛高高的風箏，熱鬧極了！\n【承】在課程活動中，我們像漫畫裡的小主角一樣，動手觀察重陽節的植物。我用眼睛看菊花金黃色的花瓣，用鼻子聞艾草和陳皮特別的香氣，再小心翼翼地把它們裝進小香包裡。我也完成了圖片排序和五題問答，認識了東漢桓景帶著大家登高避災的故事，還有吃「重陽糕」代表步步高升的習俗。\n【轉】以前我看到家裡附近的長輩去領重陽敬老禮金，都不太懂為什麼要有這個節日。現在我終於知道，「九九」代表「久久」，而且古人戴茱萸香包並不是迷信，而是利用天然植物的香味來趕走蚊子、保護健康，真的好有智慧！\n【合】我把做好的香包和行動兌換卡送給阿公，約好這個週末要陪他去公園散步、看別人放風箏。我要當阿公阿嬤的小太陽，讓他們健康快樂久久長長！'
+      },
+      3: {
+        basic: '重陽節時光任務讓我學會分清楚「傳說」和「科學」。桓景打敗瘟魔是古代傳說，但茱萸、艾草能防蚊蟲，以及秋天登高能強身健體，則是真正的科學知識！動手做防蚊草本香包時，教室裡充滿草藥香，我要把香包掛在阿嬤房間裡。',
+        advanced: '這堂 40 分鐘的「九九重陽節時光任務」讓我收穫滿滿！從漫畫中我知道《易經》把「九」當作最大的陽數，九月九日兩個九重疊才叫重陽。最特別的是臺灣習俗，因為平地不容易爬高山，大家就吃諧音「高」的重陽糕，上面還插著五色小旗子代替茱萸。在做「古法防蚊草本香包」活動時，我用電子秤量了艾草、丁香和陳皮的重量，混合後裝進棉布袋。聞著天然的香氣，我體會到古人利用植物照顧家人的心意，回家後我也要泡杯菊花茶請長輩喝！',
+        challenge: '【起】當 40 分鐘的倒數計時開始，我和同學一起進入「九九重陽節的時光任務」。翻開第一頁漫畫，我就被《易經》裡「六為陰、九為陽」的數字密碼吸引住了，原來九月初九不只是日曆上的一個日子，更藏著古人對自然節氣的觀察與祝福。\n【承】跟著阿哲和小晴穿越回東漢，我看見桓景為了保護村民，聽從師父費長房的建議，帶著大家綁茱萸囊、爬高山、喝菊花酒。接著在手作活動時間，老師讓我們化身小小中藥師，使用電子秤精準秤出各 3 克的艾草、紫蘇、丁香與陳皮，揉碎後裝入棉布袋，再用彩色筆在袋面上畫出重陽菊花圖案。\n【轉】以前我常把神話傳說當成真的歷史，但網站裡的「傳說 vs 科學實驗室」點醒了我：原來秋天天氣轉涼容易感冒，古人說的「瘟魔」其實就是傳染病；而登高健行與佩帶含有揮發油的香草，正是運動強身與驅蟲防疫的科學方法！此外，我也發現做紙風箏時，尾巴的配重會影響風箏飛行的平衡，這跟東北季風的空氣力學息息相關。\n【合】這次任務讓我同時學到民俗故事、植物科學與敬老品德。今晚我就要把親手做的防蚊香包送給外婆，並把今天學到的重陽科學知識分享給全家人聽！'
+      },
+      4: {
+        basic: '完成重陽節網站挑戰後，我最喜歡王維〈九月九日憶山東兄弟〉和桓景避災的典故。我們這組除了製作草本防蚊香包，還測試了不同香料比例的味道。重陽節不只是放風箏和吃重陽糕，更重要的是陪伴家裡的長輩，表達我們的感謝。',
+        advanced: '在「九九重陽節的時光任務」中，六頁漫畫把傳統傳說與現代臺灣的生活連結得非常清楚。我學到了農曆九月正值寒露與霜降節氣，東北季風吹起，所以臺灣有「九月九，風吹滿天哮」的放風箏習俗。在課程活動裡，我挑戰了「香料比例實驗」，發現丁香跟艾草多放一點，驅蚊的氣味會更持久；陳皮多一點則會有淡淡的果香。我也反思了自己平時跟爺爺奶奶相處的時間太少，重陽節提醒我們要珍惜長輩的付出，主動關心他們的身體與心情。',
+        challenge: '【起】每到秋天，聽到王維的詩句「遙知兄弟登高處，遍插茱萸少一人」，我總是好奇：為什麼古人重陽節一定要登高和插茱萸呢？今天透過「九九重陽節的時光任務」網站，我終於在漫畫與科學解說中找到了完整的答案。\n【承】在任務過程裡，我們先閱讀了東漢桓景登高避疫的傳說，並透過排序遊戲釐清故事脈絡。接著進入實作探究階段，我選擇了「挑戰版」的草本香包實驗：我和同學分別調配了「艾草為主」與「陳皮菊花為主」兩種不同比例的香包，記錄它們在通風處氣味維持的強弱，還動手調整紙風箏的受風角度，觀察它在電風扇模擬東北季風下的升力變化。\n【轉】過去我覺得傳統節日習俗只是照著老規矩做，做完這次實驗才恍然大悟——古人在沒有現代醫學與氣象儀器的年代，竟然能透過經驗累積，在秋冬交接、蚊蟲與感冒好發的九月，發展出佩帶芳香植物與戶外登山的保健習俗！而現代臺灣將「九九」轉化為「長長久久」的敬老節日，更讓古老的防病習俗升級成溫暖的人文關懷。\n【合】五題挑戰全對讓我很有成就感，但最大的收穫是學會用科學眼光看傳統。這個週末，我要帶上自製的草本香包，邀請阿公阿嬤一起去郊山步道健行，實踐真正的重陽精神！'
+      },
+      5: {
+        basic: '這次重陽節任務最特別的是「阿公阿嬤的時光膠囊」訪談活動。看完漫畫區分傳說與科學後，我設計了五個問題訪問阿公。原來阿公小時候沒有手機，重陽節會自己削竹子糊紙風箏去田裡放！做成八頁小書後，我們全家的感情變得更好了。',
+        advanced: '透過「九九重陽節的時光任務」，我深入理解了重陽節從《易經》陽數「九」、東漢《續齊諧記》避疫傳說，一路演變到現代臺灣敬老節日的歷史脈絡。網站清楚標示出：神話裡的瘟魔其實是季節轉換的流行病，而茱萸揮發油與菊花抗氧化成分則是植物科學。在五年級的主題活動中，我摺製了一本 8 頁的《家族時光人物誌》，利用課餘時間採訪奶奶年輕時過節的記憶，並教奶奶怎麼用手機語音輸入傳訊息給我。看著奶奶學會新功能時開心的笑容，我真正體會到「陪伴」就是最好的重陽禮物。',
+        challenge: '【起】在資訊發達的現代，我們習慣用網路搜尋一切答案，卻很少靜下心來翻閱家中最珍貴的「活歷史」——我們的阿公阿嬤。這次「九九重陽節的時光任務」結合了六頁時光漫畫與跨世代生命故事採訪，為我開啟了一場難忘的家族尋根之旅。\n【承】我先在網站上完成了漫畫閱讀、排序與五題知識挑戰，掌握了重陽節「日月並陽」的由來、茱萸與菊花的植物防疫原理，以及臺灣「九月九，風吹滿天哮」的季風特色。接著，我依照網站上的步驟指引，將 A3 圖畫紙摺剪成 8 頁小書，擬定五道訪談題目，泡了一壺溫熱的菊花枸杞茶，坐下來專心採訪高齡七十八歲的阿公，聽他講述五十年前在農村削竹篾、用米飯黏報紙做風箏的童年往事。\n【轉】訪談前，我本來以為跟長輩聊天會很有代溝；沒想到當我問起阿公年輕時最得意的事，他的眼睛頓時亮了起來，滔滔不絕地比手畫腳。我還順便執行了「挑戰版」任務，一步步教阿公使用手機的放大鏡與語音輸入功能。那一刻我突然明白：重陽節的「敬老」絕不是一年一次的形式，而是放下我們的３Ｃ螢幕，走進長輩的生命記憶裡。\n【合】看著完成的《家族時光人物誌》小書，裡面有阿公的故事，也有我畫的插圖。這次任務不僅讓我的科學與文化知識滿分，更在我們祖孫心裡種下了「久久長長」的溫暖回憶。'
+      },
+      6: {
+        basic: '在六年級的重陽節任務中，我學會用理性的態度分析傳統文化。古人佩茱萸、吃重陽糕、登高望遠，背後既有祈福諧音，也有秋季養生與植物驅蟲的科學根據。我完成了長輩生命故事小書，還幫外婆設定好手機視訊快捷鍵，外婆誇我長大了！',
+        advanced: '這堂 40 分鐘的「九九重陽節時光任務」設計得非常有深度！漫畫情節帶領我們從東漢桓景的傳說跨越到現代臺灣的高齡社會。我特別喜歡「傳說 vs 科學」的對照表，它讓我們明白傳統習俗並非迷信，而是古人適應自然節氣（寒露至霜降、東北季風增強）的生活智慧結晶。在實作活動中，我不僅完成了草本香包與長輩訪談小書，還和同學討論了臺灣「百歲人瑞金鎖片」與社區關懷據點的意義。面對高齡化社會，我們小學生也能透過傾聽、陪伴與數位教學，成為溫暖的跨世代守護者。',
+        challenge: '【起】農曆九月初九，兩個最大的陽數「九」在此交會，造就了充滿文化底蘊的重陽節。在今天的「九九重陽節時光任務」中，我們不僅透過原創漫畫穿越古今，更在 40 分鐘的挑戰裡，重新思考傳統節慶在現代臺灣社會的全新價值。\n【承】任務一開始，我透過漫畫與排序活動，釐清了《續齊諧記》中桓景登高避疫的傳說，以及植物精油驅蚊抗菌、秋季健行提升心肺功能的科學原理。隨後，我投入「阿公阿嬤的時光膠囊」與草本香包實作：我一邊按比例調配艾草、丁香與紫蘇香囊，一邊整理訪談外公外婆的筆記，將他們以前吃插著五色旗的重陽糕、在秋風中放風箏的記憶，圖文並茂地編排進八頁摺頁小書裡。\n【轉】在對照過去與現在的過程中，我的想法產生了很大的轉變。以前我覺得「敬老尊賢」只是課本上的標語；但當我在挑戰版任務中，耐心地教外婆如何辨識手機裡的詐騙訊息、如何用 LINE 傳送早安貼圖與語音時，我看見外婆從原本害怕按錯鍵的緊張，變成學會後的燦爛笑容。原來，在科技快速變遷的高齡社會裡，幫長輩搭起數位橋樑，就像古人幫家人綁上茱萸香囊一樣，都是最實際的「守護」。\n【合】這次的時光任務讓我收穫了滿分的測驗成績，更收穫了無價的親情連結。期許自己未來能持續用科學的頭腦傳承文化，用溫暖的行動陪伴長輩久久長長！'
+      },
+      7: {
+        basic: '升上國中後再次接觸重陽節，透過這個網站的時光任務，我從生物與理化角度重新認識了茱萸、艾草的揮發性萜類化合物，以及東北季風與風箏升力的關係。我們小組還去觀察社區公園的無障礙坡道，體會到營造高齡友善環境的重要性。',
+        advanced: '「九九重陽節的時光任務」打破了我對節慶教學的刻板印象。網站用六頁漫畫精準串聯了《易經》九六陰陽哲學、南朝《續齊諧記》的民俗文獻，以及現代植物化學與公共衛生觀念。在區分傳說與科學時，我們了解到古人以「佩茱萸、飲菊酒、登高」應對秋季溫差帶來的疫病風險，展現了經驗醫學的雛形。而在七年級的「高齡友善社區觀察」活動中，我實際檢視了學校周邊通學步道的平整度與公園座椅設計，發現真正的重陽敬老不能只停留在發放敬老金，更需要全社會共同打造安全、友善的高齡生活空間。',
+        challenge: '【起】當我們吟誦著古人重陽登高、插茱萸賞菊的詩篇時，是否曾思考過：這些流傳兩千多年的習俗，如何與廿一世紀的科學思維及高齡化社會對話？「九九重陽節的時光任務」透過生動的漫畫與跨領域探究，給了我們極佳的思辨起點。\n【承】在 40 分鐘的課程裡，我迅速完成了六頁漫畫的脈絡排序與五題核心挑戰。從東漢桓景避瘟疫的傳說出發，我們進一步查證了重陽本草的科學機制：原來吳茱萸與艾草富含桉油精、樟腦等揮發性精油，具備良好的天然忌避與抑菌效果；而菊花中的類黃酮與綠原酸則有助於舒緩秋燥。接著，我與小組成員展開「社區高齡友善空間調查」，實地走訪社區公園，測量斜坡角度、座椅扶手高度與行人綠燈秒數。\n【轉】這次實地調查徹底翻轉了我的視角。平時我們青少年走過毫無感覺的階梯、沒有扶手的長椅，或是只有二十秒的馬路號誌，對膝蓋退化、行動緩慢的阿公阿嬤來說，竟然都是阻礙他們出門「登高望遠、健行運動」的隱形高牆！如果社區環境不友善，我們口頭上說再多句「重陽節快樂」，長輩依然只能被困在家中。\n【合】從古人的茱萸香囊到現代的無障礙城市設計，核心精神其實一脈相承——都是為了守護家人的健康與平安。這次任務讓我學會結合科學知識與公民行動，為高齡友善社會盡一份心力。'
+      },
+      8: {
+        basic: '八年級的重陽節任務結合了理化科學與社會觀察。我特別針對重陽草本植物的揮發油成分進行資料整理，並完成了社區公園的高齡設施檢核表。面對臺灣邁入超高齡社會的趨勢，重陽節提醒我們要以具體的環境改善與陪伴來實踐世代共融。',
+        advanced: '這次參與「九九重陽節的時光任務」，讓我從文史、科學與社會學三個維度重新解構了重陽節。在文史方面，從《易經》陽數重疊到臺灣「九月九，風吹滿天哮」的季風民俗，展現了文化因地制宜的演變；在科學方面，我們釐清了古人避「瘟魔」實為秋季流行病預防，並製作了《重陽本草科學圖鑑》與草本香包。最讓我印象深刻的是高齡社區觀察活動，我們發現社區步道缺乏足夠的遮蔭與中途休息座椅，並據此繪製了改善提案海報。這堂課讓我明白，傳統節慶的傳承，完全可以轉化為解決現代社會問題的創新行動！',
+        challenge: '【起】《易經》以「九」為陽數之極，九月初九「日月並陽」，在古人眼中是天地陽氣轉折的重要節點；而在今日的臺灣，因「九九」諧音「久久」，重陽節更成為我們面對高齡化社會一面重要的文化鏡子。\n【承】透過「九九重陽節的時光任務」網站，我依序完成了漫畫邏輯排序、五題傳說與科學辨析，以及八年級進階探究活動。我們不僅親手配製了含有艾草、丁香、紫蘇與陳皮的古法防蚊香囊，從理化角度分析植物精油分子的擴散與忌避原理；更拿著檢核表走進社區，針對長者常去的公園與市場周邊，進行無障礙坡道、照明字體大小與數位服務友善度的全面盤點，並完成了改善設計圖。\n【轉】在整理調查資料時，我產生了深刻的反思：過去我們常把「傳統文化」當成博物館裡的歷史標本，認為插茱萸、吃重陽糕只是古人的儀式；然而，當我把東漢桓景「防範秋疫、保護家人」的初衷，對照今日我們為長者改善步道安全、防範登革熱病媒蚊與消除數位落差的行動時，才驚覺古今的智慧其實緊密相連。迷信會隨著科學進步而退場，但對生命的敬重與對長者的關懷卻歷久彌新。\n【合】40 分鐘的時光任務雖然結束了，但我們小組提出的社區高齡友善建議才正要開始發酵。期許自己能帶著這份科學素養與人文關懷，成為推動世代共融的實踐者！'
+      },
+      9: {
+        basic: '作為九年級學生，這次重陽節時光任務讓我整合了國文典故、地球科學（東北季風）、生物化學（植物精油與抗氧化）與公民科的超高齡社會議題。我們完成了社區高齡友善空間改善提案，體會到真正的「敬老」需要制度設計與日常陪伴雙管齊下。',
+        advanced: '「九九重陽節的時光任務」以精煉的六頁漫畫與嚴謹的探究架構，帶領我們進行了一場跨領域的深度學習。從《續齊諧記》桓景登高避疫的文學典故，到解析寒露、霜降節氣交替下的公共衛生與植物化學原理，網站清楚劃分了「神話想像」與「實證科學」的界線。在九年級挑戰版活動中，我們結合臺灣邁入超高齡社會（65歲以上人口占比突破 20%）的統計趨勢，針對社區長者活動空間與數位落差提出具體策展方案。這次任務讓我深刻體悟：重陽節的「登高望遠」，在現代更代表我們青年世代應站上更高的公民視野，為長者打造久久安康的未來。',
+        challenge: '【起】臺灣已正式邁入「超高齡社會」，每五個人之中就有一位是六十五歲以上的長者。在這樣的時代背景下，重新開啟「九九重陽節的時光任務」，讓農曆九月初九不再只是國文課本裡的詩詞考題，而是一堂結合文化溯源、科學實證與公民行動的思辨課。\n【承】課程中，我們透過六頁原創漫畫快速掌握了《易經》陽數哲學、東漢桓景避疫傳說，以及臺灣因秋季東北季風盛行而發展出「九月九，風吹滿天哮」的在地風土。在探究實作階段，我們一方面利用天然草本植物製作防蚊香囊，驗證芳香萜類化合物的生物防治功效；另一方面則以公民素養為核心，實地勘查社區通學步道與長青活動中心，結合人口老化數據，繪製出《高齡友善社區空間與數位共融改善提案》。\n【轉】在撰寫提案與訪談家中長輩的過程中，我經歷了一次重要的思維躍遷。以前我總覺得政府發放重陽敬老禮金或致贈百歲人瑞金鎖片，就已經完成了敬老工作；但深入探究後才發現，高齡長者最迫切面臨的是「行動空間受限」與「社會孤立感」。古人重陽登高是為了強身避疫，而我們今日推動無障礙環境、教導長輩使用數位工具、傾聽他們的生命故事，正是幫助長輩跨越身體與科技的高牆，重新與社會溫暖連結。\n【合】傳說會老去，但愛與科學會不斷進化。透過這次時光任務，我學會以理性拆解迷思、以溫情實踐敬老，這正是我們九年級學生送給重陽節最成熟的禮物！'
+      }
+    };
+
+    let currentSampleLevel = 'challenge';
+
+    function setSampleLevel(level) {
+      currentSampleLevel = level;
+      ['basic', 'advanced', 'challenge'].forEach(lv => {
+        const btn = document.getElementById(`levelBtn-${lv}`);
+        if (lv === level) {
+          btn.className = 'sample-level-btn py-1.5 px-3 rounded-lg text-xs font-bold bg-amber-700 text-white shadow';
+        } else {
+          btn.className = 'sample-level-btn py-1.5 px-3 rounded-lg text-xs font-bold border border-amber-300 bg-white text-amber-900';
+        }
+      });
+      renderSampleEssay();
+    }
+
+    function renderSampleEssay() {
+      const grade = document.getElementById('sampleGradeSelect').value;
+      const text = sampleEssaysDB[grade][currentSampleLevel];
+      const levelNames = {
+        basic: '基礎版（約100～145字）',
+        advanced: '進階版（約200～295字）',
+        challenge: '挑戰版（起承轉合四段，約350～500字）'
+      };
+
+      document.getElementById('sampleHeaderTitle').textContent = `${grade} 年級｜${levelNames[currentSampleLevel]}`;
+      const pureLength = text.replace(/\n/g, '').length;
+      document.getElementById('sampleCharCountBadge').textContent = `範文字數：${pureLength} 字`;
+
+      const paragraphs = text.split('\n').map(p => `<p>${p}</p>`).join('');
+      document.getElementById('sampleEssayBody').innerHTML = paragraphs;
+
+      const hintBox = document.getElementById('sampleStructureHint');
+      if (currentSampleLevel === 'challenge') {
+        hintBox.innerHTML = '<strong>📌 挑戰版「起承轉合」寫作秘訣：</strong><br>【起】點出重陽節由來或節氣契機 → 【承】描寫漫畫學習與手作香包/訪談長輩過程 → 【轉】對比傳說與科學，或寫出自己的想法轉變 → 【合】總結收穫並許下具體敬老承諾。';
+      } else if (currentSampleLevel === 'advanced') {
+        hintBox.innerHTML = '<strong>📌 進階版寫作秘訣：</strong>清楚寫出「傳說 vs 科學」的一個發現，並結合今天動手做活動與家人的互動感受。';
+      } else {
+        hintBox.innerHTML = '<strong>📌 基礎版寫作秘訣：</strong>寫出今天印象最深刻的一個重陽節知識，以及你想對阿公阿嬤說的祝福或行動。';
+      }
+    }
+
+    function updateEssayCharCount() {
+      const val = document.getElementById('studentEssayInput').value;
+      document.getElementById('essayCharCounter').textContent = `目前字數：${val.length} / 500 字`;
+    }
+
+    function insertStructureTemplate() {
+      const textarea = document.getElementById('studentEssayInput');
+      const tpl = `【起】今天在「九九重陽節的時光任務」中，我認識了\n【承】在實作活動與漫畫挑戰裡，我動手做了\n【轉】以前我以為重陽節只是傳說，了解科學原理後我發現\n【合】經過這次任務，回家後我要實際為長輩做的一件事是`;
+      textarea.value = (textarea.value ? textarea.value + '\n' + tpl : tpl).slice(0, 500);
+      updateEssayCharCount();
+      showToast('✨ 已為您插入【起承轉合】四段寫作提示框架！');
+    }
+
+    function submitStudentEssay() {
+      const text = document.getElementById('studentEssayInput').value.trim();
+      const statusBox = document.getElementById('essaySaveStatus');
+      const classInput = document.getElementById('studentClassInput');
+      const classSeat = classInput ? classInput.value.trim() : '';
+
+      if (text.length < 15) {
+        statusBox.className = 'p-3 rounded-xl text-xs font-bold bg-red-100 text-red-900 border border-red-300';
+        statusBox.textContent = '⚠️ 請至少輸入 15 個字以上的心得再提交喔！';
+        statusBox.classList.remove('hidden');
+        return;
+      }
+
+      if (!classSeat) {
+        statusBox.className = 'p-3 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300';
+        statusBox.textContent = `📝 已完成心得練習（共 ${text.length} 字）！若要正式記錄至全班成績單，請在頂端輸入「班級座號」後再次點擊儲存。`;
+        statusBox.classList.remove('hidden');
+        return;
+      }
+
+      saveStudentProgress({ essay: text });
+      statusBox.className = 'p-3 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300';
+      statusBox.textContent = `✅ 座號【${classSeat}】的重陽節學習心得（共 ${text.length} 字）已成功記錄！`;
+      statusBox.classList.remove('hidden');
+    }
+
+    // ==================== 6. 資料庫儲存邏輯 ====================
+    function getDB() {
+      const raw = localStorage.getItem(DB_KEY);
+      if (!raw) {
+        const initialDB = getInitialDemoDB();
+        localStorage.setItem(DB_KEY, JSON.stringify(initialDB));
+        return initialDB;
+      }
+      try {
+        return JSON.parse(raw);
+      } catch (e) {
+        return getInitialDemoDB();
+      }
+    }
+
+    function saveDB(db) {
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+    }
+
+    function getInitialDemoDB() {
+      return {
+        records: [
+          {
+            time: '10:15',
+            grade: '6',
+            classSeat: '601-08',
+            name: '林小晴(示範)',
+            sortStatus: '已完成(6/6)',
+            quizFirstScore: 80,
+            quizAttempts: 2,
+            quizScore: '初測: 80分 ｜ 重測: 100分 (第2次)',
+            essay: '【起】農曆九月初九兩九相重稱為重陽。【承】我今天完成了防蚊草本香包與長輩訪談小書。【轉】原來瘟魔是傳說，植物精油驅蚊與秋季登高提升免疫力才是科學！【合】回家後我泡了菊花茶陪阿嬤聊天，祝阿嬤健康久久！'
+          },
+          {
+            time: '10:18',
+            grade: '3',
+            classSeat: '302-12',
+            name: '陳阿哲(示範)',
+            sortStatus: '已完成(6/6)',
+            quizFirstScore: 80,
+            quizAttempts: 1,
+            quizScore: '80分 (第1次)',
+            essay: '今天我學會用電子秤量艾草和丁香做防蚊香包，還知道「九月九，風吹滿天哮」是因為臺灣秋天吹東北季風適合放風箏。我要把香包送給阿公！'
+          }
+        ],
+        learningFeedback: [
+          { q1: 5, q2: '3D雙關卡互動遊戲', q3: '泡菊花茶並陪伴長輩聊天傾聽' },
+          { q1: 5, q2: '手作防蚊草本香包與風箏探究', q3: '贈送手作防蚊草本香包關心長輩健康' },
+          { q1: 4, q2: '六頁原創漫畫', q3: '耐心教導家中長輩使用手機實用功能' }
+        ],
+        siteFeedback: [
+          { rating: 5, device: '平板電腦 (iPad / Android Tablet)', comment: '漫畫很清楚，27篇範文切換幫助我學會寫起承轉合！' },
+          { rating: 5, device: '桌上型電腦 / 筆記型電腦', comment: '40分鐘倒數計時器很實用，排序遊戲很好玩。' }
+        ]
+      };
+    }
+
+    // 儲存邏輯：只要有填「班級座號」即記錄，姓名可不填；沒有填座號則不記錄
+    function saveStudentProgress(partial) {
+      const classInput = document.getElementById('studentClassInput');
+      const nameInput = document.getElementById('studentNameInput');
+      const classSeat = classInput ? classInput.value.trim() : '';
+      const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : '（未填姓名）';
+
+      if (!classSeat) return;
+
+      const db = getDB();
+      const grade = document.getElementById('globalGradeSelect').value;
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      let existing = db.records.find(r => r.classSeat === classSeat);
+      if (existing) {
+        existing.time = timeStr;
+        existing.grade = grade;
+        if (nameInput && nameInput.value.trim()) existing.name = nameInput.value.trim();
+        if (partial.sortStatus !== undefined) existing.sortStatus = partial.sortStatus;
+        if (partial.quizScore !== undefined) {
+          if (existing.quizAttempts === undefined) {
+            if (typeof existing.quizScore === 'number') {
+              existing.quizFirstScore = existing.quizScore;
+              existing.quizAttempts = 1;
+            } else {
+              existing.quizFirstScore = undefined;
+              existing.quizAttempts = 0;
+            }
+          }
+
+          existing.quizAttempts = (existing.quizAttempts || 0) + 1;
+          if (existing.quizAttempts === 1 || existing.quizFirstScore === undefined) {
+            existing.quizFirstScore = partial.quizScore;
+            existing.quizScore = `${partial.quizScore}分 (第1次)`;
+          } else {
+            existing.quizScore = `初測: ${existing.quizFirstScore}分 ｜ 重測: ${partial.quizScore}分 (第${existing.quizAttempts}次)`;
+          }
+        }
+        if (partial.essay !== undefined) existing.essay = partial.essay;
+      } else {
+        const hasQuiz = partial.quizScore !== undefined;
+        db.records.unshift({
+          time: timeStr,
+          grade,
+          classSeat,
+          name,
+          sortStatus: partial.sortStatus || (isSortPassed ? '已完成(6/6)' : '進行中'),
+          quizFirstScore: hasQuiz ? partial.quizScore : undefined,
+          quizAttempts: hasQuiz ? 1 : 0,
+          quizScore: hasQuiz ? `${partial.quizScore}分 (第1次)` : '-',
+          essay: partial.essay || '（尚未提交心得）'
+        });
+      }
+      saveDB(db);
+      renderTeacherTable();
+    }
+
+    function submitLearningFeedback() {
+      const db = getDB();
+      const q1 = parseInt(document.getElementById('fbLearnQ1').value, 10);
+      const q2 = document.getElementById('fbLearnQ2').value;
+      const q3 = document.getElementById('fbLearnQ3').value;
+      db.learningFeedback.push({ q1, q2, q3 });
+      saveDB(db);
+      renderFeedbackStats();
+      showToast('✅ 感謝你的【重陽節學習回饋】！已納入全班統計圖表。');
+    }
+
+    function submitSiteFeedback() {
+      const db = getDB();
+      const rating = parseInt(document.getElementById('fbSiteRating').value, 10);
+      const device = document.getElementById('fbSiteDevice').value;
+      const comment = document.getElementById('fbSiteComment').value.trim() || '操作順暢！';
+      db.siteFeedback.push({ rating, device, comment });
+      saveDB(db);
+      document.getElementById('fbSiteComment').value = '';
+      renderFeedbackStats();
+      showToast('✅ 感謝你的【網站使用心得回饋】！');
+    }
+
+    function renderFeedbackStats() {
+      const db = getDB();
+      const learnList = db.learningFeedback;
+      const siteList = db.siteFeedback;
+
+      const avgClarity = learnList.length
+        ? (learnList.reduce((acc, cur) => acc + cur.q1, 0) / learnList.length).toFixed(1)
+        : '5.0';
+
+      const avgSiteRating = siteList.length
+        ? (siteList.reduce((acc, cur) => acc + cur.rating, 0) / siteList.length).toFixed(1)
+        : '5.0';
+
+      const latestComments = siteList.slice(-3).reverse().map(s => `
+        <li class="text-xs bg-amber-50 p-2 rounded border border-amber-200">
+          <span class="font-bold text-amber-900">[${s.device}]</span> ${s.comment}
+        </li>
+      `).join('');
+
+      document.getElementById('feedbackStatsPanel').innerHTML = `
+        <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+          <span class="text-xs font-bold text-amber-800">傳說 vs 科學理解度平均</span>
+          <div class="text-3xl font-black text-amber-950 mt-1">${avgClarity} <span class="text-sm font-bold text-gray-500">/ 5.0 分</span></div>
+          <p class="text-xs text-gray-600 mt-1">累計學習回饋數：${learnList.length} 筆</p>
+        </div>
+        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+          <span class="text-xs font-bold text-emerald-800">網站操作體驗滿意度</span>
+          <div class="text-3xl font-black text-emerald-950 mt-1">${avgSiteRating} <span class="text-sm font-bold text-gray-500">/ 5.0 星</span></div>
+          <p class="text-xs text-gray-600 mt-1">累計網站使用心得：${siteList.length} 筆</p>
+        </div>
+        <div class="p-4 rounded-xl bg-white border border-gray-200">
+          <span class="text-xs font-bold text-gray-700 block mb-2">💬 最新網站使用心得留言：</span>
+          <ul class="space-y-1.5">${latestComments}</ul>
+        </div>
+      `;
+    }
+
+    // ==================== 7. 教師管理後台 ====================
+    function simpleHash(str) {
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+      }
+      return (h >>> 0).toString(16);
+    }
+
+    const SUPER_ADMIN_PASS = 'fortran';
+    const DEFAULT_TEACHER_CODE = 'teacher99';
+    let isSuperAdminSession = false;
+
+    function saveNewTeacherCodeBySuper() {
+      if (!isSuperAdminSession) {
+        showToast('⚠️ 僅限最高管理員可設定教師密碼！');
+        return;
+      }
+      const input = document.getElementById('newTeacherCodeInput');
+      const msg = document.getElementById('superCodeSaveMsg');
+      const newCode = input ? input.value.trim() : '';
+      if (!newCode || newCode.length < 4) {
+        showToast('⚠️ 新教師代碼長度請至少設定 4 碼以上！');
+        return;
+      }
+      localStorage.setItem(TEACHER_HASH_KEY, simpleHash(newCode));
+      if (input) input.value = '';
+      if (msg) {
+        msg.textContent = '✅ 教師代碼更新成功！';
+        msg.classList.remove('hidden');
+        setTimeout(() => msg.classList.add('hidden'), 3500);
+      }
+      showToast('✅ 教師管理代碼已成功更新！一般教師可以此新代碼登入。');
+    }
+
+    function lockTeacherPanel() {
+      isSuperAdminSession = false;
+      document.getElementById('teacherLockedNotice').classList.remove('hidden');
+      document.getElementById('teacherUnlockedContent').classList.add('hidden');
+      const superBanner = document.getElementById('superAdminSettingsBanner');
+      if (superBanner) superBanner.classList.add('hidden');
+      const input = document.getElementById('teacherAuthInput');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      showToast('🔒 教師後台已成功鎖定。');
+    }
+
+    function unlockTeacherPanel() {
+      const inputEl = document.getElementById('teacherAuthInput');
+      const inputVal = inputEl ? inputEl.value.trim() : '';
+      if (!inputVal) {
+        showToast('⚠️ 請輸入管理代碼！');
+        return;
+      }
+
+      const superBanner = document.getElementById('superAdminSettingsBanner');
+      const normalLogoutBtn = document.getElementById('normalTeacherLogoutBtn');
+      
+      if (inputVal === SUPER_ADMIN_PASS) {
+        isSuperAdminSession = true;
+        document.getElementById('teacherLockedNotice').classList.add('hidden');
+        document.getElementById('teacherUnlockedContent').classList.remove('hidden');
+        if (superBanner) superBanner.classList.remove('hidden');
+        if (normalLogoutBtn) normalLogoutBtn.classList.add('hidden');
+        inputEl.value = '';
+        renderTeacherTable();
+        showToast('👑 最高管理者身分驗證成功！已解鎖「設定教師代碼」權限。');
+        setTimeout(() => {
+          const newCodeInput = document.getElementById('newTeacherCodeInput');
+          if (newCodeInput) newCodeInput.focus();
+        }, 150);
+        return;
+      }
+
+      const savedTeacherHash = localStorage.getItem(TEACHER_HASH_KEY);
+      const isTeacherValid = savedTeacherHash 
+        ? simpleHash(inputVal) === savedTeacherHash 
+        : inputVal === DEFAULT_TEACHER_CODE;
+
+      if (isTeacherValid) {
+        isSuperAdminSession = false;
+        document.getElementById('teacherLockedNotice').classList.add('hidden');
+        document.getElementById('teacherUnlockedContent').classList.remove('hidden');
+        if (superBanner) superBanner.classList.add('hidden');
+        if (normalLogoutBtn) normalLogoutBtn.classList.remove('hidden');
+        inputEl.value = '';
+        renderTeacherTable();
+        showToast('🔓 教師登入成功！已解鎖成績查看與匯出功能。');
+        return;
+      }
+
+      showToast('❌ 管理代碼不正確！');
+    }
+
+    function renderTeacherTable() {
+      const tbody = document.getElementById('teacherRecordsTableBody');
+      if (!tbody) return;
+      const db = getDB();
+      if (db.records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400">目前尚無學生作答紀錄</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = db.records.map(r => `
+        <tr class="hover:bg-amber-50/50">
+          <td class="p-3 font-mono text-xs text-gray-500">${r.time}</td>
+          <td class="p-3 font-bold">${r.grade}年級</td>
+          <td class="p-3 font-semibold">${r.classSeat}</td>
+          <td class="p-3 font-bold text-amber-950">${r.name}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">${r.sortStatus}</span></td>
+          <td class="p-3 font-black text-amber-800">${r.quizScore}</td>
+          <td class="p-3 max-w-md text-xs text-gray-700 leading-relaxed">${r.essay}</td>
+        </tr>
+      `).join('');
+    }
+
+    function exportRecordsCSV() {
+      const db = getDB();
+      let csv = '\uFEFF時間,年級,班級座號,姓名,排序狀態,五題挑戰分數,學生500字心得\n';
+      db.records.forEach(r => {
+        const cleanEssay = (r.essay || '').replace(/"/g, '""').replace(/\n/g, ' ');
+        csv += `"${r.time}","${r.grade}年級","${r.classSeat}","${r.name}","${r.sortStatus}","${r.quizScore}","${cleanEssay}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '九九重陽節時光任務_全班成績與心得.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function resetDemoData() {
+      localStorage.setItem(DB_KEY, JSON.stringify(getInitialDemoDB()));
+      renderTeacherTable();
+      renderFeedbackStats();
+      showToast('🔄 已重新載入示範學生資料！');
+    }
+
+    function clearAllStudentData() {
+      saveDB({ records: [], learningFeedback: [], siteFeedback: [] });
+      renderTeacherTable();
+      renderFeedbackStats();
+      showToast('🗑️ 已清空所有學生作答與回饋紀錄！');
+    }
+
+    // ==================== 8. 40 分鐘倒數計時器與分頁切換 ====================
+    let remainingSeconds = 40 * 60;
+    let timerInterval = null;
+
+    function updateTimerUI() {
+      const mins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+      const secs = String(remainingSeconds % 60).padStart(2, '0');
+      const display = document.getElementById('timerDisplay');
+      display.textContent = `${mins}:${secs}`;
+      if (remainingSeconds <= 300) {
+        display.className = 'font-mono text-lg md:text-xl font-black text-red-400 animate-pulse tracking-wider';
+      } else {
+        display.className = 'font-mono text-lg md:text-xl font-black text-amber-300 tracking-wider';
+      }
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('timerToggleBtn');
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.textContent = '繼續';
+      } else {
+        timerInterval = setInterval(() => {
+          if (remainingSeconds > 0) {
+            remainingSeconds--;
+            updateTimerUI();
+          } else {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            btn.textContent = '時間到';
+            showToast('⏰ 40 分鐘的「九九重陽節時光任務」時間到囉！請記得儲存你的五題成績與學習心得！');
+          }
+        }, 1000);
+        btn.textContent = '暫停';
+      }
+    }
+
+    function resetTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      remainingSeconds = 40 * 60;
+      document.getElementById('timerToggleBtn').textContent = '開始';
+      updateTimerUI();
+    }
+
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+      const targetSec = document.getElementById(`section-${tabKey}`);
+      if (targetSec) targetSec.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (!btn.classList.contains('border-amber-500/40')) {
+          btn.classList.remove('tab-active');
+          btn.classList.add('text-amber-100');
+        }
+      });
+      const activeBtn = document.getElementById(`tabBtn-${tabKey}`);
+      if (activeBtn) {
+        activeBtn.classList.add('tab-active');
+        activeBtn.classList.remove('text-amber-100');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function syncGradeSelection(gradeVal) {
+      document.getElementById('sampleGradeSelect').value = gradeVal;
+      renderSampleEssay();
+      selectActivityGrade(parseInt(gradeVal, 10));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadSavedBgTheme();
+      renderComicPage();
+      shuffleSortItems();
+      renderQuiz();
+      renderActivityGradeTabs();
+      renderActivityDetail();
+      renderSampleEssay();
+      renderFeedbackStats();
+      renderTeacherTable();
+      // 預設進入海報首頁
+      switchTab('poster');
+    });
+  </script>
+</body>
+</html>
